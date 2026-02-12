@@ -1,6 +1,5 @@
 :root {
     --brand: #0c8f98;
-    /* AskDocPH teal */
     --brand-2: #0a7f87;
     --bg: #f6f9fc;
     --panel: #ffffff;
@@ -14,15 +13,13 @@ body {
     background: var(--bg);
 }
 
-/* Hide the login topbar on dashboard (if you want) */
 .topbar {
     display: none;
 }
 
-.dash {
-    min-height: 100vh;
-}
+/* hides login topbar */
 
+/* Top bar */
 .dash-topbar {
     position: sticky;
     top: 0;
@@ -32,56 +29,34 @@ body {
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 0 24px;
 }
 
-.dash-brand {
+.brand {
     display: flex;
     align-items: center;
-    gap: 12px;
-    min-width: 220px;
 }
 
-.brand-badge {
-    width: 42px;
-    height: 42px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--brand), #5dd3d8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-}
-
-.brand-badge svg {
-    width: 20px;
-    height: 20px;
-}
-
-.brand-name {
-    font-weight: 900;
-    font-size: 20px;
-    color: var(--brand-2);
+.logo {
+    height: 30px;
 }
 
 .dash-search {
     flex: 1;
     max-width: 680px;
-
     display: flex;
     align-items: center;
     gap: 10px;
-
     background: #f1f6fb;
     border: 1px solid var(--border);
     border-radius: 999px;
     padding: 10px 14px;
 
-    margin-left: 718px;
-    /* ← pushes it closer to message icon */
+    margin-left: 16px;
+    /* move a little right */
+    margin-right: 10px;
+    /* keep close to message icon */
 }
-
 
 .dash-search svg {
     width: 18px;
@@ -98,11 +73,10 @@ body {
 }
 
 .dash-actions {
+    margin-left: auto;
     display: flex;
     align-items: center;
     gap: 12px;
-    min-width: 220px;
-    justify-content: flex-end;
 }
 
 .icon-btn {
@@ -139,6 +113,7 @@ body {
     border: 2px solid #fff;
 }
 
+/* Avatar */
 .avatar {
     width: 40px;
     height: 40px;
@@ -164,6 +139,7 @@ body {
     height: 44px;
 }
 
+/* Layout */
 .dash-body {
     display: grid;
     grid-template-columns: 300px 1fr;
@@ -178,6 +154,7 @@ body {
     box-shadow: var(--shadow);
 }
 
+/* Left */
 .dash-left {
     display: flex;
     flex-direction: column;
@@ -192,7 +169,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 12px;
+    padding: 12px;
     border-radius: 12px;
     text-decoration: none;
     color: var(--text);
@@ -236,16 +213,11 @@ body {
     color: var(--brand);
 }
 
-.mini-text {
+.mini-text,
+.mini-sub {
     color: #4b5563;
     line-height: 1.6;
     font-size: 13px;
-}
-
-.mini-sub {
-    color: #4b5563;
-    font-size: 13px;
-    margin: 6px 0 12px;
 }
 
 .danger .mini-title svg {
@@ -261,12 +233,14 @@ body {
     color: #fff;
     background: #ef4444;
     cursor: pointer;
+    margin-top: 12px;
 }
 
 .danger-btn:hover {
     background: #dc2626;
 }
 
+/* Main */
 .dash-main {
     display: flex;
     flex-direction: column;
@@ -297,9 +271,8 @@ body {
 .composer-bottom {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-top: 12px;
     gap: 12px;
+    margin-top: 12px;
     flex-wrap: wrap;
 }
 
@@ -440,8 +413,7 @@ body {
     margin-left: auto;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
+@media (max-width:1024px) {
     .dash-body {
         grid-template-columns: 1fr;
     }

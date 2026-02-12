@@ -12,8 +12,8 @@
   {{-- Top bar --}}
   <header class="dash-topbar">
     <div class="brand">
-    <img src="{{ asset('assets/img/AskDocPH.png') }}" class="logo">
-  </div>
+      <img src="{{ asset('assets/img/AskDocPH.png') }}" class="logo" alt="AskDocPH">
+    </div>
 
     <div class="dash-search">
       <i data-lucide="search"></i>
@@ -30,8 +30,9 @@
         <span class="dot"></span>
       </button>
 
+      {{-- Logged-in user avatar (default image for now) --}}
       <div class="avatar" title="Profile">
-        <img src="https://i.pravatar.cc/80?img=32" alt="User" />
+        <img src="{{ asset('assets/img/default.png') }}" alt="User" />
       </div>
     </div>
   </header>
@@ -76,9 +77,7 @@
           <span>Crisis Support</span>
         </div>
         <p class="mini-sub">If you're in crisis, help is available 24/7</p>
-        <button class="danger-btn" type="button">
-          Get Help Now
-        </button>
+        <button class="danger-btn" type="button">Get Help Now</button>
       </div>
     </aside>
 
@@ -89,7 +88,7 @@
       <div class="panel composer">
         <div class="composer-top">
           <div class="avatar sm">
-            <img src="https://i.pravatar.cc/80?img=32" alt="User" />
+            <img src="{{ asset('assets/img/default.png') }}" alt="User" />
           </div>
           <textarea placeholder="Share your thoughts, feelings, or progress..."></textarea>
         </div>
@@ -115,7 +114,7 @@
       <article class="panel post">
         <div class="post-head">
           <div class="avatar md">
-            <img src="https://i.pravatar.cc/80?img=47" alt="Doctor" />
+            <img src="{{ asset('assets/img/default.png') }}" alt="Doctor" />
           </div>
           <div class="post-meta">
             <div class="post-name">
@@ -160,7 +159,7 @@
       <article class="panel post">
         <div class="post-head">
           <div class="avatar md">
-            <img src="https://i.pravatar.cc/80?img=12" alt="User" />
+            <img src="{{ asset('assets/img/default.png') }}" alt="User" />
           </div>
           <div class="post-meta">
             <div class="post-name">Michael Chen</div>

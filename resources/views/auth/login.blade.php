@@ -45,9 +45,8 @@
           />
 
           <button type="button" class="toggle" id="togglePass" aria-label="Show password">
-  <i data-lucide="eye"></i>
-</button>
-
+            <i data-lucide="eye"></i>
+          </button>
         </div>
         @error('password')
           <p class="error">{{ $message }}</p>
@@ -62,6 +61,11 @@
         </div>
 
         <button type="submit" class="btn primary">Sign In</button>
+        <p class="switch">
+          Don’t have an account?
+          <a href="{{ route('signup') }}">Create Account</a>
+        </p>
+
       </form>
     </div>
   </section>

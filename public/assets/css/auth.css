@@ -257,3 +257,40 @@ h1 {
 .toggle:active i {
     transform: scale(0.85);
 }
+
+.hidden {
+    display: none;
+}
+
+.switch {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.switch-btn {
+    border: none;
+    background: none;
+    color: var(--teal);
+    font-weight: 800;
+    cursor: pointer;
+    padding: 0;
+}
+
+.switch {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.switch a {
+    color: var(--teal);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.switch a:hover {
+    text-decoration: underline;
+}

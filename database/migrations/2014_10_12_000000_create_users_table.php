@@ -16,6 +16,9 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
 
+            // ✅ ADD THIS
+            $table->string('profile_photo')->default('profiles/default.png');
+
             // Your fields
             $table->string('username')->unique()->nullable();
             $table->string('fname');
@@ -28,8 +31,8 @@ return new class extends Migration
             $table->enum('doctor_status', ['none', 'pending', 'approved', 'rejected'])->default('none');
 
             $table->rememberToken();
-            $table->timestamps();
-        });
+            $table->timestamps();        });
+
     }
 
     public function down(): void
