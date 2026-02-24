@@ -8,22 +8,18 @@
 
 @section('content')
 @php
-  $user = auth()->user();
+  $user = Auth::user();
 
-  // Profile picture path from DB (change column if needed)
+  // Change this to your actual column name if different (avatar, photo, image, etc.)
   $avatarPath = $user->profile_picture ?? null;
-
-  // Safe startsWith for older PHP
-  $isUrl = $avatarPath && preg_match('/^https?:\/\//i', $avatarPath);
 
   // If you store in storage/app/public, run: php artisan storage:link
   $avatarUrl = $avatarPath
-    ? ($isUrl ? $avatarPath : asset('storage/' . ltrim($avatarPath, '/')))
+    ? (str_starts_with($avatarPath, 'http') ? $avatarPath : asset('storage/' . ltrim($avatarPath, '/')))
     : asset('assets/img/default.png');
 
   $fullName = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
   $fullName = $fullName !== '' ? $fullName : ($user->name ?? 'User');
-
   $username = $user->username ?? 'username';
 @endphp
 
@@ -60,7 +56,7 @@
           aria-haspopup="true"
           aria-expanded="false"
         >
-          <img src="{{ $avatarUrl }}" alt="User Avatar" />
+          <img src="{{ $avatarUrl }}" alt="User" />
           <div class="avatar-meta">
             <div class="avatar-name">{{ $fullName }}</div>
             <div class="avatar-username">{{ '@' . $username }}</div>
@@ -69,32 +65,36 @@
         </button>
 
         <div class="dropdown-menu" id="profileDropdown" aria-labelledby="profileToggle">
-          <div class="dropdown-profile">
-            <div class="dropdown-avatar">
-              <img src="{{ $avatarUrl }}" alt="User Avatar" />
-            </div>
-            <div class="dropdown-info">
-              <div class="profile-fullname">{{ $fullName }}</div>
-              <div class="profile-username">{{ '@' . $username }}</div>
-            </div>
-          </div>
 
-          {{-- Theme toggle --}}
-          <button type="button" class="dropdown-item" id="themeToggleBtn">
-            <i data-lucide="moon"></i>
-            <span>Dark mode</span>
-          </button>
+  <a href="{{ route('profile.show', Auth::id()) }}" class="dropdown-profile-link">
+    <div class="dropdown-profile">
+      <div class="dropdown-avatar">
+        <img src="{{ $avatarUrl }}" alt="User" />
+      </div>
+      <div class="dropdown-info">
+        <div class="profile-fullname">{{ $fullName }}</div>
+        <div class="profile-username">{{ '@' . $username }}</div>
+      </div>
+    </div>
+  </a>
 
-          <hr class="dropdown-divider">
+  {{-- Theme toggle --}}
+  <button type="button" class="dropdown-item" id="themeToggleBtn">
+    <i data-lucide="moon"></i>
+    <span>Dark mode</span>
+  </button>
 
-          <form method="POST" action="{{ route('logout') }}" class="logout-form">
-            @csrf
-            <button type="submit" class="dropdown-logout">
-              <i data-lucide="log-out"></i>
-              <span>Logout</span>
-            </button>
-          </form>
-        </div>
+  <hr class="dropdown-divider">
+
+  <form method="POST" action="{{ route('logout') }}" class="logout-form">
+    @csrf
+    <button type="submit" class="dropdown-logout">
+      <i data-lucide="log-out"></i>
+      <span>Logout</span>
+    </button>
+  </form>
+
+</div>
       </div>
     </div>
   </header>
@@ -150,7 +150,7 @@
       <div class="panel composer">
         <div class="composer-top">
           <div class="avatar sm">
-            <img src="{{ $avatarUrl }}" alt="User Avatar" />
+            <img src="{{ $avatarUrl }}" alt="User" />
           </div>
           <textarea placeholder="Share your thoughts, feelings, or progress..."></textarea>
         </div>
@@ -185,7 +185,7 @@
                 <i data-lucide="badge-check"></i>
               </span>
             </div>
-            <div class="post-sub">Clinical Psychologist | Anxiety &amp; Depression Specialist</div>
+            <div class="post-sub">Clinical Psychologist | Anxiety & Depression Specialist</div>
           </div>
           <div class="post-time">• 2 hours ago</div>
         </div>

@@ -23,3 +23,8 @@ Route::post('/signup-ajax', [AuthController::class , 'signupAjax'])->name('signu
 // Dashboard
 Route::view('/userdashboard', 'userdashboard')->middleware('auth')->name('user.dashboard');
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth');
+
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile/{id}', [ProfileController::class, 'show'])->name('profile.show');
+});

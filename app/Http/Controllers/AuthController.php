@@ -127,3 +127,12 @@ public function signupAjax(Request $request)
     }
 
 }
+
+class ProfileController extends Controller
+{
+    public function show($id)
+    {
+        $user = User::findOrFail($id);
+        return view('profile.show', compact('user'));
+    }
+}

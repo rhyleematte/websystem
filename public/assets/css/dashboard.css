@@ -571,3 +571,18 @@ html.theme-dark .tag{ color:var(--text); }
   background:#fee2e2;
   color:#7f1d1d;
 }
+
+.dropdown-profile-link{
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  border-radius: 12px;
+}
+
+.dropdown-profile-link:hover{
+  background: var(--hover);
+}
+
+.dropdown-profile{
+  cursor: pointer;
+}

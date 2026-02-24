@@ -1,13 +1,14 @@
+// public/assets/js/dashboard.js
 document.addEventListener("DOMContentLoaded", () => {
   if (window.lucide) lucide.createIcons();
 
-  const root = document.documentElement; // <html>
+  const root = document.documentElement;
 
-  // Dropdown elements
+  // Dropdown (chevron button)
   const toggle = document.getElementById("profileToggle");
   const menu = document.getElementById("profileDropdown");
 
-  // Theme button
+  // Theme toggle button (inside dropdown)
   const themeBtn = document.getElementById("themeToggleBtn");
 
   // Load saved theme
@@ -23,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (label) label.textContent = isDark ? "Light mode" : "Dark mode";
     if (icon) icon.setAttribute("data-lucide", isDark ? "sun" : "moon");
+
     if (window.lucide) lucide.createIcons();
   };
 
@@ -37,20 +39,28 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Dropdown open/close
   if (!toggle || !menu) return;
 
-  const setOpen = (open) => {
-    menu.classList.toggle("open", open);
-    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+  const openMenu = () => {
+    menu.classList.add("open");
+    toggle.setAttribute("aria-expanded", "true");
+  };
+
+  const closeMenu = () => {
+    menu.classList.remove("open");
+    toggle.setAttribute("aria-expanded", "false");
   };
 
   toggle.addEventListener("click", (e) => {
     e.stopPropagation();
-    setOpen(!menu.classList.contains("open"));
+    menu.classList.contains("open") ? closeMenu() : openMenu();
+    if (window.lucide) lucide.createIcons();
   });
 
   menu.addEventListener("click", (e) => e.stopPropagation());
-  document.addEventListener("click", () => setOpen(false));
-  document.addEventListener("keydown", (e) => e.key === "Escape" && setOpen(false));
+
+  document.addEventListener("click", closeMenu);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeMenu();
+  });
 });
