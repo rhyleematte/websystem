@@ -120,4 +120,55 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    document.addEventListener("DOMContentLoaded", () => {
+        if (window.lucide) lucide.createIcons();
+
+        const toggle = document.getElementById("profileToggle");
+        const menu = document.getElementById("profileDropdown");
+
+        if (toggle && menu) {
+            const closeMenu = () => {
+                menu.classList.remove("open");
+                toggle.setAttribute("aria-expanded", "false");
+            };
+
+            toggle.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const isOpen = menu.classList.toggle("open");
+                toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+            });
+
+            document.addEventListener("click", closeMenu);
+
+            // Close on ESC
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closeMenu();
+            });
+
+            // Prevent closing when clicking inside dropdown
+            menu.addEventListener("click", (e) => e.stopPropagation());
+        }
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 });

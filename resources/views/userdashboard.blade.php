@@ -7,6 +7,26 @@
 @endpush
 
 @section('content')
+@php
+  $user = auth()->user();
+
+  // Profile picture path from DB (change column if needed)
+  $avatarPath = $user->profile_picture ?? null;
+
+  // Safe startsWith for older PHP
+  $isUrl = $avatarPath && preg_match('/^https?:\/\//i', $avatarPath);
+
+  // If you store in storage/app/public, run: php artisan storage:link
+  $avatarUrl = $avatarPath
+    ? ($isUrl ? $avatarPath : asset('storage/' . ltrim($avatarPath, '/')))
+    : asset('assets/img/default.png');
+
+  $fullName = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+  $fullName = $fullName !== '' ? $fullName : ($user->name ?? 'User');
+
+  $username = $user->username ?? 'username';
+@endphp
+
 <main class="dash">
 
   {{-- Top bar --}}
@@ -30,9 +50,51 @@
         <span class="dot"></span>
       </button>
 
-      {{-- Logged-in user avatar (default image for now) --}}
-      <div class="avatar" title="Profile">
-        <img src="{{ asset('assets/img/default.png') }}" alt="User" />
+      {{-- Profile dropdown --}}
+      <div class="avatar-dropdown">
+        <button
+          class="avatar-btn"
+          type="button"
+          id="profileToggle"
+          aria-label="Profile"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          <img src="{{ $avatarUrl }}" alt="User Avatar" />
+          <div class="avatar-meta">
+            <div class="avatar-name">{{ $fullName }}</div>
+            <div class="avatar-username">{{ '@' . $username }}</div>
+          </div>
+          <i data-lucide="chevron-down" class="dropdown-icon"></i>
+        </button>
+
+        <div class="dropdown-menu" id="profileDropdown" aria-labelledby="profileToggle">
+          <div class="dropdown-profile">
+            <div class="dropdown-avatar">
+              <img src="{{ $avatarUrl }}" alt="User Avatar" />
+            </div>
+            <div class="dropdown-info">
+              <div class="profile-fullname">{{ $fullName }}</div>
+              <div class="profile-username">{{ '@' . $username }}</div>
+            </div>
+          </div>
+
+          {{-- Theme toggle --}}
+          <button type="button" class="dropdown-item" id="themeToggleBtn">
+            <i data-lucide="moon"></i>
+            <span>Dark mode</span>
+          </button>
+
+          <hr class="dropdown-divider">
+
+          <form method="POST" action="{{ route('logout') }}" class="logout-form">
+            @csrf
+            <button type="submit" class="dropdown-logout">
+              <i data-lucide="log-out"></i>
+              <span>Logout</span>
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   </header>
@@ -88,7 +150,7 @@
       <div class="panel composer">
         <div class="composer-top">
           <div class="avatar sm">
-            <img src="{{ asset('assets/img/default.png') }}" alt="User" />
+            <img src="{{ $avatarUrl }}" alt="User Avatar" />
           </div>
           <textarea placeholder="Share your thoughts, feelings, or progress..."></textarea>
         </div>
@@ -123,7 +185,7 @@
                 <i data-lucide="badge-check"></i>
               </span>
             </div>
-            <div class="post-sub">Clinical Psychologist | Anxiety & Depression Specialist</div>
+            <div class="post-sub">Clinical Psychologist | Anxiety &amp; Depression Specialist</div>
           </div>
           <div class="post-time">• 2 hours ago</div>
         </div>
@@ -140,18 +202,10 @@
         </div>
 
         <div class="post-actions">
-          <button class="post-btn" type="button">
-            <i data-lucide="heart"></i> <span>47</span>
-          </button>
-          <button class="post-btn" type="button">
-            <i data-lucide="message-square"></i> <span>12</span>
-          </button>
-          <button class="post-btn" type="button">
-            <i data-lucide="share-2"></i>
-          </button>
-          <button class="post-btn end" type="button" title="Save">
-            <i data-lucide="bookmark"></i>
-          </button>
+          <button class="post-btn" type="button"><i data-lucide="heart"></i><span>47</span></button>
+          <button class="post-btn" type="button"><i data-lucide="message-square"></i><span>12</span></button>
+          <button class="post-btn" type="button"><i data-lucide="share-2"></i></button>
+          <button class="post-btn end" type="button" title="Save"><i data-lucide="bookmark"></i></button>
         </div>
       </article>
 
@@ -174,18 +228,10 @@
         </div>
 
         <div class="post-actions">
-          <button class="post-btn" type="button">
-            <i data-lucide="heart"></i> <span>18</span>
-          </button>
-          <button class="post-btn" type="button">
-            <i data-lucide="message-square"></i> <span>3</span>
-          </button>
-          <button class="post-btn" type="button">
-            <i data-lucide="share-2"></i>
-          </button>
-          <button class="post-btn end" type="button" title="Save">
-            <i data-lucide="bookmark"></i>
-          </button>
+          <button class="post-btn" type="button"><i data-lucide="heart"></i><span>18</span></button>
+          <button class="post-btn" type="button"><i data-lucide="message-square"></i><span>3</span></button>
+          <button class="post-btn" type="button"><i data-lucide="share-2"></i></button>
+          <button class="post-btn end" type="button" title="Save"><i data-lucide="bookmark"></i></button>
         </div>
       </article>
 

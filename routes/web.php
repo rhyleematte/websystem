@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -20,4 +21,5 @@ Route::post('/signup', [AuthController::class , 'signup'])->name('signup.submit'
 Route::post('/signup-ajax', [AuthController::class , 'signupAjax'])->name('signup.ajax'); // ✅ AJAX
 
 // Dashboard
-Route::view('/userdashboard', 'userdashboard')->name('user.dashboard');
+Route::view('/userdashboard', 'userdashboard')->middleware('auth')->name('user.dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth');
