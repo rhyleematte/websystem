@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rules\Password;
 
 
 class AuthController extends Controller
@@ -26,27 +28,28 @@ class AuthController extends Controller
             'password.required' => 'Password is required.',
         ]);
 
+        // Normalise email casing before lookup
+        $credentials['email'] = strtolower(trim($credentials['email']));
         $remember = $request->boolean('remember');
 
         if (Auth::attempt($credentials, $remember)) {
-            $request->session()->regenerate();
-            return redirect()->route('user.dashboard');
+            $request->session()->regenerate(); // prevents session fixation
+            Log::info('User logged in', ['user_id' => Auth::id(), 'ip' => $request->ip()]);
+            return redirect()->intended(route('user.dashboard'));
         }
 
         return back()
-            ->withErrors([
-            'email' => 'These credentials do not match our records.',
-        ])
+            ->withErrors(['email' => 'These credentials do not match our records.'])
             ->onlyInput('email');
     }
 
     public function logout(Request $request)
     {
+        $userId = Auth::id();
         Auth::logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
+        Log::info('User logged out', ['user_id' => $userId, 'ip' => $request->ip()]);
         return redirect()->route('login');
     }
 
@@ -55,18 +58,24 @@ class AuthController extends Controller
         return view('auth.signup');
     }
 
+
+
+
+
     
 public function signupAjax(Request $request)
     {
         $data = $request->validate([
-            'fname' => ['required', 'min:2'],
-            'mname' => ['nullable', 'min:2'],
-            'lname' => ['required', 'min:2'],
-            'gender' => ['required'],
-            'bday' => ['required', 'date'],
-            'email' => ['required', 'email', 'unique:users,email'],
-            'username' => ['required', 'min:3', 'max:20', 'unique:users,username'],
-            'password' => ['required', 'min:6', 'confirmed'],
+            'fname' => ['required', 'string', 'min:2', 'max:50'],
+            'mname' => ['nullable', 'string', 'min:2', 'max:50'],
+            'lname' => ['required', 'string', 'min:2', 'max:50'],
+            'gender' => ['required', 'in:male,female,other,prefer_not_to_say'],
+            'bday' => ['required', 'date', 'before:today'],
+            'email' => ['required', 'email:rfc,dns', 'unique:users,email', 'max:255'],
+            'username' => ['required', 'min:3', 'max:20', 'alpha_dash', 'unique:users,username'],
+            'password' => ['required', 'confirmed',
+                Password::min(8)->mixedCase()->numbers()
+            ],
         ], [
 
             // First name
@@ -100,8 +109,10 @@ public function signupAjax(Request $request)
 
             // Password
             'password.required' => 'Password is required.',
-            'password.min' => 'Password must be at least 6 characters.',
+            'password.min' => 'Password must be at least 8 characters.',
             'password.confirmed' => 'Passwords do not match.',
+            'password.mixed_case' => 'Password must contain at least one uppercase and one lowercase letter.',
+            'password.numbers' => 'Password must contain at least one number.',
         ]);
 
         $user = User::create([
@@ -126,13 +137,4 @@ public function signupAjax(Request $request)
         ]);
     }
 
-}
-
-class ProfileController extends Controller
-{
-    public function show($id)
-    {
-        $user = User::findOrFail($id);
-        return view('profile.show', compact('user'));
-    }
 }

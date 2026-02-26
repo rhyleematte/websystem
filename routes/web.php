@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -12,19 +13,46 @@ Route::get('/', function () {
 Route::view('/about', 'about')->name('about');
 
 // Auth
-Route::get('/login', [AuthController::class , 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class , 'login'])->name('login.submit');
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class , 'showLogin'])->name('login');
+    Route::get('/signup', [AuthController::class , 'showSignup'])->name('signup');
+});
+Route::post('/login', [AuthController::class , 'login'])->middleware(['login.throttle'])->name('login.submit');
 Route::post('/logout', [AuthController::class , 'logout'])->name('logout');
-
-Route::get('/signup', [AuthController::class , 'showSignup'])->name('signup');
-Route::post('/signup', [AuthController::class , 'signup'])->name('signup.submit'); // optional normal submit
-Route::post('/signup-ajax', [AuthController::class , 'signupAjax'])->name('signup.ajax'); // ✅ AJAX
+Route::post('/signup', [AuthController::class , 'signup'])->name('signup.submit');
+Route::post('/signup-ajax', [AuthController::class , 'signupAjax'])->middleware('throttle:10,1')->name('signup.ajax');
 
 // Dashboard
-Route::view('/userdashboard', 'userdashboard')->middleware('auth')->name('user.dashboard');
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth');
-
-
 Route::middleware('auth')->group(function () {
-    Route::get('/profile/{id}', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/userdashboard', [\App\Http\Controllers\DashboardController::class , 'index'])->name('user.dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class , 'index']);
+
+    // Dashboard feed API – throttled to 60 requests/minute
+    Route::get('/api/dashboard/feed', [ProfileController::class , 'dashboardFeed'])
+        ->middleware('throttle:60,1')
+        ->name('dashboard.feed');
+});
+
+// ── Profile ────────────────────────────────────────────────────
+Route::middleware('auth')->group(function () {
+
+    // View profile (own or others)
+    Route::get('/profile/{id}', [ProfileController::class , 'show'])->name('profile.show');
+
+    // Edit own profile info & photo
+    Route::post('/profile/update-info', [ProfileController::class , 'updateInfo'])->name('profile.update.info');
+    Route::post('/profile/update-photo', [ProfileController::class , 'updatePhoto'])->name('profile.update.photo');
+    Route::post('/profile/delete-photo', [ProfileController::class , 'deletePhoto'])->name('profile.delete.photo');
+
+    // Posts
+    Route::post('/profile/posts', [ProfileController::class , 'storePost'])->name('profile.posts.store');
+    Route::put('/profile/posts/{post}', [ProfileController::class , 'updatePost'])->name('profile.posts.update');
+    Route::delete('/profile/posts/{post}', [ProfileController::class , 'destroyPost'])->name('profile.posts.destroy');
+
+    // Reactions
+    Route::post('/profile/posts/{post}/like', [ProfileController::class , 'toggleLike'])->name('profile.posts.like');
+
+    // Comments
+    Route::post('/profile/posts/{post}/comments', [ProfileController::class , 'storeComment'])->name('profile.comments.store');
+    Route::delete('/profile/comments/{comment}', [ProfileController::class , 'destroyComment'])->name('profile.comments.destroy');
 });
