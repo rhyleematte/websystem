@@ -41,6 +41,12 @@
 /* ================================================================
    PROFILE CARD (cover + avatar)
 ================================================================ */
+.prof-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 .prof-card {
     overflow: visible;
     margin-bottom: 0;
