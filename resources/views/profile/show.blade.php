@@ -223,6 +223,11 @@
           <button class="tab-btn" data-tab="resources">
             <i data-lucide="book-open"></i> Resources
           </button>
+          @if($isOwn && $profileUser->doctor_status !== 'none' && $profileUser->doctor_status !== null)
+          <button class="tab-btn" data-tab="application">
+            <i data-lucide="stethoscope"></i> Application
+          </button>
+          @endif
         </nav>
       </div>
 
@@ -280,6 +285,13 @@
           <a href="#" class="btn-primary">Browse Resources</a>
         </div>
       </div>
+
+      {{-- ─ Application Tab ─ --}}
+      @if($isOwn && $profileUser->doctor_status !== 'none' && $profileUser->doctor_status !== null)
+      <div class="tab-content hidden" id="tab-application">
+        @include('profile._application')
+      </div>
+      @endif
 
     </main>
   </div>

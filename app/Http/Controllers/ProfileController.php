@@ -23,7 +23,14 @@ class ProfileController extends Controller
             ->latest()
             ->get();
 
-        return view('profile.show', compact('profileUser', 'posts'));
+        $application = null;
+        $requirements = null;
+        if (Auth::check() && Auth::id() === $profileUser->id) {
+            $application = \App\Models\DoctorApplication::where('user_id', Auth::id())->first();
+            $requirements = \App\Models\DoctorRequirement::all();
+        }
+
+        return view('profile.show', compact('profileUser', 'posts', 'application', 'requirements'));
     }
 
     // ── Update bio / name / username ─────────────────────────────

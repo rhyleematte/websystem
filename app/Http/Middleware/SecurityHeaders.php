@@ -24,7 +24,7 @@ class SecurityHeaders
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        $response->headers->set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
 
         // Content-Security-Policy — allows same-origin, Google Fonts,
         // CDN scripts (Lucide), and inline scripts needed by the app.
@@ -36,7 +36,7 @@ class SecurityHeaders
             "font-src 'self' https://fonts.gstatic.com",
             "img-src 'self' data: blob: https:",
             "media-src 'self' blob:",
-            "connect-src 'self'",
+            "connect-src 'self' https://unpkg.com",
             "frame-ancestors 'self'",
             "form-action 'self'",
             "base-uri 'self'",

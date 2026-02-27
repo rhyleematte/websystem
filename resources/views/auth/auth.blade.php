@@ -206,6 +206,10 @@
         </div>
       </div>
     </div>
+
+    <div style="margin-top: auto; text-align: center; padding-top: 40px;">
+        <a href="{{ route('doctor.apply') }}" style="color: rgba(255, 255, 255, 0.8); text-decoration: underline; font-size: 14px; transition: color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'">Apply for medical staff privileges</a>
+    </div>
   </section>
 </main>
 @endsection

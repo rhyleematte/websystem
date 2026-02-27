@@ -22,6 +22,10 @@ Route::post('/logout', [AuthController::class , 'logout'])->name('logout');
 Route::post('/signup', [AuthController::class , 'signup'])->name('signup.submit');
 Route::post('/signup-ajax', [AuthController::class , 'signupAjax'])->middleware('throttle:10,1')->name('signup.ajax');
 
+// Doctor Apply (Guest or Auth)
+Route::get('/doctor/apply', [\App\Http\Controllers\DoctorApplicationController::class , 'create'])->name('doctor.apply');
+Route::post('/doctor/apply', [\App\Http\Controllers\DoctorApplicationController::class , 'store'])->name('doctor.apply.store');
+
 // Dashboard
 Route::middleware('auth')->group(function () {
     Route::get('/userdashboard', [\App\Http\Controllers\DashboardController::class , 'index'])->name('user.dashboard');
@@ -59,4 +63,12 @@ Route::middleware('auth')->group(function () {
     // Comments
     Route::post('/profile/posts/{post}/comments', [ProfileController::class , 'storeComment'])->name('profile.comments.store');
     Route::delete('/profile/comments/{comment}', [ProfileController::class , 'destroyComment'])->name('profile.comments.destroy');
+});
+
+// Admin Dummy Routes
+Route::group(['prefix' => 'admin'], function () {
+    Route::get('/applications', [\App\Http\Controllers\AdminApplicationController::class , 'index'])->name('admin.applications.index');
+    Route::get('/applications/{id}', [\App\Http\Controllers\AdminApplicationController::class , 'show'])->name('admin.applications.show');
+    Route::post('/applications/{id}/approve', [\App\Http\Controllers\AdminApplicationController::class , 'approve'])->name('admin.applications.approve');
+    Route::post('/applications/{id}/reject', [\App\Http\Controllers\AdminApplicationController::class , 'reject'])->name('admin.applications.reject');
 });

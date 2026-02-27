@@ -66,7 +66,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
             <div class="dropdown-profile">
               <div class="dropdown-avatar"><img src="{{ $avatarUrl }}" alt="User" /></div>
               <div class="dropdown-info">
-                <div class="profile-fullname">{{ $shortName }}</div>
+                <div class="profile-fullname">{{ $fullName }}</div>
                 <div class="profile-username">{{ '@'.$username }}</div>
               </div>
             </div>
@@ -99,6 +99,11 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
         <a class="nav-item" href="{{ route('profile.show', Auth::id()) }}">
           <i data-lucide="user"></i><span>My Profile</span>
         </a>
+        @if(Auth::user()->role !== 'doctor' && Auth::user()->doctor_status !== 'approved' && Auth::user()->doctor_status !== 'none' && Auth::user()->doctor_status !== null)
+        <a class="nav-item" href="{{ route('profile.show', Auth::id()) }}?tab=application">
+          <i data-lucide="stethoscope"></i><span>Apply as Doctor</span>
+        </a>
+        @endif
       </div>
 
       <div class="panel mini-panel">

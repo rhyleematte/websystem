@@ -237,8 +237,23 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (window.lucide) lucide.createIcons();
+
+            // Optionally update URL so reloads keep you there
+            const url = new URL(window.location);
+            url.searchParams.set('tab', target);
+            window.history.replaceState({}, '', url);
         });
     });
+
+    // Auto-select tab from query param if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam) {
+        const targetBtn = tabs.find(b => b.dataset.tab === tabParam);
+        if (targetBtn) {
+            targetBtn.click();
+        }
+    }
 });
 
 /* ================================================================
