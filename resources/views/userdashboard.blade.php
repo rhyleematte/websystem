@@ -7,6 +7,7 @@
   $user      = Auth::user();
   $avatarUrl = $user->avatar_url;
   $fullName  = $user->full_name ?: ($user->name ?? 'User');
+  $shortName = $user->short_name ?: $fullName;
   $username  = $user->username ?? 'username';
 @endphp
 
@@ -54,7 +55,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
                 aria-label="Profile" aria-haspopup="true" aria-expanded="false">
           <img src="{{ $avatarUrl }}" alt="User" />
           <div class="avatar-meta">
-            <div class="avatar-name">{{ $fullName }}</div>
+            <div class="avatar-name">{{ $shortName }}</div>
             <div class="avatar-username">{{ '@'.$username }}</div>
           </div>
           <i data-lucide="chevron-down" class="dropdown-icon"></i>
@@ -65,7 +66,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
             <div class="dropdown-profile">
               <div class="dropdown-avatar"><img src="{{ $avatarUrl }}" alt="User" /></div>
               <div class="dropdown-info">
-                <div class="profile-fullname">{{ $fullName }}</div>
+                <div class="profile-fullname">{{ $shortName }}</div>
                 <div class="profile-username">{{ '@'.$username }}</div>
               </div>
             </div>

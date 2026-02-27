@@ -101,6 +101,68 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  /* ── Header Search ──────────────────────────────────────── */
+  var searchInput = document.querySelector('.dash-search input');
+  var searchWrap = document.querySelector('.dash-search');
+  var searchDropdown = null;
+  var searchTimer = null;
+
+  if (searchInput && searchWrap) {
+    searchDropdown = document.createElement('div');
+    searchDropdown.className = 'search-dropdown';
+    searchWrap.appendChild(searchDropdown);
+
+    searchInput.addEventListener('input', function (e) {
+      var query = e.target.value.trim();
+      clearTimeout(searchTimer);
+
+      if (!query) {
+        searchDropdown.classList.remove('open');
+        return;
+      }
+
+      searchTimer = setTimeout(function () {
+        apiGet('/api/search/users?q=' + encodeURIComponent(query))
+          .then(function (res) {
+            if (res.ok && res.users) {
+              searchDropdown.innerHTML = '';
+              if (res.users.length === 0) {
+                searchDropdown.innerHTML = '<div class="search-empty">No users found.</div>';
+              } else {
+                res.users.forEach(function (u) {
+                  var item = document.createElement('a');
+                  item.href = u.profile_url;
+                  item.className = 'search-item';
+                  item.innerHTML =
+                    '<img src="' + esc(u.avatar_url) + '" class="avatar" alt="User">' +
+                    '<div class="search-item-info">' +
+                    '<div class="search-item-name">' + esc(u.name) + '</div>' +
+                    '<div class="search-item-username">@' + esc(u.username) + '</div>' +
+                    '</div>';
+                  searchDropdown.appendChild(item);
+                });
+              }
+              searchDropdown.classList.add('open');
+            }
+          }).catch(function () {
+            // fail silently
+          });
+      }, 300);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!searchWrap.contains(e.target)) {
+        searchDropdown.classList.remove('open');
+      }
+    });
+
+    searchInput.addEventListener('focus', function () {
+      if (searchInput.value.trim() && searchDropdown.children.length > 0) {
+        searchDropdown.classList.add('open');
+      }
+    });
+  }
+
   /* ================================================================
      COMPOSER
   ================================================================ */

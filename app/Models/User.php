@@ -66,6 +66,27 @@ class User extends Authenticatable
         return implode(' ', $parts);
     }
 
+    public function getShortNameAttribute(): string
+    {
+        $parts = [];
+
+        if ($this->fname && trim($this->fname) !== '') {
+            $fnameParts = explode(' ', trim($this->fname));
+            $parts[] = $this->toTitleCase($fnameParts[0]);
+        }
+
+        if ($this->mname && trim($this->mname) !== '') {
+            $initial = mb_substr(trim($this->mname), 0, 1, 'UTF-8');
+            $parts[] = mb_strtoupper($initial, 'UTF-8') . '.';
+        }
+
+        if ($this->lname && trim($this->lname) !== '') {
+            $parts[] = $this->toTitleCase(trim($this->lname));
+        }
+
+        return implode(' ', $parts);
+    }
+
     /**
      * Converts a string to Title Case — each word's first letter
      * uppercase, the rest lowercase. Handles compound names with hyphens.

@@ -136,6 +136,43 @@ class ProfileController extends Controller
         ]);
     }
 
+    // ── Search users ─────────────────────────────────────────────
+    public function searchUsers(Request $request)
+    {
+        $query = $request->input('q');
+        if (!$query) {
+            return response()->json(['ok' => true, 'users' => []]);
+        }
+
+        // Split query into words to match partial names
+        $terms = explode(' ', trim($query));
+        $usersQuery = User::query();
+
+        foreach ($terms as $term) {
+            $usersQuery->where(function ($q) use ($term) {
+                $q->where('fname', 'like', "%{$term}%")
+                    ->orWhere('lname', 'like', "%{$term}%")
+                    ->orWhere('mname', 'like', "%{$term}%")
+                    ->orWhere('username', 'like', "%{$term}%");
+            });
+        }
+
+        $users = $usersQuery->take(8)->get()->map(function ($u) {
+            return [
+            'id' => $u->id,
+            'name' => $u->short_name ?: $u->full_name,
+            'username' => $u->username,
+            'avatar_url' => $u->avatar_url,
+            'profile_url' => route('profile.show', $u->id),
+            ];
+        });
+
+        return response()->json([
+            'ok' => true,
+            'users' => $users
+        ]);
+    }
+
     // ── Create post ───────────────────────────────────────────────
     public function storePost(Request $request)
     {

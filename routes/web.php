@@ -31,6 +31,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/dashboard/feed', [ProfileController::class , 'dashboardFeed'])
         ->middleware('throttle:60,1')
         ->name('dashboard.feed');
+
+    // Search API
+    Route::get('/api/search/users', [ProfileController::class , 'searchUsers'])
+        ->name('dashboard.search.users');
 });
 
 // ── Profile ────────────────────────────────────────────────────

@@ -11,7 +11,8 @@
   $me        = Auth::user();
   $isOwn     = $me && $me->id === $profileUser->id;
   $avatarUrl = $profileUser->avatar_url;
-  $fullName  = $profileUser->full_name;
+  $fullName  = $profileUser->short_name ?: $profileUser->full_name;
+  $shortName = $me ? ($me->short_name ?: $me->full_name) : '';
   $username  = $profileUser->username ?? 'username';
 @endphp
 
@@ -45,7 +46,7 @@
         <button class="avatar-btn" type="button" id="profileToggle" aria-label="Profile">
           <img src="{{ $me ? $me->avatar_url : asset('assets/img/default.png') }}" alt="User" />
           <div class="avatar-meta">
-            <div class="avatar-name">{{ $me ? $me->full_name : '' }}</div>
+            <div class="avatar-name">{{ $shortName }}</div>
             <div class="avatar-username">{{ $me ? '@' . $me->username : '' }}</div>
           </div>
           <i data-lucide="chevron-down" class="dropdown-icon"></i>
@@ -56,7 +57,7 @@
             <div class="dropdown-profile">
               <div class="dropdown-avatar"><img src="{{ $me->avatar_url }}" alt="User" /></div>
               <div class="dropdown-info">
-                <div class="profile-fullname">{{ $me->full_name }}</div>
+                <div class="profile-fullname">{{ $shortName }}</div>
                 <div class="profile-username">{{ '@' . $me->username }}</div>
               </div>
             </div>
