@@ -426,11 +426,12 @@ function buildPostEl(post) {
     return article;
 }
 
-function buildCommentHtml(comment) {
+function buildCommentHtml(comment, isReply = false, parentId = null) {
     const canDelete = comment.can_delete;
-    const repliesHtml = (comment.replies || []).map(r => buildCommentHtml(r)).join('');
+    const repliesHtml = (!isReply && comment.replies) ? comment.replies.map(r => buildCommentHtml(r, true, comment.id)).join('') : '';
+    const targetCommentId = isReply ? parentId : comment.id;
     return `
-    <div class="comment-item" id="comment-${comment.id}">
+    <div class="comment-item ${isReply ? 'reply-item' : ''}" id="comment-${comment.id}">
       <div class="avatar sm"><img src="${comment.user.avatar_url}" alt="${escapeHtml(comment.user.name)}"></div>
       <div class="comment-bubble">
         <div class="comment-meta">
@@ -439,12 +440,14 @@ function buildCommentHtml(comment) {
           ${canDelete ? `<button class="comment-delete-btn" type="button" data-comment-id="${comment.id}"><i data-lucide="x"></i></button>` : ''}
         </div>
         <p class="comment-text">${escapeHtml(comment.comment_text)}</p>
-        <button class="reply-toggle-btn" type="button" data-comment-id="${comment.id}" data-post-id="${comment.post_id ?? ''}">Reply</button>
+        <button class="reply-toggle-btn" type="button" data-comment-id="${targetCommentId}" data-post-id="${comment.post_id ?? ''}" data-reply-to="${escapeHtml(comment.user.username)}">Reply</button>
+        ${!isReply ? `
         <div class="reply-composer hidden" id="reply-composer-${comment.id}">
           <input type="text" class="comment-input reply-input" placeholder="Write a reply…" data-post-id="${comment.post_id ?? ''}" data-parent-id="${comment.id}">
           <button class="comment-send-btn reply-send-btn" type="button" data-post-id="${comment.post_id ?? ''}" data-parent-id="${comment.id}"><i data-lucide="send"></i></button>
         </div>
         <div class="replies-list" id="replies-${comment.id}">${repliesHtml}</div>
+        ` : ''}
       </div>
     </div>`;
 }
@@ -610,9 +613,26 @@ document.addEventListener('click', async (e) => {
     const replyToggle = e.target.closest('.reply-toggle-btn');
     if (replyToggle) {
         const commentId = replyToggle.dataset.commentId;
+        const replyTo = replyToggle.dataset.replyTo;
         const composer = document.getElementById(`reply-composer-${commentId}`);
-        composer?.classList.toggle('hidden');
-        composer?.querySelector('input')?.focus();
+        if (composer) {
+            composer.classList.remove('hidden');
+            const inp = composer.querySelector('input');
+            if (inp) {
+                inp.focus();
+                if (replyTo && replyTo !== 'undefined' && replyTo !== '') {
+                    const tag = `@${replyTo} `;
+                    const currentVal = inp.value;
+                    if (!currentVal.startsWith(tag)) {
+                        if (/^@[\w.\-]+ /.test(currentVal)) {
+                            inp.value = currentVal.replace(/^@[\w.\-]+ /, tag);
+                        } else {
+                            inp.value = tag + currentVal;
+                        }
+                    }
+                }
+            }
+        }
         return;
     }
 
@@ -645,7 +665,7 @@ async function sendComment(postId, parentId, inputEl) {
         inputEl.value = '';
 
         const comment = res.comment;
-        const html = buildCommentHtml(comment);
+        const html = buildCommentHtml(comment, !!parentId, parentId);
 
         if (parentId) {
             // Append to replies list

@@ -22,7 +22,7 @@ class DoctorApplicationController extends Controller
                 return redirect()->route('user.dashboard')->with('success', 'You are already a doctor.');
             }
 
-            if ($user->doctor_status === 'none' || $user->doctor_status === null) {
+            if (($user->doctor_status === 'none' || $user->doctor_status === null) && $user->doctor_status !== 'applying') {
                 return redirect()->route('user.dashboard')->with('error', 'Only doctor applicants can access the application portal.');
             }
 
@@ -31,6 +31,11 @@ class DoctorApplicationController extends Controller
             // If pending, show pending view
             if ($user->doctor_status === 'pending' || ($application && $application->status === 'pending')) {
                 return view('doctor.pending', compact('application'));
+            }
+
+            // If rejected, show rejected feedback view
+            if ($user->doctor_status === 'rejected') {
+                return view('doctor.rejected', compact('application'));
             }
         }
 
@@ -174,5 +179,17 @@ class DoctorApplicationController extends Controller
         }
 
         return redirect()->back()->with('success', 'Your application has been submitted successfully and is pending approval. You are now logged in.');
+    }
+    public function reapply(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user || $user->doctor_status !== 'rejected') {
+            return redirect()->route('user.dashboard');
+        }
+
+        // Transition user to 'applying' state so they can access the form again
+        $user->update(['doctor_status' => 'applying']);
+
+        return redirect()->route('doctor.apply')->with('success', 'You can now submit a new petition to re-apply.');
     }
 }

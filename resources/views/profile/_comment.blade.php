@@ -50,6 +50,11 @@
               @endif
             </div>
             <p class="comment-text">{{ $reply->comment_text }}</p>
+            @auth
+            <button class="reply-toggle-btn" type="button" data-comment-id="{{ $comment->id }}" data-post-id="{{ $post->id }}" data-reply-to="{{ $reply->user->username }}">
+              Reply
+            </button>
+            @endauth
           </div>
         </div>
       @endforeach

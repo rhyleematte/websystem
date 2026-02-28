@@ -454,28 +454,30 @@ document.addEventListener('DOMContentLoaded', function () {
     return article;
   }
 
-  function buildCommentHtml(c) {
-    var repliesHtml = (c.replies || []).map(function (r) {
-      var rUrl = (r.user.id === window.MY_ID)
-        ? window.MY_PROFILE_URL
-        : esc(r.user.profile_url || '/profile/' + r.user.id);
-      return '<div class="comment-item reply-item" id="dash-comment-' + r.id + '">'
-        + '<a href="' + rUrl + '" class="comment-avatar-link"><div class="avatar sm"><img src="' + esc(r.user.avatar_url) + '" alt="' + esc(r.user.name) + '"></div></a>'
-        + '<div class="comment-bubble">'
-        + '<div class="comment-meta">'
-        + '<a href="' + rUrl + '" class="comment-author-link"><span class="comment-author">' + esc(r.user.name) + '</span></a>'
-        + '<span class="comment-time">' + esc(r.created_at) + '</span>'
-        + (r.can_delete
-          ? '<button class="comment-delete-btn" type="button" data-comment-id="' + r.id + '" title="Delete"><i data-lucide="x"></i></button>'
-          : '')
-        + '</div>'
-        + '<p class="comment-text">' + esc(r.comment_text) + '</p>'
-        + '</div></div>';
-    }).join('');
-
+  function buildCommentHtml(c, isReply = false, parentId = null) {
     var cUrl = (c.user.id === window.MY_ID)
       ? window.MY_PROFILE_URL
       : esc(c.user.profile_url || '/profile/' + c.user.id);
+
+    if (isReply) {
+      return '<div class="comment-item reply-item" id="dash-comment-' + c.id + '">'
+        + '<a href="' + cUrl + '" class="comment-avatar-link"><div class="avatar sm"><img src="' + esc(c.user.avatar_url) + '" alt="' + esc(c.user.name) + '"></div></a>'
+        + '<div class="comment-bubble">'
+        + '<div class="comment-meta">'
+        + '<a href="' + cUrl + '" class="comment-author-link"><span class="comment-author">' + esc(c.user.name) + '</span></a>'
+        + '<span class="comment-time">' + esc(c.created_at) + '</span>'
+        + (c.can_delete
+          ? '<button class="comment-delete-btn" type="button" data-comment-id="' + c.id + '" title="Delete"><i data-lucide="x"></i></button>'
+          : '')
+        + '</div>'
+        + '<p class="comment-text">' + esc(c.comment_text) + '</p>'
+        + '<button class="reply-toggle-btn" type="button" data-comment-id="' + parentId + '" data-post-id="' + (c.post_id || '') + '" data-reply-to="' + esc(c.user.username) + '">Reply</button>'
+        + '</div></div>';
+    }
+
+    var repliesHtml = (c.replies || []).map(function (r) {
+      return buildCommentHtml(r, true, c.id);
+    }).join('');
 
     return '<div class="comment-item" id="dash-comment-' + c.id + '">'
       + '<a href="' + cUrl + '" class="comment-avatar-link"><div class="avatar sm"><img src="' + esc(c.user.avatar_url) + '" alt="' + esc(c.user.name) + '"></div></a>'
@@ -613,11 +615,25 @@ document.addEventListener('DOMContentLoaded', function () {
     var replyToggle = e.target.closest('.reply-toggle-btn');
     if (replyToggle) {
       var commentId = replyToggle.dataset.commentId;
+      var replyTo = replyToggle.dataset.replyTo;
       var composer = document.getElementById('dash-reply-composer-' + commentId);
       if (composer) {
-        composer.classList.toggle('hidden');
+        composer.classList.remove('hidden');
         var inp = composer.querySelector('input');
-        if (inp && !composer.classList.contains('hidden')) inp.focus();
+        if (inp) {
+          inp.focus();
+          if (replyTo && replyTo !== 'undefined' && replyTo !== '') {
+            var tag = '@' + replyTo + ' ';
+            var currentVal = inp.value;
+            if (!currentVal.startsWith(tag)) {
+              if (/^@[\w.\-]+ /.test(currentVal)) {
+                inp.value = currentVal.replace(/^@[\w.\-]+ /, tag);
+              } else {
+                inp.value = tag + currentVal;
+              }
+            }
+          }
+        }
       }
       return;
     }
@@ -671,7 +687,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (res.ok) {
         inputEl.value = '';
         var c = res.comment;
-        var html = buildCommentHtml(c);
+        var html = buildCommentHtml(c, !!parentId, parentId);
 
         if (parentId) {
           var repliesList = document.getElementById('dash-replies-' + parentId);

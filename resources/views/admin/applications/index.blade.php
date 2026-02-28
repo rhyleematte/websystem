@@ -1,99 +1,318 @@
-@extends('layouts.app')
+@extends('layouts.dashboard')
 
 @section('title', 'Admin - Doctor Applications')
 
 @push('styles')
 <style>
+/* Extend/Override default dashboard tokens for admin-specific pages */
 .admin-container {
-    max-width: 1000px;
-    margin: 40px auto;
-    padding: 30px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    color: white;
+    width: 100%;
+    margin: 0 auto;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* very soft shadow */
 }
 .admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 20px;
+    padding: 25px 30px;
 }
 .admin-header h1 {
-    font-size: 2rem;
+    font-size: 1.6rem;
+    font-weight: 600;
     margin: 0;
+    color: var(--text);
 }
+.admin-filters {
+    padding: 0 30px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+}
+.admin-search-box {
+    flex: 1;
+    min-width: 300px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.admin-search-box i,
+.admin-search-box svg {
+    position: absolute !important;
+    left: 15px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: var(--muted);
+    pointer-events: none;
+    z-index: 5;
+}
+.admin-search-box input {
+    width: 100%;
+    padding: 12px 15px 12px 42px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--text);
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+.admin-search-box input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.admin-date-filters {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.date-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.date-input-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+}
+.date-input-group input[type="date"] {
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+/* Tabs */
+.admin-tabs {
+    display: flex;
+    gap: 25px;
+    padding: 0 30px;
+    border-bottom: 1px solid var(--border);
+}
+.admin-tabs a {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 500;
+    padding: 12px 10px;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+    border-bottom: 2px solid transparent;
+}
+.admin-tabs a:hover {
+    color: var(--text);
+}
+.admin-tabs a.active {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+    font-weight: 600;
+}
+/* Table */
 .table {
     width: 100%;
     border-collapse: collapse;
 }
 .table th, .table td {
-    padding: 15px;
+    padding: 18px 30px;
     text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
 }
 .table th {
-    background: rgba(0, 0, 0, 0.2);
-    font-weight: 600;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+}
+.table td {
+    font-size: 0.95rem;
 }
 .table tr:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--hover);
 }
+/* Pills */
 .badge {
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
     text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.5px;
 }
 .badge.pending {
-    background: rgba(243, 156, 18, 0.2);
-    color: #f39c12;
-    border: 1px solid rgba(243, 156, 18, 0.5);
+    background: rgba(251, 191, 36, 0.15);
+    color: #d97706;
+    border: 1px solid rgba(251, 191, 36, 0.4);
 }
 .badge.approved {
-    background: rgba(46, 204, 113, 0.2);
-    color: #2ecc71;
-    border: 1px solid rgba(46, 204, 113, 0.5);
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
 }
 .badge.rejected {
-    background: rgba(231, 76, 60, 0.2);
-    color: #e74c3c;
-    border: 1px solid rgba(231, 76, 60, 0.5);
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
+/* Buttons */
 .btn-sm {
-    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
     border-radius: 6px;
     text-decoration: none;
-    font-size: 0.9rem;
-    color: white;
-    background: rgba(255, 255, 255, 0.1);
-    transition: background 0.3s;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+    background: transparent;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    transition: all 0.2s ease;
 }
 .btn-sm:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(59, 130, 246, 0.05);
+    border-color: var(--primary);
+}
+.btn-sm i {
+    width: 16px;
+    height: 16px;
+}
+.table-footer {
+    padding: 20px 30px;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+.admin-body {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+.admin-main {
+    width: 100%;
 }
 </style>
 @endpush
 
 @section('content')
-<main class="wrap" style="height: auto; min-height: 100vh; padding: 40px 20px;">
-    <div class="admin-container">
+
+@php
+  // Get currently authed admin
+  $admin = Auth::guard('admin')->user();
+  $adminName = $admin->fname . ' ' . $admin->lname;
+  $avatarUrl = asset('assets/img/default.png');
+@endphp
+
+<main class="dash">
+
+  {{-- Admin Top Bar --}}
+  <header class="dash-topbar">
+    <div class="brand">
+      <img src="{{ asset('assets/img/AskDocPH.png') }}" class="logo" alt="AskDocPH">
+      <span style="font-weight:700; font-size: 1.1rem; color: var(--primary); margin-left:10px;">Admin Portal</span>
+    </div>
+
+    <div class="dash-actions" style="margin-left: auto;">
+      {{-- Admin Avatar Dropdown inside topbar --}}
+      <div class="avatar-dropdown">
+        <button class="avatar-btn" type="button" id="profileToggle"
+                aria-label="Profile" aria-haspopup="true" aria-expanded="false">
+          <img src="{{ $avatarUrl }}" alt="Admin" />
+          <div class="avatar-meta">
+            <div class="avatar-name">{{ $admin->fname }}</div>
+            <div class="avatar-username">Administrator</div>
+          </div>
+          <i data-lucide="chevron-down" class="dropdown-icon"></i>
+        </button>
+
+        {{-- Dropdown Menu --}}
+        <div class="dropdown-menu" id="profileDropdown" aria-labelledby="profileToggle">
+          <div class="dropdown-profile" style="padding: 16px;">
+            <div class="dropdown-avatar"><img src="{{ $avatarUrl }}" alt="Admin" /></div>
+            <div class="dropdown-info">
+              <div class="profile-fullname" style="color: var(--text);">{{ $adminName }}</div>
+              <div class="profile-username" style="color: var(--text-muted);">{{ $admin->email }}</div>
+            </div>
+          </div>
+          
+          <hr class="dropdown-divider">
+          
+          {{-- Theme Toggle --}}
+          <button type="button" class="dropdown-item" id="themeToggleBtn">
+            <i data-lucide="moon"></i><span>Toggle Theme</span>
+          </button>
+          
+          <hr class="dropdown-divider">
+          
+          {{-- Secure Admin Logout --}}
+          <form method="POST" action="{{ route('admin.logout') }}" class="logout-form" style="margin:0;">
+            @csrf
+            <button type="submit" class="dropdown-logout" style="width:100%;">
+              <i data-lucide="log-out"></i><span>Logout</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-body">
+    {{-- Admin Feed Area --}}
+    <section class="admin-main">
+      <div class="admin-container">
+        
         <div class="admin-header">
-            <h1>Doctor Applications</h1>
+            <h1>Doctor Applications Overview</h1>
+        </div>
+
+        <div class="admin-filters">
+            <form action="{{ route('admin.applications.index') }}" method="GET" style="display: flex; gap: 20px; flex-wrap: wrap; width: 100%; align-items: flex-end;">
+                <input type="hidden" name="tab" value="{{ $tab }}">
+                
+                <div class="admin-search-box">
+                    <i data-lucide="search"></i>
+                    <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Search by name or email..." autocomplete="off">
+                </div>
+
+                <div class="admin-date-filters">
+                    <div class="date-input-group">
+                        <label>From Date</label>
+                        <input type="date" name="from_date" value="{{ $fromDate ?? '' }}" onchange="this.form.submit()">
+                    </div>
+                    <div class="date-input-group">
+                        <label>To Date</label>
+                        <input type="date" name="to_date" value="{{ $toDate ?? '' }}" onchange="this.form.submit()">
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {{-- Categories Navigation --}}
+        <div class="admin-tabs">
+            <a href="{{ route('admin.applications.index', ['tab' => 'all', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'all' ? 'active' : '' }}">All</a>
+            <a href="{{ route('admin.applications.index', ['tab' => 'pending', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'pending' ? 'active' : '' }}">Pending</a>
+            <a href="{{ route('admin.applications.index', ['tab' => 'approved', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'approved' ? 'active' : '' }}">Approved</a>
+            <a href="{{ route('admin.applications.index', ['tab' => 'rejected', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'rejected' ? 'active' : '' }}">Rejected</a>
         </div>
 
         @if(session('success'))
-            <div style="padding: 15px; background: rgba(46, 204, 113, 0.2); color: #2ecc71; border-radius: 8px; margin-bottom: 20px;">
+            <div style="padding: 15px; background: rgba(46, 204, 113, 0.1); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.3); border-radius: 8px; margin-bottom: 20px;">
                 {{ session('success') }}
             </div>
         @endif
 
         @if($applications->isEmpty())
-            <p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 40px;">No doctor applications found.</p>
+            <p style="text-align: center; color: var(--text-muted); margin-top: 40px;">No doctor applications found.</p>
         @else
             <table class="table">
                 <thead>
@@ -109,23 +328,68 @@
                 <tbody>
                     @foreach($applications as $app)
                         <tr>
-                            <td>#{{ $app->id }}</td>
+                            <td style="font-weight: 600;">#{{ $app->id }}</td>
                             <td>{{ $app->user->fname }} {{ $app->user->lname }}</td>
-                            <td>{{ $app->user->email }}</td>
+                            <td style="color: var(--muted);">{{ $app->user->email }}</td>
                             <td>
-                                <span class="badge {{ $app->status }}">
+                                <span class="badge {{ strtolower($app->status) }}">
                                     {{ $app->status }}
                                 </span>
                             </td>
-                            <td>{{ $app->submitted_at->format('M d, Y h:i A') }}</td>
+                            <td style="color: var(--muted); font-size: 0.85rem;">
+                                {{ $app->submitted_at->format('M d, Y') }}<br>
+                                {{ $app->submitted_at->format('h:i A') }}
+                            </td>
                             <td>
-                                <a href="{{ route('admin.applications.show', $app->id) }}" class="btn-sm">View Details</a>
+                                <a href="{{ route('admin.applications.show', ['id' => $app->id, 'tab' => $tab, 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="btn-sm">
+                                    <i data-lucide="eye"></i> View Details
+                                </a>
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
+            
+            {{-- Table Footer Summary --}}
+            <div class="table-footer">
+                Showing {{ $applications->count() }} of {{ $applications->count() }} applications
+            </div>
         @endif
-    </div>
+      </div>
+    </section>
+
+  </div>
+
 </main>
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
+    // Debounced Search Submission
+    const searchInput = document.querySelector('input[name="search"]');
+    const filterForm = searchInput ? searchInput.closest('form') : null;
+    let searchTimeout;
+
+    if (searchInput && filterForm) {
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                // Submit the form
+                filterForm.submit();
+            }, 500); // 500ms delay
+        });
+
+        // Focus search input and put cursor at end on return if search query exists
+        if (searchInput.value) {
+            searchInput.focus();
+            searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+        }
+    }
+});
+</script>
+@endpush
 @endsection

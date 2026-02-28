@@ -25,6 +25,7 @@ Route::post('/signup-ajax', [AuthController::class , 'signupAjax'])->middleware(
 // Doctor Apply (Guest or Auth)
 Route::get('/doctor/apply', [\App\Http\Controllers\DoctorApplicationController::class , 'create'])->name('doctor.apply');
 Route::post('/doctor/apply', [\App\Http\Controllers\DoctorApplicationController::class , 'store'])->name('doctor.apply.store');
+Route::post('/doctor/apply/reapply', [\App\Http\Controllers\DoctorApplicationController::class , 'reapply'])->name('doctor.apply.reapply');
 
 // Dashboard
 Route::middleware('auth')->group(function () {
@@ -65,10 +66,27 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile/comments/{comment}', [ProfileController::class , 'destroyComment'])->name('profile.comments.destroy');
 });
 
-// Admin Dummy Routes
+// Admin Routes
 Route::group(['prefix' => 'admin'], function () {
-    Route::get('/applications', [\App\Http\Controllers\AdminApplicationController::class , 'index'])->name('admin.applications.index');
-    Route::get('/applications/{id}', [\App\Http\Controllers\AdminApplicationController::class , 'show'])->name('admin.applications.show');
-    Route::post('/applications/{id}/approve', [\App\Http\Controllers\AdminApplicationController::class , 'approve'])->name('admin.applications.approve');
-    Route::post('/applications/{id}/reject', [\App\Http\Controllers\AdminApplicationController::class , 'reject'])->name('admin.applications.reject');
-});
+
+    // Admin Auth
+    Route::middleware('guest:admin')->group(function () {
+            Route::get('/login', [\App\Http\Controllers\AdminAuthController::class , 'showLogin'])->name('admin.login');
+            Route::post('/login', [\App\Http\Controllers\AdminAuthController::class , 'login'])->name('admin.login.submit');
+
+            Route::get('/signup', [\App\Http\Controllers\AdminAuthController::class , 'showSignup'])->name('admin.signup');
+            Route::post('/signup', [\App\Http\Controllers\AdminAuthController::class , 'signup'])->name('admin.signup.submit');
+        }
+        );
+
+        Route::post('/logout', [\App\Http\Controllers\AdminAuthController::class , 'logout'])->name('admin.logout');
+
+        // Protected Admin Routes
+        Route::middleware(['auth:admin', 'admin.security'])->group(function () {
+            Route::get('/applications', [\App\Http\Controllers\AdminApplicationController::class , 'index'])->name('admin.applications.index');
+            Route::get('/applications/{id}', [\App\Http\Controllers\AdminApplicationController::class , 'show'])->name('admin.applications.show');
+            Route::post('/applications/{id}/approve', [\App\Http\Controllers\AdminApplicationController::class , 'approve'])->name('admin.applications.approve');
+            Route::post('/applications/{id}/reject', [\App\Http\Controllers\AdminApplicationController::class , 'reject'])->name('admin.applications.reject');
+        }
+        );
+    });

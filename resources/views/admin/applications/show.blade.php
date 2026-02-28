@@ -1,234 +1,515 @@
-@extends('layouts.app')
+@extends('layouts.dashboard')
 
-@section('title', 'Admin - Application #' . $application->id)
+@section('title', 'Admin - Application Details')
 
 @push('styles')
 <style>
 .admin-container {
-    max-width: 1000px;
-    margin: 40px auto;
-    padding: 30px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    color: white;
+    width: 100%;
+    margin: 0 auto;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 .header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 15px;
+    padding: 25px 30px;
+    border-bottom: 1px solid var(--border);
 }
 .header-top h1 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
+    font-weight: 600;
     margin: 0;
+    color: var(--text);
 }
 .badge {
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
     text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.5px;
 }
-.badge.pending { background: rgba(243, 156, 18, 0.2); color: #f39c12; border: 1px solid rgba(243, 156, 18, 0.5); }
-.badge.approved { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.5); }
-.badge.rejected { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.5); }
+.badge.pending {
+    background: rgba(251, 191, 36, 0.15);
+    color: #d97706;
+    border: 1px solid rgba(251, 191, 36, 0.4);
+}
+.badge.approved {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.badge.rejected {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.details-wrapper {
+    padding: 30px;
+}
+
+.section-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+    display: block;
+}
 
 .detail-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 30px;
-}
-.detail-item {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 15px;
-    border-radius: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
 }
 .detail-item strong {
     display: block;
-    color: rgba(255,255,255,0.6);
-    font-size: 0.85rem;
+    color: var(--muted);
+    font-size: 0.75rem;
     margin-bottom: 5px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    font-weight: 700;
 }
+.detail-item span {
+    font-size: 1rem;
+    color: var(--text);
+    font-weight: 500;
+}
+
 .document-list {
     margin-top: 20px;
-    background: rgba(0, 0, 0, 0.1);
-    padding: 20px;
+    border: 1px solid var(--border);
     border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.05);
+    overflow: hidden;
 }
 .document-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
 }
 .document-item:last-child {
     border-bottom: none;
 }
 .doc-name {
-    font-weight: 500;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
 }
 .doc-desc {
-    font-size: 0.8rem;
-    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem;
+    color: var(--muted);
 }
-.btn-dl {
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     padding: 8px 16px;
-    background: rgba(0, 210, 255, 0.2);
-    color: #00d2ff;
-    text-decoration: none;
     border-radius: 6px;
-    border: 1px solid rgba(0, 210, 255, 0.5);
-    transition: background 0.3s;
-    font-size: 0.9rem;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+    background: transparent;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    transition: all 0.2s ease;
 }
-.btn-dl:hover {
-    background: rgba(0, 210, 255, 0.3);
+.btn-outline:hover {
+    background: rgba(59, 130, 246, 0.05);
+    border-color: var(--primary);
 }
 
-.action-bar {
+.review-actions {
     margin-top: 40px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    display: flex;
-    gap: 15px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border);
 }
-.action-box {
-    flex: 1;
-    background: rgba(0, 0, 0, 0.2);
+.review-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+.review-card {
+    background: var(--bg);
+    padding: 25px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+}
+.review-card textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+    resize: vertical;
+}
+.btn-solid {
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: white;
+    transition: opacity 0.2s;
+}
+.btn-approve { background: #059669; }
+.btn-reject { background: #dc2626; }
+.btn-solid:hover { opacity: 0.9; }
+
+.notes-box {
+    background: var(--bg);
     padding: 20px;
     border-radius: 8px;
+    border-left: 4px solid var(--primary);
 }
-.action-box textarea {
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+.back-link:hover {
+    color: var(--primary);
+}
+/* Search & Filter Styles */
+.admin-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+}
+.admin-search-box {
+    flex: 1;
+    min-width: 300px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.admin-search-box i,
+.admin-search-box svg {
+    position: absolute !important;
+    left: 15px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: var(--muted);
+    pointer-events: none;
+    z-index: 5;
+}
+.admin-search-box input {
     width: 100%;
-    height: 80px;
-    padding: 10px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 6px;
-    color: white;
-    margin-bottom: 15px;
-    resize: none;
+    padding: 12px 15px 12px 42px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--text);
+    font-size: 0.95rem;
+    transition: all 0.2s;
 }
-.btn-approve {
-    background: #2ecc71;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
+.admin-search-box input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
-.btn-reject {
-    background: #e74c3c;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 6px;
+.admin-date-filters {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.date-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.date-input-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+}
+.date-input-group input[type="date"] {
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
     cursor: pointer;
-    font-weight: bold;
+}
+.admin-tabs {
+    display: flex;
+    gap: 25px;
+    border-bottom: 1px solid var(--border);
+}
+.admin-tabs a {
+    text-decoration: none;
+    color: var(--muted);
+    font-weight: 500;
+    padding: 12px 10px;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+    border-bottom: 2px solid transparent;
+}
+.admin-tabs a:hover {
+    color: var(--text);
+}
+.admin-tabs a.active {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+    font-weight: 600;
+}
+
+.admin-body {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+.admin-main {
+    width: 100%;
 }
 </style>
 @endpush
 
 @section('content')
-<main class="wrap" style="height: auto; min-height: 100vh; padding: 40px 20px;">
-    <div class="admin-container">
-        <a href="{{ route('admin.applications.index') }}" style="color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9em; display: inline-block; margin-bottom: 15px;">&larr; Back to Applications</a>
-        
-        <div class="header-top">
-            <h1>Application #{{ $application->id }}</h1>
-            <span class="badge {{ $application->status }}">{{ $application->status }}</span>
-        </div>
 
-        <div class="detail-grid">
-            <div class="detail-item">
-                <strong>Applicant Name</strong>
-                {{ $application->user->fname }} {{ $application->user->lname }}
-            </div>
-            <div class="detail-item">
-                <strong>Email Address</strong>
-                {{ $application->user->email }}
-            </div>
-            <div class="detail-item">
-                <strong>Submitted At</strong>
-                {{ $application->submitted_at->format('F d, Y h:i A') }}
-            </div>
-            <div class="detail-item">
-                <strong>Last Updated</strong>
-                {{ $application->updated_at->format('F d, Y h:i A') }}
-            </div>
-        </div>
+@php
+  // Get currently authed admin
+  $admin = Auth::guard('admin')->user();
+  $adminName = $admin->fname . ' ' . $admin->lname;
+  $avatarUrl = asset('assets/img/default.png');
+@endphp
 
-        <h2>Submitted Documents</h2>
-        @if($application->documents->isEmpty())
-            <p style="color: rgba(255,255,255,0.5);">No documents uploaded.</p>
-        @else
-            <div class="document-list">
-                @foreach($application->documents as $doc)
-                    <div class="document-item">
-                        <div>
-                            <div class="doc-name">{{ $doc->requirement->name ?? 'Unknown Requirement' }}</div>
-                            <div class="doc-desc">{{ $doc->requirement->description ?? '' }}</div>
-                        </div>
-                        <div>
-                            @if($doc->file_path)
-                                <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="btn-dl">
-                                    <i data-lucide="download" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 5px;"></i>
-                                    View File
-                                </a>
-                            @else
-                                <span style="color: rgba(255,255,255,0.4);">No file</span>
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        @endif
+<main class="dash">
 
-        @if($application->status === 'pending')
-            <div class="action-bar">
-                <div class="action-box">
-                    <form action="{{ route('admin.applications.approve', $application->id) }}" method="POST">
-                        @csrf
-                        <textarea name="admin_notes" placeholder="Approval notes (optional)"></textarea>
-                        <button type="submit" class="btn-approve">Approve Application</button>
-                    </form>
-                </div>
-                <div class="action-box">
-                    <form action="{{ route('admin.applications.reject', $application->id) }}" method="POST">
-                        @csrf
-                        <textarea name="admin_notes" placeholder="Rejection reason (required)" required></textarea>
-                        <button type="submit" class="btn-reject">Reject Application</button>
-                    </form>
-                </div>
-            </div>
-        @else
-            <div style="margin-top: 40px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                <strong style="color: rgba(255,255,255,0.6); text-transform: uppercase; font-size: 0.85em; display: block; margin-bottom: 5px;">Admin Notes ({{ $application->status }})</strong>
-                <p style="white-space: pre-wrap; margin: 0;">{{ $application->admin_notes ?? 'No notes provided.' }}</p>
-                <div style="margin-top: 15px; color: rgba(255,255,255,0.5); font-size: 0.85em;">
-                    Reviewed at: {{ $application->reviewed_at ? $application->reviewed_at->format('M d, Y h:i A') : 'N/A' }}
-                </div>
-            </div>
-        @endif
+  {{-- Admin Top Bar --}}
+  <header class="dash-topbar">
+    <div class="brand">
+      <img src="{{ asset('assets/img/AskDocPH.png') }}" class="logo" alt="AskDocPH">
+      <span style="font-weight:700; font-size: 1.1rem; color: var(--primary); margin-left:10px;">Admin Portal</span>
     </div>
+
+    <div class="dash-actions" style="margin-left: auto;">
+      <div class="avatar-dropdown">
+        <button class="avatar-btn" type="button" id="profileToggle">
+          <img src="{{ $avatarUrl }}" alt="Admin" />
+          <div class="avatar-meta">
+            <div class="avatar-name">{{ $admin->fname }}</div>
+            <div class="avatar-username">Administrator</div>
+          </div>
+          <i data-lucide="chevron-down" class="dropdown-icon"></i>
+        </button>
+
+        <div class="dropdown-menu" id="profileDropdown">
+          <div class="dropdown-profile" style="padding: 16px;">
+            <div class="dropdown-avatar"><img src="{{ $avatarUrl }}" alt="Admin" /></div>
+            <div class="dropdown-info">
+              <div class="profile-fullname" style="color: var(--text);">{{ $adminName }}</div>
+              <div class="profile-username" style="color: var(--text-muted);">{{ $admin->email }}</div>
+            </div>
+          </div>
+          <hr class="dropdown-divider">
+          <button type="button" class="dropdown-item" id="themeToggleBtn">
+            <i data-lucide="moon"></i><span>Toggle Theme</span>
+          </button>
+          <hr class="dropdown-divider">
+          <form method="POST" action="{{ route('admin.logout') }}" style="margin:0;">
+            @csrf
+            <button type="submit" class="dropdown-logout" style="width:100%;">
+              <i data-lucide="log-out"></i><span>Logout</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-body">
+    <section class="admin-main">
+        
+        <div class="admin-filters" style="padding: 0 0 20px 0;">
+            <form action="{{ route('admin.applications.index') }}" method="GET" style="display: flex; gap: 20px; flex-wrap: wrap; width: 100%; align-items: flex-end;">
+                <input type="hidden" name="tab" value="{{ $tab }}">
+                
+                <div class="admin-search-box">
+                    <i data-lucide="search"></i>
+                    <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Search by name or email..." autocomplete="off">
+                </div>
+
+                <div class="admin-date-filters">
+                    <div class="date-input-group">
+                        <label>From Date</label>
+                        <input type="date" name="from_date" value="{{ $fromDate ?? '' }}" onchange="this.form.submit()">
+                    </div>
+                    <div class="date-input-group">
+                        <label>To Date</label>
+                        <input type="date" name="to_date" value="{{ $toDate ?? '' }}" onchange="this.form.submit()">
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {{-- Categories Navigation --}}
+        <div class="admin-tabs" style="padding: 0 0 20px 0; margin-bottom: 20px;">
+            <a href="{{ route('admin.applications.index', ['tab' => 'all', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'all' ? 'active' : '' }}">All</a>
+            <a href="{{ route('admin.applications.index', ['tab' => 'pending', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'pending' ? 'active' : '' }}">Pending</a>
+            <a href="{{ route('admin.applications.index', ['tab' => 'approved', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'approved' ? 'active' : '' }}">Approved</a>
+            <a href="{{ route('admin.applications.index', ['tab' => 'rejected', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'rejected' ? 'active' : '' }}">Rejected</a>
+        </div>
+
+        <div class="admin-container">
+            <div class="header-top">
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Doctor Application Review</span>
+                    <h1>Application #{{ $application->id }}</h1>
+                </div>
+                <span class="badge {{ $application->status }}">{{ $application->status }}</span>
+            </div>
+
+            <div class="details-wrapper">
+                <span class="section-title">Applicant Information</span>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <strong>Full Name</strong>
+                        <span>{{ $application->user->fname }} {{ $application->user->lname }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Email Address</strong>
+                        <span>{{ $application->user->email }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Submitted On</strong>
+                        <span>{{ $application->submitted_at->format('M d, Y') }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Time Submitted</strong>
+                        <span>{{ $application->submitted_at->format('h:i A') }}</span>
+                    </div>
+                </div>
+
+                <span class="section-title">Submitted Documents</span>
+                @if($application->documents->isEmpty())
+                    <p style="color: var(--muted); padding: 20px; text-align: center; background: var(--bg); border-radius: 8px;">No documents were uploaded with this application.</p>
+                @else
+                    <div class="document-list">
+                        @foreach($application->documents as $doc)
+                            <div class="document-item">
+                                <div>
+                                    <div class="doc-name">{{ $doc->requirement->name ?? 'Unknown Requirement' }}</div>
+                                    <div class="doc-desc">{{ $doc->requirement->description ?? 'No description provided.' }}</div>
+                                </div>
+                                <div>
+                                    @if($doc->file_path)
+                                        <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="btn-outline">
+                                            <i data-lucide="external-link" style="width: 16px; height: 16px;"></i>
+                                            View Document
+                                        </a>
+                                    @else
+                                        <span style="color: var(--muted); font-size: 0.85rem; font-style: italic;">No file attached</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="review-actions">
+                    @if($application->status === 'pending')
+                        <span class="section-title">Review Decision</span>
+                        <div class="review-form-grid">
+                            {{-- Approval Card --}}
+                            <div class="review-card" style="border-top: 4px solid #059669;">
+                                <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: #059669;">Approve Application</h3>
+                                <form action="{{ route('admin.applications.approve', $application->id) }}" method="POST">
+                                    @csrf
+                                    <textarea name="admin_notes" placeholder="Add approval notes for the doctor (optional)..."></textarea>
+                                    <button type="submit" class="btn-solid btn-approve" style="width: 100%;">
+                                        Approve & Verify Doctor
+                                    </button>
+                                </form>
+                            </div>
+
+                            {{-- Rejection Card --}}
+                            <div class="review-card" style="border-top: 4px solid #dc2626;">
+                                <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: #dc2626;">Reject Application</h3>
+                                <form action="{{ route('admin.applications.reject', $application->id) }}" method="POST">
+                                    @csrf
+                                    <textarea name="admin_notes" placeholder="Explain the reason for rejection (required)..." required></textarea>
+                                    <button type="submit" class="btn-solid btn-reject" style="width: 100%;">
+                                        Reject Application
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @else
+                        <span class="section-title">Review History</span>
+                        <div class="notes-box" style="border-left-color: {{ $application->status === 'approved' ? '#059669' : '#dc2626' }};">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                                <strong style="font-size: 1rem; color: var(--text);">Administrator Feedback</strong>
+                                <span style="font-size: 0.8rem; color: var(--muted);">{{ $application->reviewed_at->format('M d, Y h:i A') }}</span>
+                            </div>
+                            <p style="white-space: pre-wrap; margin: 0; color: var(--text); line-height: 1.6;">{{ $application->admin_notes ?? 'No additional notes provided by the administrator.' }}</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </section>
+  </div>
 </main>
 @endsection
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
+    }
+
+    // Debounced Search Submission
+    const searchInput = document.querySelector('input[name="search"]');
+    const filterForm = searchInput ? searchInput.closest('form') : null;
+    let searchTimeout;
+
+    if (searchInput && filterForm) {
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterForm.submit();
+            }, 500);
+        });
+
+        if (searchInput.value && document.activeElement !== searchInput) {
+            // Only refocus if the search input had a value (implies we just returned or changed it)
+            // But be careful not to trigger it unnecessarily
+        }
     }
 });
 </script>
