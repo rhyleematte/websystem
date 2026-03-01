@@ -327,6 +327,8 @@ document.addEventListener('DOMContentLoaded', function () {
      LOAD FEED
   ================================================================ */
   function loadFeed() {
+    if (!window.DASH_ROUTES || !window.DASH_ROUTES.feed) return; // Only run on dashboard feed pages
+
     apiGet(window.DASH_ROUTES.feed).then(function (res) {
       if (feedLoading) feedLoading.remove();
       if (!res.ok) { showToast('Failed to load feed.', 'error'); return; }
@@ -345,7 +347,11 @@ document.addEventListener('DOMContentLoaded', function () {
       if (window.lucide) lucide.createIcons();
     });
   }
-  loadFeed();
+
+  // Only load feed if we are on a page that declares dashboard routes
+  if (window.DASH_ROUTES) {
+    loadFeed();
+  }
 
   /* ================================================================
      BUILD POST ELEMENT

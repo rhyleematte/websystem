@@ -210,7 +210,7 @@
   // Get currently authed admin
   $admin = Auth::guard('admin')->user();
   $adminName = $admin->fname . ' ' . $admin->lname;
-  $avatarUrl = asset('assets/img/default.png');
+  $avatarUrl = $admin->avatar_url ? asset('storage/' . $admin->avatar_url) : asset('assets/img/default.png');
 @endphp
 
 <main class="dash">
@@ -245,6 +245,13 @@
             </div>
           </div>
           
+          <hr class="dropdown-divider">
+          
+          {{-- My Profile Link --}}
+          <a href="{{ route('admin.profile') }}" class="dropdown-item" style="text-decoration: none; color: var(--text);">
+            <i data-lucide="user"></i><span>My Profile</span>
+          </a>
+
           <hr class="dropdown-divider">
           
           {{-- Theme Toggle --}}

@@ -75,17 +75,26 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     deleteBtn?.addEventListener('click', async () => {
-        if (!confirm('Remove your profile photo?')) return;
         try {
             const res = await apiPost(window.ROUTES.deletePhoto, {});
             if (res.ok) {
-                if (previewAvatar) previewAvatar.src = res.avatar_url;
+                const newAvatarUrl = res.avatar_url;
+                if (previewAvatar) previewAvatar.src = newAvatarUrl;
+
+                // Update all avatar images on the page for the current user
+                $$('img').forEach(img => {
+                    // Update header avatars or post avatars that belong to this user
+                    if (img.dataset.ownAvatar || img.closest('.avatar-btn') || img.closest('.dropdown-avatar')) {
+                        img.src = newAvatarUrl;
+                    }
+                });
+
                 toast('Profile photo removed.', 'success');
             } else {
                 toast(res.message ?? 'Error.', 'error');
             }
         } catch {
-            toast('Error.', 'error');
+            toast('Error connecting to server.', 'error');
         }
     });
 });

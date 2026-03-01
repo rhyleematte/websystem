@@ -18,7 +18,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/signup', [AuthController::class , 'showSignup'])->name('signup');
 });
 Route::post('/login', [AuthController::class , 'login'])->middleware(['login.throttle'])->name('login.submit');
-Route::post('/logout', [AuthController::class , 'logout'])->name('logout');
+Route::match (['get', 'post'], '/logout', [AuthController::class , 'logout'])->name('logout');
 Route::post('/signup', [AuthController::class , 'signup'])->name('signup.submit');
 Route::post('/signup-ajax', [AuthController::class , 'signupAjax'])->middleware('throttle:10,1')->name('signup.ajax');
 
@@ -72,21 +72,28 @@ Route::group(['prefix' => 'admin'], function () {
     // Admin Auth
     Route::middleware('guest:admin')->group(function () {
             Route::get('/login', [\App\Http\Controllers\AdminAuthController::class , 'showLogin'])->name('admin.login');
-            Route::post('/login', [\App\Http\Controllers\AdminAuthController::class , 'login'])->name('admin.login.submit');
+            Route::post('/login', [\App\Http\Controllers\AdminAuthController::class , 'login'])->middleware('login.throttle')->name('admin.login.submit');
 
             Route::get('/signup', [\App\Http\Controllers\AdminAuthController::class , 'showSignup'])->name('admin.signup');
             Route::post('/signup', [\App\Http\Controllers\AdminAuthController::class , 'signup'])->name('admin.signup.submit');
         }
         );
 
-        Route::post('/logout', [\App\Http\Controllers\AdminAuthController::class , 'logout'])->name('admin.logout');
+        Route::match (['get', 'post'], '/logout', [\App\Http\Controllers\AdminAuthController::class , 'logout'])->name('admin.logout');
 
         // Protected Admin Routes
         Route::middleware(['auth:admin', 'admin.security'])->group(function () {
+            // Dashboard/Applications
             Route::get('/applications', [\App\Http\Controllers\AdminApplicationController::class , 'index'])->name('admin.applications.index');
             Route::get('/applications/{id}', [\App\Http\Controllers\AdminApplicationController::class , 'show'])->name('admin.applications.show');
             Route::post('/applications/{id}/approve', [\App\Http\Controllers\AdminApplicationController::class , 'approve'])->name('admin.applications.approve');
             Route::post('/applications/{id}/reject', [\App\Http\Controllers\AdminApplicationController::class , 'reject'])->name('admin.applications.reject');
+
+            // Profile
+            Route::get('/profile', [\App\Http\Controllers\AdminProfileController::class , 'show'])->name('admin.profile');
+            Route::post('/profile', [\App\Http\Controllers\AdminProfileController::class , 'update'])->name('admin.profile.update');
+            Route::post('/profile/update-photo', [\App\Http\Controllers\AdminProfileController::class , 'updatePhoto'])->name('admin.profile.update.photo');
+            Route::post('/profile/delete-photo', [\App\Http\Controllers\AdminProfileController::class , 'deletePhoto'])->name('admin.profile.delete.photo');
         }
         );
     });

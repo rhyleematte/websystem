@@ -23,6 +23,7 @@ class Admin extends Authenticatable
         'lname',
         'gender',
         'bday',
+        'avatar_url',
     ];
 
     /**

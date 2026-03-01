@@ -320,5 +320,5 @@
 @endsection
 
 @push('scripts')
-  <script src="{{ asset('assets/js/profile.js') }}" defer></script>
+  <script src="{{ asset('assets/js/profile.js?v=' . time()) }}" defer></script>
 @endpush

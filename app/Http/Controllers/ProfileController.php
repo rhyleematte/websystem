@@ -113,7 +113,14 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         if ($user->profile_photo && $user->profile_photo !== 'profiles/default.png') {
-            Storage::disk('public')->delete($user->profile_photo);
+            try {
+                if (Storage::disk('public')->exists($user->profile_photo)) {
+                    Storage::disk('public')->delete($user->profile_photo);
+                }
+            }
+            catch (\Exception $e) {
+            // Fallback gracefully if disk error
+            }
         }
 
         $user->update(['profile_photo' => 'profiles/default.png']);
@@ -121,7 +128,7 @@ class ProfileController extends Controller
         return response()->json([
             'ok' => true,
             'avatar_url' => asset('assets/img/default.png'),
-            'message' => 'Profile photo removed.',
+            'message' => 'Profile photo removed successfully.',
         ]);
     }
 
