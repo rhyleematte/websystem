@@ -40,6 +40,17 @@ Route::middleware('auth')->group(function () {
     // Search API
     Route::get('/api/search/users', [ProfileController::class , 'searchUsers'])
         ->name('dashboard.search.users');
+
+    // Support Groups
+    Route::get('/groups', [\App\Http\Controllers\GroupController::class , 'index'])->name('groups.index');
+    Route::post('/groups', [\App\Http\Controllers\GroupController::class , 'store'])->name('groups.store');
+    Route::get('/groups/{id}', [\App\Http\Controllers\GroupController::class , 'show'])->name('groups.show');
+    Route::post('/groups/{id}/join', [\App\Http\Controllers\GroupController::class , 'join'])->name('groups.join');
+    Route::post('/groups/{id}/leave', [\App\Http\Controllers\GroupController::class , 'leave'])->name('groups.leave');
+
+    // Group Cover Photo
+    Route::post('/groups/{id}/update-cover', [\App\Http\Controllers\GroupController::class , 'updateCoverPhoto'])->name('groups.update.cover');
+    Route::post('/groups/{id}/delete-cover', [\App\Http\Controllers\GroupController::class , 'deleteCoverPhoto'])->name('groups.delete.cover');
 });
 
 // ── Profile ────────────────────────────────────────────────────
@@ -52,6 +63,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/update-info', [ProfileController::class , 'updateInfo'])->name('profile.update.info');
     Route::post('/profile/update-photo', [ProfileController::class , 'updatePhoto'])->name('profile.update.photo');
     Route::post('/profile/delete-photo', [ProfileController::class , 'deletePhoto'])->name('profile.delete.photo');
+
+    // Edit own cover photo
+    Route::post('/profile/update-cover', [ProfileController::class , 'updateCoverPhoto'])->name('profile.update.cover');
+    Route::post('/profile/delete-cover', [ProfileController::class , 'deleteCoverPhoto'])->name('profile.delete.cover');
 
     // Posts
     Route::post('/profile/posts', [ProfileController::class , 'storePost'])->name('profile.posts.store');

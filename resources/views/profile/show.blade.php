@@ -86,7 +86,7 @@
         <a class="nav-item" href="{{ route('user.dashboard') }}">
           <i data-lucide="home"></i><span>Feed</span>
         </a>
-        <a class="nav-item" href="#">
+        <a class="nav-item" href="{{ route('groups.index') }}">
           <i data-lucide="users"></i><span>Support Groups</span>
         </a>
         <a class="nav-item" href="#">
@@ -103,8 +103,22 @@
 
       {{-- ─ Cover + Avatar card ─ --}}
       <div class="panel prof-card">
-        <div class="prof-cover">
-          <div class="prof-cover-grad"></div>
+        <div class="prof-cover" id="coverDisplay" style="background-image: url('{{ $profileUser->cover_url }}'); background-size: cover; background-position: center;">
+          @if(!$profileUser->cover_photo)
+          <div class="prof-cover-grad" id="coverGradientOverlay"></div>
+          @endif
+          
+          @if($isOwn)
+          <div class="prof-cover-actions">
+            <label for="coverUpload" class="cover-action-btn" title="Update cover photo">
+              <i data-lucide="camera"></i> Edit Cover
+            </label>
+            <button type="button" class="cover-action-btn danger {{ $profileUser->cover_photo ? '' : 'hidden' }}" id="deleteCoverBtn" title="Remove cover photo">
+              <i data-lucide="trash-2"></i>
+            </button>
+            <input type="file" id="coverUpload" accept="image/*" class="hidden-input">
+          </div>
+          @endif
         </div>
 
         <div class="prof-card-body">
@@ -309,6 +323,8 @@
     updateInfo:    '{{ route('profile.update.info') }}',
     updatePhoto:   '{{ route('profile.update.photo') }}',
     deletePhoto:   '{{ route('profile.delete.photo') }}',
+    updateCover:   '{{ route('profile.update.cover') }}',
+    deleteCover:   '{{ route('profile.delete.cover') }}',
     storePost:     '{{ route('profile.posts.store') }}',
     updatePost:    function(id){ return '/profile/posts/' + id; },
     destroyPost:   function(id){ return '/profile/posts/' + id; },

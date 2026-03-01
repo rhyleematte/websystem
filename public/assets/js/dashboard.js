@@ -281,6 +281,12 @@ document.addEventListener('DOMContentLoaded', function () {
       if (text) fd.append('text_content', text);
       if (selectedMood) fd.append('mood', selectedMood);
       if (hashtagInput && hashtagInput.value.trim()) fd.append('hashtags', hashtagInput.value.trim());
+
+      var groupIdInput = document.getElementById('dashGroupId');
+      if (groupIdInput && groupIdInput.value) {
+        fd.append('group_id', groupIdInput.value);
+      }
+
       selectedFiles.forEach(function (f) { fd.append('media[]', f); });
 
       try {

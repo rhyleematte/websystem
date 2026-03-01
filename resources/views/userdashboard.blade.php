@@ -94,7 +94,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
     <aside class="dash-left">
       <div class="panel nav-panel">
         <a class="nav-item active" href="#"><i data-lucide="home"></i><span>Feed</span></a>
-        <a class="nav-item" href="#"><i data-lucide="users"></i><span>Support Groups</span></a>
+        <a class="nav-item" href="{{ route('groups.index') }}"><i data-lucide="users"></i><span>Support Groups</span></a>
         <a class="nav-item" href="#"><i data-lucide="book-open"></i><span>Resources</span></a>
         <a class="nav-item" href="{{ route('profile.show', Auth::id()) }}">
           <i data-lucide="user"></i><span>My Profile</span>

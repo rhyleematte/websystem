@@ -97,6 +97,65 @@ document.addEventListener('DOMContentLoaded', function () {
             toast('Error connecting to server.', 'error');
         }
     });
+
+    /* ================================================================
+       COVER PHOTO — upload & delete
+    ================================================================ */
+    const coverInput = document.getElementById('coverUpload');
+    const coverDisplay = document.getElementById('coverDisplay');
+    const deleteCoverBtn = document.getElementById('deleteCoverBtn');
+    const coverGradientOverlay = document.getElementById('coverGradientOverlay');
+
+    coverInput?.addEventListener('change', async () => {
+        const file = coverInput.files[0];
+        if (!file) return;
+
+        // Local live preview
+        const previewUrl = URL.createObjectURL(file);
+        if (coverDisplay) coverDisplay.style.backgroundImage = `url('${previewUrl}')`;
+        if (coverGradientOverlay) coverGradientOverlay.style.display = 'none';
+        if (deleteCoverBtn) deleteCoverBtn.classList.remove('hidden');
+
+        const fd = new FormData();
+        fd.append('cover_photo', file);
+
+        try {
+            const res = await apiPost(window.ROUTES.updateCover, fd);
+            if (res.ok) {
+                toast('Cover photo updated!', 'success');
+            } else {
+                toast(res.message ?? 'Upload failed.', 'error');
+            }
+        } catch {
+            toast('Upload failed.', 'error');
+        }
+        coverInput.value = '';
+    });
+
+    deleteCoverBtn?.addEventListener('click', async () => {
+        try {
+            const res = await apiPost(window.ROUTES.deleteCover, {});
+            if (res.ok) {
+                if (coverDisplay) coverDisplay.style.backgroundImage = `url('${res.cover_url}')`;
+                if (coverGradientOverlay) {
+                    coverGradientOverlay.style.display = 'block';
+                } else {
+                    // Re-instantiate gradient if missing
+                    const grad = document.createElement('div');
+                    grad.className = 'prof-cover-grad';
+                    grad.id = 'coverGradientOverlay';
+                    coverDisplay.prepend(grad);
+                }
+                if (deleteCoverBtn) deleteCoverBtn.classList.add('hidden');
+                toast('Cover photo removed.', 'success');
+            } else {
+                toast(res.message ?? 'Error.', 'error');
+            }
+        } catch {
+            toast('Error connecting to server.', 'error');
+        }
+    });
+
 });
 
 /* ================================================================

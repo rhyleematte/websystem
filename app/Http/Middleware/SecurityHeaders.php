@@ -31,7 +31,7 @@ class SecurityHeaders
         // Adjust as you add third-party resources.
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' https://unpkg.com",
+            "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com",
             "img-src 'self' data: blob: https:",

@@ -10,10 +10,16 @@
       <img src="{{ $post->user->avatar_url }}" alt="{{ $post->user->full_name }}">
     </div>
     <div class="post-meta">
-      <div class="post-name">
-        {{ $post->user->full_name }}
-        @if($post->user->role === 'doctor')
-          <span class="verified" title="Verified Doctor"><i data-lucide="badge-check"></i></span>
+      <div class="post-name" style="display:flex; align-items:center; gap:6px;">
+        <span style="font-weight:600; color:var(--text);">{{ $post->user->full_name }}</span>
+        @if($post->user->role === 'doctor' && $post->user->doctor_status === 'approved')
+          @php
+             $titles = $post->user->doctorApplication ? $post->user->doctorApplication->professional_titles : '';
+          @endphp
+          <span class="verified-doctor-badge" title="Certified Doctor" style="display:inline-flex; align-items:center; gap:4px; background:#eff6ff; color:#3b82f6; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; border:1px solid #bfdbfe; user-select:none;">
+            <i data-lucide="badge-check" style="width:14px; height:14px;"></i>
+            {{ trim($titles) ? $titles : 'Certified Doctor' }}
+          </span>
         @endif
       </div>
       <div class="post-sub">{{ '@' . $post->user->username }} · {{ $post->created_at->diffForHumans() }}</div>

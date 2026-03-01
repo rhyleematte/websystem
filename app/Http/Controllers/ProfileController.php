@@ -195,6 +195,7 @@ class ProfileController extends Controller
             'media.*' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,gif,mp4,mov', 'max:20480'],
             'mood' => ['nullable', 'string', 'max:64'],
             'hashtags' => ['nullable', 'string', 'max:500'],
+            'group_id' => ['nullable', 'exists:groups,id'],
         ]);
 
         $user = Auth::user();
@@ -215,6 +216,7 @@ class ProfileController extends Controller
 
         $post = Post::create([
             'user_id' => $user->id,
+            'group_id' => $request->input('group_id') ?: null,
             'post_type' => $postType,
             'text_content' => $request->text_content,
             'mood' => $request->input('mood') ?: null,
@@ -328,6 +330,67 @@ class ProfileController extends Controller
         $comment->delete();
 
         return response()->json(['ok' => true, 'message' => 'Comment deleted.']);
+    }
+
+    public function updateCoverPhoto(Request $request)
+    {
+        $request->validate([
+            'cover_photo' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240', // 10MB limit
+        ]);
+
+        $user = Auth::user();
+
+        if ($request->hasFile('cover_photo')) {
+            $file = $request->file('cover_photo');
+            $filename = time() . '_' . uniqid() . '.' . $file->extension();
+            $path = $file->storeAs('covers', $filename, 'public');
+
+            // Delete old cover if exists
+            if ($user->cover_photo) {
+                try {
+                    if (Storage::disk('public')->exists($user->cover_photo)) {
+                        Storage::disk('public')->delete($user->cover_photo);
+                    }
+                }
+                catch (\Exception $e) {
+                // Ignore
+                }
+            }
+
+            $user->update(['cover_photo' => $path]);
+
+            return response()->json([
+                'ok' => true,
+                'cover_url' => $user->cover_url,
+                'message' => 'Cover photo updated successfully.',
+            ]);
+        }
+
+        return response()->json(['ok' => false, 'message' => 'No image uploaded.'], 400);
+    }
+
+    public function deleteCoverPhoto()
+    {
+        $user = Auth::user();
+
+        if ($user->cover_photo) {
+            try {
+                if (Storage::disk('public')->exists($user->cover_photo)) {
+                    Storage::disk('public')->delete($user->cover_photo);
+                }
+            }
+            catch (\Exception $e) {
+            // Fallback gracefully
+            }
+        }
+
+        $user->update(['cover_photo' => null]);
+
+        return response()->json([
+            'ok' => true,
+            'cover_url' => $user->cover_url,
+            'message' => 'Cover photo removed successfully.',
+        ]);
     }
 
     // ── Helpers ───────────────────────────────────────────────────

@@ -24,6 +24,7 @@ class User extends Authenticatable
         'role',
         'doctor_status',
         'profile_photo',
+        'cover_photo',
         'bio',
     ];
 
@@ -50,6 +51,16 @@ class User extends Authenticatable
     public function postComments()
     {
         return $this->hasMany(PostComment::class);
+    }
+
+    public function groups()
+    {
+        return $this->hasMany(GroupMember::class);
+    }
+
+    public function doctorApplication()
+    {
+        return $this->hasOne(DoctorApplication::class)->latest();
     }
 
     // ── Accessors ─────────────────────────────────────────────────
@@ -103,6 +114,21 @@ class User extends Authenticatable
 
         if (!$photo || $photo === 'profiles/default.png') {
             return asset('assets/img/default.png');
+        }
+
+        if (strpos($photo, 'http') === 0) {
+            return $photo;
+        }
+
+        return asset('storage/' . ltrim($photo, '/'));
+    }
+
+    public function getCoverUrlAttribute(): string
+    {
+        $photo = $this->cover_photo;
+
+        if (!$photo) {
+            return asset('assets/img/default-cover.jpg');
         }
 
         if (strpos($photo, 'http') === 0) {
