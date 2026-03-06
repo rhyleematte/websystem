@@ -133,7 +133,7 @@
                 <i data-lucide="users"></i> {{ number_format($group->members_count) }} members
               </div>
               <div class="group-stats-item group-active-stat">
-                <i data-lucide="trending-up"></i> Very Active
+                <i data-lucide="trending-up"></i> {{ $group->activity_level }}
               </div>
             </div>
 

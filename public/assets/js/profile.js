@@ -430,7 +430,7 @@ function buildPostEl(post) {
     article.dataset.postId = post.id;
 
     const mediaHtml = post.media && post.media.length
-        ? `<div class="post-media-grid media-count-${Math.min(post.media.length, 4)}">
+        ? `<div class="post-media-grid media-count-${Math.min(post.media.length, 4)}" data-media="${escapeHtml(JSON.stringify(post.media))}">
         ${post.media.map(m => m.media_type === 'video'
             ? `<video src="${m.url}" controls class="post-media-item"></video>`
             : `<img src="${m.url}" class="post-media-item" alt="Post image">`
@@ -444,7 +444,8 @@ function buildPostEl(post) {
         <div class="post-menu hidden">
           <button class="post-menu-item edit-post-btn" type="button"
               data-post-id="${post.id}"
-              data-text="${escapeHtml(post.text_content ?? '')}">
+              data-text="${escapeHtml(post.text_content ?? '')}"
+              data-media="${escapeHtml(JSON.stringify(post.media || []))}">
             <i data-lucide="pencil"></i> Edit
           </button>
           <button class="post-menu-item delete-post-btn danger" type="button"
@@ -579,6 +580,10 @@ document.addEventListener('click', async (e) => {
     if (editBtn) {
         const postId = editBtn.dataset.postId;
         const text = editBtn.dataset.text;
+        const mediaData = editBtn.dataset.media ? JSON.parse(editBtn.dataset.media) : [];
+        let newFiles = [];
+        let deletedMediaIds = [];
+
         const article = document.querySelector(`[data-post-id="${postId}"]`);
         if (!article) return;
 
@@ -589,14 +594,80 @@ document.addEventListener('click', async (e) => {
         // Hide menu
         editBtn.closest('.post-menu')?.classList.add('hidden');
 
+        // Helper function to render existing media preview
+        function renderEditPreviews(wrap) {
+            const grid = wrap.querySelector('.edit-media-grid');
+            grid.innerHTML = '';
+
+            mediaData.forEach(m => {
+                if (deletedMediaIds.includes(m.id)) return;
+                const div = document.createElement('div');
+                div.className = 'edit-preview-item';
+                div.style.position = 'relative';
+                div.style.borderRadius = '8px';
+                div.style.overflow = 'hidden';
+                div.style.height = '80px';
+                div.style.width = '80px';
+                div.style.border = '1px solid var(--border)';
+
+                if (m.media_type === 'video') {
+                    div.innerHTML = `<video src="${m.url}" style="width:100%;height:100%;object-fit:cover;"></video>`;
+                } else {
+                    div.innerHTML = `<img src="${m.url}" style="width:100%;height:100%;object-fit:cover;">`;
+                }
+
+                const removeBtn = document.createElement('button');
+                removeBtn.innerHTML = '×';
+                removeBtn.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;line-height:20px;text-align:center;padding:0;font-size:14px;';
+                removeBtn.onclick = () => {
+                    deletedMediaIds.push(m.id);
+                    renderEditPreviews(wrap);
+                };
+                div.appendChild(removeBtn);
+                grid.appendChild(div);
+            });
+
+            newFiles.forEach((f, idx) => {
+                const div = document.createElement('div');
+                div.className = 'edit-preview-item';
+                div.style.position = 'relative';
+                div.style.borderRadius = '8px';
+                div.style.overflow = 'hidden';
+                div.style.height = '80px';
+                div.style.width = '80px';
+                div.style.border = '1px dashed var(--brand)';
+
+                const url = URL.createObjectURL(f);
+                if (f.type.startsWith('video')) {
+                    div.innerHTML = `<video src="${url}" style="width:100%;height:100%;object-fit:cover;"></video>`;
+                } else {
+                    div.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
+                }
+
+                const removeBtn = document.createElement('button');
+                removeBtn.innerHTML = '×';
+                removeBtn.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;line-height:20px;text-align:center;padding:0;font-size:14px;';
+                removeBtn.onclick = () => {
+                    newFiles.splice(idx, 1);
+                    renderEditPreviews(wrap);
+                };
+                div.appendChild(removeBtn);
+                grid.appendChild(div);
+            });
+        }
+
         // Build inline editor
         const editorWrap = document.createElement('div');
         editorWrap.className = 'post-edit-area';
         editorWrap.innerHTML = `
-      <textarea class="post-edit-textarea">${escapeHtml(text)}</textarea>
-      <div class="post-edit-actions">
-        <button class="btn-edit-cancel" type="button">Cancel</button>
-        <button class="btn-edit-save" type="button" data-post-id="${postId}">Save</button>
+      <textarea class="post-edit-textarea" style="width:100%; min-height:80px; padding:10px 14px; border:1px solid var(--brand); border-radius:12px; background:var(--input-bg); color:var(--text); font-size:14px; resize:vertical; outline:none; margin-bottom:8px;">${escapeHtml(text)}</textarea>
+      <div class="edit-media-grid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;"></div>
+      <div class="post-edit-actions" style="display:flex; gap:8px; justify-content:space-between; align-items:center;">
+        <label class="btn-cancel" style="padding:6px 12px; font-size:13px; border-radius:8px; border:1px solid var(--border); background:var(--chip-bg); color:var(--text); cursor:pointer; display:flex; align-items:center; gap:4px;"><i data-lucide="image" style="width:14px;height:14px;"></i> Add Photo/Video<input type="file" multiple accept="image/*,video/*" class="edit-media-input" style="display:none;"></label>
+        <div style="display:flex; gap:8px;">
+            <button class="btn-cancel btn-edit-cancel" type="button" style="padding:6px 12px; font-size:13px; border-radius:8px; border:1px solid var(--border); background:var(--chip-bg); color:var(--text); cursor:pointer;">Cancel</button>
+            <button class="btn-save btn-edit-save" type="button" style="padding:6px 16px; font-size:13px; border-radius:8px; border:none; background:linear-gradient(90deg, #7c3aed, #4f46e5); color:#fff; cursor:pointer;" data-post-id="${postId}">Save</button>
+        </div>
       </div>`;
 
         if (textEl) {
@@ -606,24 +677,74 @@ document.addEventListener('click', async (e) => {
             article.querySelector('.post-head').insertAdjacentElement('afterend', editorWrap);
         }
 
+        const oldMediaGrid = article.querySelector('.post-media-grid');
+        if (oldMediaGrid) oldMediaGrid.style.display = 'none';
+
+        if (window.lucide) lucide.createIcons({ root: editorWrap });
+
         editorWrap.querySelector('textarea').focus();
+
+        const fileInput = editorWrap.querySelector('.edit-media-input');
+        fileInput.addEventListener('change', (ev) => {
+            const files = Array.from(ev.target.files);
+            newFiles = newFiles.concat(files);
+            renderEditPreviews(editorWrap);
+            fileInput.value = '';
+        });
+
+        renderEditPreviews(editorWrap);
 
         editorWrap.querySelector('.btn-edit-cancel').addEventListener('click', () => {
             editorWrap.remove();
             if (textEl) textEl.style.display = '';
+            if (oldMediaGrid) oldMediaGrid.style.display = '';
         });
 
-        editorWrap.querySelector('.btn-edit-save').addEventListener('click', async () => {
+        editorWrap.querySelector('.btn-edit-save').addEventListener('click', async function () {
             const newText = editorWrap.querySelector('textarea').value.trim();
-            if (!newText) { toast('Post cannot be empty.', 'error'); return; }
+            const hasExistingMedia = mediaData.filter(m => !deletedMediaIds.includes(m.id)).length > 0;
 
-            const res = await apiPost(window.ROUTES.updatePost(postId), { text_content: newText }, 'PUT');
-            if (res.ok) {
-                if (textEl) { textEl.textContent = newText; textEl.style.display = ''; }
-                editorWrap.remove();
-                toast('Post updated!', 'success');
-            } else {
-                toast(res.message ?? 'Error.', 'error');
+            if (!newText && newFiles.length === 0 && !hasExistingMedia) {
+                toast('Post cannot be empty.', 'error');
+                return;
+            }
+
+            const saveBtn = this;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = 'Saving...';
+
+            const fd = new FormData();
+            fd.append('_method', 'PUT');
+            fd.append('text_content', newText);
+            deletedMediaIds.forEach(id => fd.append('deleted_media[]', id));
+            newFiles.forEach(f => fd.append('media[]', f));
+
+            try {
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = csrfMeta ? csrfMeta.content : '';
+
+                const res = await fetch(window.ROUTES.updatePost(postId), {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                    body: fd
+                }).then(r => r.json());
+
+                if (res.ok) {
+                    editorWrap.remove();
+                    toast('Post updated!', 'success');
+
+                    const newArticle = buildPostEl(res.post);
+                    article.replaceWith(newArticle);
+                    if (window.lucide) lucide.createIcons({ root: newArticle });
+                } else {
+                    toast(res.message ?? 'Error.', 'error');
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = 'Save';
+                }
+            } catch (err) {
+                toast('Network error.', 'error');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = 'Save';
             }
         });
         return;
@@ -717,6 +838,127 @@ document.addEventListener('click', async (e) => {
         } else {
             toast(res.message ?? 'Error.', 'error');
         }
+        return;
+    }
+
+    // ── IMAGE LIGHTBOX ──────────────────────────────────────────
+    const mediaItem = e.target.closest('.post-media-item') || e.target.closest('.media-more');
+    if (mediaItem && !e.target.closest('.edit-post-btn') && !e.target.closest('.delete-post-btn')) {
+        if (document.querySelector('.photo-lightbox')) return;
+
+        const lb = document.createElement('div');
+        lb.className = 'photo-lightbox';
+        lb.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px); opacity:0; transition:opacity 0.3s;';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '×';
+        closeBtn.style.cssText = 'position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.15); border:none; color:#fff; font-size:32px; width:48px; height:48px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; padding-bottom:4px; transition:background 0.2s; z-index:100000;';
+        closeBtn.onmouseover = () => closeBtn.style.background = 'rgba(255,255,255,0.25)';
+        closeBtn.onmouseout = () => closeBtn.style.background = 'rgba(255,255,255,0.15)';
+        lb.appendChild(closeBtn);
+
+        const mediaGrid = mediaItem.closest('.post-media-grid');
+        let mediaList = mediaGrid && mediaGrid.dataset.media ? JSON.parse(mediaGrid.dataset.media) : [];
+        let currentIndex = 0;
+        let content;
+
+        if (mediaList.length > 0) {
+            if (mediaItem.classList.contains('media-more')) {
+                currentIndex = 3;
+            } else {
+                const items = Array.from(mediaGrid.querySelectorAll('.post-media-item'));
+                currentIndex = items.indexOf(mediaItem);
+                if (currentIndex === -1) currentIndex = 0;
+            }
+        } else {
+            const isVideo = mediaItem.tagName && mediaItem.tagName.toLowerCase() === 'video';
+            let src = mediaItem.src || (mediaItem.querySelector('img, video') && mediaItem.querySelector('img, video').src);
+            if (!src && mediaItem.style.backgroundImage) {
+                src = mediaItem.style.backgroundImage.slice(4, -1).replace(/"/g, "");
+            }
+            if (src) {
+                mediaList = [{ url: src, media_type: isVideo ? 'video' : 'image' }];
+            } else {
+                return;
+            }
+        }
+
+        const prevBtn = document.createElement('button');
+        prevBtn.innerHTML = '‹';
+        prevBtn.style.cssText = 'position:absolute; left:20px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.15); border:none; color:#fff; font-size:40px; width:56px; height:56px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; padding-bottom:6px; transition:background 0.2s; z-index:100000;';
+        prevBtn.onmouseover = () => prevBtn.style.background = 'rgba(255,255,255,0.25)';
+        prevBtn.onmouseout = () => prevBtn.style.background = 'rgba(255,255,255,0.15)';
+        lb.appendChild(prevBtn);
+
+        const nextBtn = document.createElement('button');
+        nextBtn.innerHTML = '›';
+        nextBtn.style.cssText = 'position:absolute; right:20px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.15); border:none; color:#fff; font-size:40px; width:56px; height:56px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; padding-bottom:6px; transition:background 0.2s; z-index:100000;';
+        nextBtn.onmouseover = () => nextBtn.style.background = 'rgba(255,255,255,0.25)';
+        nextBtn.onmouseout = () => nextBtn.style.background = 'rgba(255,255,255,0.15)';
+        lb.appendChild(nextBtn);
+
+        const updateContent = (index) => {
+            if (index < 0 || index >= mediaList.length) return;
+            currentIndex = index;
+            const m = mediaList[currentIndex];
+
+            let newContent;
+            if (m.media_type === 'video') {
+                newContent = document.createElement('video');
+                newContent.src = m.url;
+                newContent.controls = true;
+                newContent.autoplay = true;
+            } else {
+                newContent = document.createElement('img');
+                newContent.src = m.url;
+            }
+            newContent.className = 'lightbox-media-content';
+            newContent.style.cssText = 'max-width:90vw; max-height:90vh; object-fit:contain; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,0.5); transition:transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform:scale(1);';
+
+            if (content && content.parentNode) {
+                lb.replaceChild(newContent, content);
+            } else {
+                lb.appendChild(newContent);
+            }
+            content = newContent;
+
+            prevBtn.style.display = currentIndex > 0 ? 'flex' : 'none';
+            nextBtn.style.display = currentIndex < mediaList.length - 1 ? 'flex' : 'none';
+        };
+
+        updateContent(currentIndex);
+        document.body.appendChild(lb);
+
+        requestAnimationFrame(() => {
+            lb.style.opacity = '1';
+            if (content) content.style.transform = 'scale(1)';
+        });
+
+        const closeLb = () => {
+            lb.style.opacity = '0';
+            if (content) content.style.transform = 'scale(0.95)';
+            setTimeout(() => lb.remove(), 300);
+        };
+
+        closeBtn.onclick = closeLb;
+        prevBtn.onclick = (e) => { e.stopPropagation(); updateContent(currentIndex - 1); };
+        nextBtn.onclick = (e) => { e.stopPropagation(); updateContent(currentIndex + 1); };
+        lb.onclick = (ev) => { if (ev.target === lb) closeLb(); };
+
+        const escListener = (ev) => {
+            if (ev.key === 'Escape') closeLb();
+            else if (ev.key === 'ArrowLeft') updateContent(currentIndex - 1);
+            else if (ev.key === 'ArrowRight') updateContent(currentIndex + 1);
+        };
+
+        let origClose = closeLb;
+        closeLb = () => {
+            origClose();
+            document.removeEventListener('keydown', escListener);
+        };
+        document.addEventListener('keydown', escListener);
+
+        return;
     }
 });
 

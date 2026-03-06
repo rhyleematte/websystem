@@ -128,7 +128,8 @@ class User extends Authenticatable
         $photo = $this->cover_photo;
 
         if (!$photo) {
-            return asset('assets/img/default-cover.jpg');
+            // Return a 1x1 transparent GIF data URI instead of a missing file to prevent 404 errors
+            return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
         }
 
         if (strpos($photo, 'http') === 0) {

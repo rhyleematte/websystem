@@ -252,12 +252,70 @@ class ProfileController extends Controller
         abort_if($post->user_id !== Auth::id(), 403);
 
         $request->validate([
-            'text_content' => ['required', 'max:5000'],
+            'text_content' => ['nullable', 'max:5000'],
+            'media.*' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,gif,mp4,mov', 'max:20480'],
+            'deleted_media' => ['nullable', 'array'],
+            'deleted_media.*' => ['integer', 'exists:post_media,id'],
         ]);
 
-        $post->update(['text_content' => $request->text_content]);
+        // Delete specified media
+        if ($request->has('deleted_media') && is_array($request->deleted_media)) {
+            $mediaToDelete = PostMedia::whereIn('id', $request->deleted_media)
+                ->where('post_id', $post->id)
+                ->get();
+            foreach ($mediaToDelete as $m) {
+                try {
+                    Storage::disk('public')->delete($m->path);
+                }
+                catch (\Exception $e) {
+                // Ignore missing files
+                }
+                $m->delete();
+            }
+        }
 
-        return response()->json(['ok' => true, 'message' => 'Post updated.']);
+        // Add new media
+        if ($request->hasFile('media')) {
+            $order = $post->media()->max('sort_order') + 1;
+            foreach ($request->file('media') as $file) {
+                $mimeType = $file->getMimeType();
+                $mediaType = (strpos($mimeType, 'video') === 0) ? 'video' : 'image';
+                $filePath = $file->store('post_media', 'public');
+
+                PostMedia::create([
+                    'post_id' => $post->id,
+                    'media_type' => $mediaType,
+                    'path' => $filePath,
+                    'mime_type' => $mimeType,
+                    'size_bytes' => $file->getSize(),
+                    'sort_order' => $order++,
+                ]);
+            }
+        }
+
+        $post->refresh();
+        $hasText = filled($request->text_content);
+        $hasMedia = $post->media()->exists();
+
+        // Validation for empty post
+        if (!$hasText && !$hasMedia) {
+            return response()->json(['ok' => false, 'message' => 'Post cannot be empty.'], 400);
+        }
+
+        $postType = ($hasText && $hasMedia) ? 'mixed' : ($hasMedia ? 'media' : 'text');
+
+        $post->update([
+            'text_content' => $request->text_content,
+            'post_type' => $postType,
+        ]);
+
+        $post->load(['user', 'likes', 'comments.user', 'media']);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Post updated.',
+            'post' => $this->formatPost($post)
+        ]);
     }
 
     // ── Delete post ───────────────────────────────────────────────

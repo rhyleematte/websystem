@@ -32,7 +32,8 @@
       <div class="post-menu hidden">
         <button class="post-menu-item edit-post-btn" type="button"
             data-post-id="{{ $post->id }}"
-            data-text="{{ htmlspecialchars($post->text_content, ENT_QUOTES) }}">
+            data-text="{{ $post->text_content ?? '' }}"
+            data-media="{{ json_encode($post->media->map(function($m) { return ['id' => $m->id, 'url' => asset('storage/' . $m->path), 'media_type' => $m->media_type]; })) }}">
           <i data-lucide="pencil"></i> Edit
         </button>
         <button class="post-menu-item delete-post-btn danger" type="button"
@@ -51,7 +52,8 @@
 
   {{-- Media grid --}}
   @if($post->media->isNotEmpty())
-  <div class="post-media-grid media-count-{{ min($post->media->count(), 4) }}">
+  <div class="post-media-grid media-count-{{ min($post->media->count(), 4) }}"
+       data-media="{{ json_encode($post->media->map(function($m) { return ['id' => $m->id, 'url' => asset('storage/' . $m->path), 'media_type' => $m->media_type]; })) }}">
     @foreach($post->media->take(4) as $media)
       @if($media->media_type === 'video')
         <video src="{{ asset('storage/' . $media->path) }}" controls class="post-media-item"></video>
@@ -78,9 +80,6 @@
       <span class="comment-count">{{ $post->allComments()->count() }}</span>
     </button>
 
-    <button class="post-btn" type="button">
-      <i data-lucide="share-2"></i>
-    </button>
 
     <button class="post-btn end" type="button" title="Save">
       <i data-lucide="bookmark"></i>

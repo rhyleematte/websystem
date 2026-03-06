@@ -11,7 +11,21 @@ class GroupController extends Controller
 {
     public function index()
     {
-        $groups = Group::withCount('members')->get();
+        $groups = Group::withCount([
+            'members',
+            'members as recent_members_count' => function ($query) {
+            $query->where('group_members.created_at', '>=', now()->subDays(30));
+        },
+            'posts as recent_posts_count' => function ($query) {
+            $query->where('posts.created_at', '>=', now()->subDays(30));
+        },
+            'allComments as recent_comments_count' => function ($query) {
+            $query->where('post_comments.created_at', '>=', now()->subDays(30));
+        },
+            'allLikes as recent_likes_count' => function ($query) {
+            $query->where('post_likes.created_at', '>=', now()->subDays(30));
+        }
+        ])->get();
         // Get active user's memberships to show "Joined" status
         $user = Auth::user();
         $myGroupIds = $user ? $user->groups()->pluck('group_id')->toArray() : [];
@@ -21,7 +35,22 @@ class GroupController extends Controller
 
     public function show($id)
     {
-        $group = Group::with(['creator', 'members.user'])->withCount('members')->findOrFail($id);
+        $group = Group::with(['creator', 'members.user'])
+            ->withCount([
+            'members',
+            'members as recent_members_count' => function ($query) {
+            $query->where('group_members.created_at', '>=', now()->subDays(30));
+        },
+            'posts as recent_posts_count' => function ($query) {
+            $query->where('posts.created_at', '>=', now()->subDays(30));
+        },
+            'allComments as recent_comments_count' => function ($query) {
+            $query->where('post_comments.created_at', '>=', now()->subDays(30));
+        },
+            'allLikes as recent_likes_count' => function ($query) {
+            $query->where('post_likes.created_at', '>=', now()->subDays(30));
+        }
+        ])->findOrFail($id);
         $user = Auth::user();
         $isMember = $user ? $group->members()->where('user_id', $user->id)->exists() : false;
 

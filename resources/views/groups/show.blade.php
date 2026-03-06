@@ -88,9 +88,29 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
 
   <div class="groups-body">
     <aside class="groups-sidebar">
-      <a href="{{ route('groups.index') }}" class="nav-item" style="color:#64748b; margin-bottom:16px;">
+      <a href="{{ route('groups.index') }}" class="nav-item active" style="margin-bottom:16px; font-weight:500;">
         <i data-lucide="arrow-left"></i><span>Back to Groups</span>
       </a>
+
+      {{-- Guidelines Moved to Left Sidebar --}}
+      <div class="panel group-guidelines-widget" style="margin-top: 24px; padding: 20px;">
+        <h3 style="font-size:16px; color:var(--text); margin-bottom:16px; font-weight:700;">Group Guidelines</h3>
+        @if($group->guidelines)
+        <ul class="group-guidelines-list" style="padding-left: 20px;">
+          @foreach(explode("\n", $group->guidelines) as $rule)
+            @if(trim($rule))
+              <li style="font-size:14px; margin-bottom:12px;">{{ trim($rule) }}</li>
+            @endif
+          @endforeach
+        </ul>
+        @else
+        <ul class="group-guidelines-list" style="padding-left: 20px;">
+          <li style="font-size:14px; margin-bottom:12px;">Be respectful and supportive of all members.</li>
+          <li style="font-size:14px; margin-bottom:12px;">Maintain confidentiality.</li>
+          <li style="font-size:14px; margin-bottom:12px;">No medical advice allowed.</li>
+        </ul>
+        @endif
+      </div>
     </aside>
 
     <main class="groups-main">
@@ -126,15 +146,17 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
                   <i data-lucide="users"></i> {{ number_format($group->members_count) }} members
                 </div>
                 <div class="group-stats-item group-active-stat" style="margin-left:16px;">
-                  <i data-lucide="trending-up"></i> Very Active
+                  <i data-lucide="trending-up"></i> {{ $group->activity_level }}
                 </div>
               </div>
             </div>
 
             @if($isMember)
-            <button class="btn danger" onclick="leaveGroup({{ $group->id }})" style="padding:10px 24px; border-radius:8px; border:none; box-shadow: 0 4px 12px rgba(239,68,68,0.2);">
-              Leave Group
-            </button>
+              @if($me->id !== $group->creator_id)
+              <button class="btn primary" onclick="leaveGroup({{ $group->id }})" style="padding:10px 24px; border-radius:8px; background:linear-gradient(90deg, #7c3aed, #4f46e5); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.2); border:none; color:#fff;">
+                Leave Group
+              </button>
+              @endif
             @else
             <button class="btn primary" onclick="joinGroup({{ $group->id }})" style="padding:10px 24px; border-radius:8px; background:linear-gradient(90deg, #7c3aed, #4f46e5); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.2); border:none; color:#fff;">
               Join Group
@@ -145,9 +167,14 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
           <div class="group-mod-section">
             <h4 style="font-size:14px; color:#64748b; margin-bottom:12px; font-weight:600;">Moderators</h4>
             <div class="group-mod-list">
-              <div class="group-mod-avatars">
+              <div class="group-mod-avatars" style="display:flex; gap:8px;">
+                @if($group->creator)
+                  <img src="{{ $group->creator->avatar_url }}" alt="{{ $group->creator->full_name }}" title="Creator: {{ $group->creator->full_name }}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                @endif
                 @foreach($group->members->where('role', 'admin') as $adminMember)
-                  <img src="{{ $adminMember->user->avatar_url }}" alt="{{ $adminMember->user->full_name }}" title="{{ $adminMember->user->full_name }}" style="width:36px; height:36px; border-width:3px;">
+                  @if(!$group->creator || $group->creator->id !== $adminMember->user_id)
+                    <img src="{{ $adminMember->user->avatar_url }}" alt="{{ $adminMember->user->full_name }}" title="Moderator: {{ $adminMember->user->full_name }}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                  @endif
                 @endforeach
               </div>
             </div>
@@ -156,7 +183,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
       </div>
 
       {{-- ── 2-Column Split ── --}}
-      <div class="group-content-split">
+      <div style="width: 100%;">
         {{-- Left: Feed --}}
         <div class="group-feed">
           
@@ -164,7 +191,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
           {{-- ── Post Composer ── --}}
           <input type="hidden" id="dashGroupId" value="{{ $group->id }}">
           
-          <div class="panel composer" id="composerPanel">
+          <div class="panel composer" id="composerPanel" style="margin-bottom: 24px;">
             <div class="composer-top">
               <div class="avatar sm">
                 <img src="{{ $avatarUrl }}" alt="You" />
@@ -221,27 +248,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
           @endif
         </div>
 
-        {{-- Right: Guidelines --}}
-        <div class="group-sidebar-right">
-          <div class="panel group-guidelines-widget" style="position: sticky; top: 94px;">
-            <h3 style="font-size:18px; color:var(--text); margin-bottom:20px; font-weight:700;">Group Guidelines</h3>
-            @if($group->guidelines)
-            <ul class="group-guidelines-list">
-              @foreach(explode("\n", $group->guidelines) as $rule)
-                @if(trim($rule))
-                  <li style="font-size:15px; margin-bottom:16px;">{{ trim($rule) }}</li>
-                @endif
-              @endforeach
-            </ul>
-            @else
-            <ul class="group-guidelines-list">
-              <li style="font-size:15px; margin-bottom:16px;">Be respectful and supportive of all members.</li>
-              <li style="font-size:15px; margin-bottom:16px;">Maintain confidentiality - what's shared here stays here.</li>
-              <li style="font-size:15px; margin-bottom:16px;">No medical advice - consult professionals for treatment.</li>
-            </ul>
-            @endif
-          </div>
-        </div>
+        {{-- Right: Guidelines (Moved to Left Sidebar) --}}
       </div>
     </main>
   </div>

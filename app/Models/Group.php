@@ -32,4 +32,33 @@ class Group extends Model
     {
         return $this->hasMany(Post::class)->with(['likes', 'comments', 'media'])->latest();
     }
+
+    public function allComments()
+    {
+        return $this->hasManyThrough(PostComment::class , Post::class);
+    }
+
+    public function allLikes()
+    {
+        return $this->hasManyThrough(PostLike::class , Post::class);
+    }
+
+    public function getActivityLevelAttribute()
+    {
+        $newMembers = $this->recent_members_count ?? 0;
+        $newPosts = $this->recent_posts_count ?? 0;
+        $newComments = $this->recent_comments_count ?? 0;
+        $newLikes = $this->recent_likes_count ?? 0;
+
+        // Base activity on recent actions (last 30 days)
+        $score = ($newPosts * 5) + ($newMembers * 3) + ($newComments * 2) + $newLikes;
+
+        if ($score >= 50)
+            return 'Very Active';
+        if ($score >= 20)
+            return 'Active';
+        if ($score >= 5)
+            return 'Moderate';
+        return 'Quiet';
+    }
 }

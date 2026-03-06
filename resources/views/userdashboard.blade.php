@@ -20,6 +20,7 @@ window.DASH_ROUTES = {
   storeComment:  function(id){ return "/profile/posts/" + id + "/comments"; },
   destroyComment:function(id){ return "/profile/comments/" + id; },
   destroyPost:   function(id){ return "/profile/posts/" + id; },
+  updatePost:    function(id){ return "/profile/posts/" + id; },
 };
 window.MY_AVATAR      = "{{ $avatarUrl }}";
 window.MY_NAME        = "{{ addslashes($fullName) }}";
