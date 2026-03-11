@@ -99,7 +99,10 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
         <ul class="group-guidelines-list" style="padding-left: 20px;">
           @foreach(explode("\n", $group->guidelines) as $rule)
             @if(trim($rule))
-              <li style="font-size:14px; margin-bottom:12px;">{{ trim($rule) }}</li>
+              <li style="font-size:14px; margin-bottom:12px;">
+                <div class="guideline-text">{{ trim($rule) }}</div>
+                <button type="button" class="read-more-btn guideline-toggle" style="display:none;">Read More</button>
+              </li>
             @endif
           @endforeach
         </ul>
@@ -139,7 +142,8 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
           <div class="group-hero-title-row">
             <div>
               <h1 class="group-hero-title">{{ $group->name }}</h1>
-              <p class="group-hero-desc">{{ $group->description }}</p>
+              <p class="group-hero-desc" id="groupDesc">{{ $group->description }}</p>
+              <button type="button" class="read-more-btn" id="descReadMore" style="display:none;">Read More</button>
               
               <div class="group-stats">
                 <div class="group-stats-item">
@@ -203,6 +207,8 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
               <i data-lucide="hash"></i>
               <input type="text" id="hashtagInput" placeholder="anxiety, hope, recovery  (comma-separated)" />
             </div>
+            
+
             <div class="mood-bar" id="moodBar" style="display:none;">
               <span class="mood-label">How are you feeling?</span>
               <div class="mood-options">
@@ -220,6 +226,24 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
               <input type="file" id="mediaUpload" accept="image/*,video/*" multiple style="display:none;" />
               <button class="chip-btn" type="button" id="moodToggleBtn" title="Add mood"><i data-lucide="smile"></i> Mood</button>
               <button class="chip-btn" type="button" id="hashtagToggleBtn" title="Add hashtags"><i data-lucide="hash"></i> Tags</button>
+              <div class="link-popup-wrap" id="linkWrap">
+                <button class="chip-btn" type="button" id="linkToggleBtn" title="Add link">
+                  <i data-lucide="link"></i> Link
+                </button>
+                <div class="link-popup-card" id="linkRow" onclick="event.stopPropagation()">
+                  <div class="link-popup-inputs">
+                    <div class="link-popup-row">
+                      <i data-lucide="type" class="link-popup-icon" style="width:16px;height:16px;"></i>
+                      <input type="text" id="linkNameInput" placeholder="Text">
+                    </div>
+                    <div class="link-popup-row">
+                      <i data-lucide="link" class="link-popup-icon" style="width:16px;height:16px;"></i>
+                      <input type="url" id="linkUrlInput" placeholder="Type or paste a link" onkeydown="if(event.key==='Enter'){document.getElementById('applyLinkBtn').click();event.preventDefault();}">
+                    </div>
+                  </div>
+                  <button type="button" class="link-popup-apply" id="applyLinkBtn">Apply</button>
+                </div>
+              </div>
               <div id="composerFeedback" class="composer-feedback"></div>
               <button class="share-btn" type="button" id="dashShareBtn" style="background:var(--primary);">
                 Post <i data-lucide="send"></i>
@@ -418,6 +442,46 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Read More Logic for Description
+    const desc = document.getElementById('groupDesc');
+    const descBtn = document.getElementById('descReadMore');
+    if (desc && descBtn) {
+        if (desc.scrollHeight > desc.clientHeight) {
+            descBtn.style.display = 'block';
+        }
+        descBtn.addEventListener('click', function() {
+            desc.classList.toggle('expanded');
+            this.textContent = desc.classList.contains('expanded') ? 'Read Less' : 'Read More';
+        });
+    }
+
+    // Read More Logic for Guidelines
+    document.querySelectorAll('.group-guidelines-list li').forEach(li => {
+        const text = li.querySelector('.guideline-text');
+        const btn = li.querySelector('.guideline-toggle');
+        if (text && btn) {
+            // Add initial clamping class to the div if not already on li
+            text.style.display = '-webkit-box';
+            text.style.webkitLineClamp = '3';
+            text.style.webkitBoxOrient = 'vertical';
+            text.style.overflow = 'hidden';
+
+            if (text.scrollHeight > text.clientHeight) {
+                btn.style.display = 'block';
+            }
+
+            btn.addEventListener('click', function() {
+                if (text.style.webkitLineClamp === '3') {
+                    text.style.webkitLineClamp = 'unset';
+                    this.textContent = 'Read Less';
+                } else {
+                    text.style.webkitLineClamp = '3';
+                    this.textContent = 'Read More';
+                }
+            });
+        }
+    });
 });
 </script>
 {{-- Note: dashboard.js handles Composer and Post interactivity via window.DASH_ROUTES hooks --}}

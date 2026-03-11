@@ -257,6 +257,17 @@
     color: var(--muted);
     font-size: 15px;
     margin-bottom: 20px;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.group-hero-desc.expanded {
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
 }
 
 .group-mod-list {
@@ -316,6 +327,17 @@
     color: var(--muted);
     margin-bottom: 12px;
     line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.group-guidelines-list li.expanded {
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
 }
 
 .group-guidelines-list li::before {
@@ -425,4 +447,22 @@ html.theme-dark .modal-box {
 .modal-close:hover {
     background: var(--hover);
     color: var(--danger);
+}
+
+.read-more-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 4px;
+    display: block;
+    transition: opacity 0.2s;
+}
+
+.read-more-btn:hover {
+    text-decoration: underline;
+    opacity: 0.8;
 }

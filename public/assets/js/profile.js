@@ -377,6 +377,71 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    /* ── Link toggle & apply ────────────────────────────────── */
+    const linkRow = document.getElementById('linkRow');
+    const linkToggleBtn = document.getElementById('linkToggleBtn');
+    const linkNameInput = document.getElementById('linkNameInput');
+    const linkUrlInput = document.getElementById('linkUrlInput');
+    const applyLinkBtn = document.getElementById('applyLinkBtn');
+
+    if (linkToggleBtn && linkRow) {
+        linkToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = linkRow.style.display === 'flex' || linkRow.classList.contains('open');
+            
+            if (!isOpen) {
+                linkRow.style.display = 'flex';
+                linkRow.classList.add('open');
+                setTimeout(() => { if (linkNameInput) linkNameInput.focus(); }, 50);
+            } else {
+                linkRow.style.display = 'none';
+                linkRow.classList.remove('open');
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if ((linkRow.style.display === 'flex' || linkRow.classList.contains('open')) && !linkRow.contains(e.target) && !linkToggleBtn.contains(e.target)) {
+                linkRow.style.display = 'none';
+                linkRow.classList.remove('open');
+            }
+        });
+    }
+
+    if (applyLinkBtn && postText) {
+        applyLinkBtn.addEventListener('click', () => {
+            let name = linkNameInput ? linkNameInput.value.trim() : '';
+            let url = linkUrlInput ? linkUrlInput.value.trim() : '';
+
+            if (!name || !url) {
+                toast('Please provide both Link Name and URL', 'error');
+                return;
+            }
+
+            // Add protocol if missing
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+
+            const mdLink = `[${name}](${url})`;
+
+            // Insert at cursor
+            const startPos = postText.selectionStart;
+            const endPos = postText.selectionEnd;
+            const currentVal = postText.value;
+            
+            postText.value = currentVal.substring(0, startPos) + mdLink + currentVal.substring(endPos);
+            postText.focus();
+            postText.selectionStart = startPos + mdLink.length;
+            postText.selectionEnd = postText.selectionStart;
+
+            // Close and clear
+            if (linkNameInput) linkNameInput.value = '';
+            if (linkUrlInput) linkUrlInput.value = '';
+            linkRow.style.display = 'none';
+            linkRow.classList.remove('open');
+        });
+    }
+
     submitBtn.addEventListener('click', async () => {
         const text = postText?.value.trim();
         if (!text && selectedFiles.length === 0) {
@@ -396,6 +461,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok) {
                 // Clear composer
                 if (postText) postText.value = '';
+                if (linkNameInput) linkNameInput.value = '';
+                if (linkUrlInput) linkUrlInput.value = '';
+                if (linkRow) linkRow.style.display = 'none';
+                
                 selectedFiles = [];
                 renderPreviews();
 
@@ -465,7 +534,7 @@ function buildPostEl(post) {
       </div>
       ${menuHtml}
     </div>
-    ${post.text_content ? `<div class="post-body post-text-content">${escapeHtml(post.text_content)}</div>` : ''}
+    ${post.text_content ? `<div class="post-body post-text-content">${parseMarkdownLinks(escapeHtml(post.text_content))}</div>` : ''}
     ${mediaHtml}
     <div class="post-actions">
       <button class="post-btn like-btn ${post.is_liked ? 'liked' : ''}" type="button" data-post-id="${post.id}">
@@ -508,7 +577,7 @@ function buildCommentHtml(comment, isReply = false, parentId = null) {
           <span class="comment-time">${comment.created_at}</span>
           ${canDelete ? `<button class="comment-delete-btn" type="button" data-comment-id="${comment.id}"><i data-lucide="x"></i></button>` : ''}
         </div>
-        <p class="comment-text">${escapeHtml(comment.comment_text)}</p>
+        <p class="comment-text">${parseMarkdownLinks(escapeHtml(comment.comment_text))}</p>
         <button class="reply-toggle-btn" type="button" data-comment-id="${targetCommentId}" data-post-id="${comment.post_id ?? ''}" data-reply-to="${escapeHtml(comment.user.username)}">Reply</button>
         ${!isReply ? `
         <div class="reply-composer hidden" id="reply-composer-${comment.id}">
@@ -524,6 +593,14 @@ function buildCommentHtml(comment, isReply = false, parentId = null) {
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function parseMarkdownLinks(text) {
+    if (!text) return '';
+    // We match \[([^\]]+)\]\(([^)]+)\)
+    return text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, name, url) {
+        return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="post-link" style="color:var(--brand);text-decoration:underline;">' + name + '</a>';
+    });
 }
 
 /* ================================================================

@@ -19,7 +19,7 @@ class ProfileController extends Controller
     {
         $profileUser = User::findOrFail($id);
         $posts = Post::where('user_id', $id)
-            ->with(['user', 'likes', 'comments.user', 'comments.replies.user', 'media'])
+            ->with(['user', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource'])
             ->latest()
             ->get();
 
@@ -135,7 +135,7 @@ class ProfileController extends Controller
     // ── Dashboard feed (all users, latest) ───────────────────────
     public function dashboardFeed(Request $request)
     {
-        $posts = Post::with(['user', 'likes', 'comments.user', 'comments.replies.user', 'media'])
+        $posts = Post::with(['user', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource'])
             ->latest()
             ->paginate(15);
 
@@ -488,6 +488,14 @@ class ProfileController extends Controller
             ],
             'media' => $mediaData,
             'comments' => $commentsData,
+            'resource' => $post->resource ? [
+                'id' => $post->resource->id,
+                'title' => $post->resource->title,
+                'type' => $post->resource->type,
+                'description' => $post->resource->description,
+                'thumbnail_url' => $post->resource->thumbnail_url,
+                'url' => route('resources.show', $post->resource->id),
+            ] : null,
         ];
     }
 

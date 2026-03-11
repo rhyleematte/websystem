@@ -80,7 +80,7 @@
         <a class="nav-item active" href="{{ route('groups.index') }}">
           <i data-lucide="users"></i><span>Support Groups</span>
         </a>
-        <a class="nav-item" href="#">
+        <a class="nav-item" href="{{ route('resources.index') }}">
           <i data-lucide="book-open"></i><span>Resources</span>
         </a>
         <a class="nav-item" href="{{ route('profile.show', $me->id) }}">

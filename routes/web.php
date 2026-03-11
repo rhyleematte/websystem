@@ -51,6 +51,10 @@ Route::middleware('auth')->group(function () {
     // Group Cover Photo
     Route::post('/groups/{id}/update-cover', [\App\Http\Controllers\GroupController::class , 'updateCoverPhoto'])->name('groups.update.cover');
     Route::post('/groups/{id}/delete-cover', [\App\Http\Controllers\GroupController::class , 'deleteCoverPhoto'])->name('groups.delete.cover');
+
+    // Resources
+    Route::resource('resources', \App\Http\Controllers\ResourceController::class);
+    Route::post('resources/{resource}/share', [\App\Http\Controllers\ResourceController::class, 'share'])->name('resources.share');
 });
 
 // ── Profile ────────────────────────────────────────────────────

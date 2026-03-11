@@ -217,6 +217,74 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  /* ── Link toggle & apply ────────────────────────────────── */
+  var linkRow = document.getElementById('linkRow');
+  var linkToggleBtn = document.getElementById('linkToggleBtn');
+  var linkNameInput = document.getElementById('linkNameInput');
+  var linkUrlInput = document.getElementById('linkUrlInput');
+  var applyLinkBtn = document.getElementById('applyLinkBtn');
+
+  if (linkToggleBtn && linkRow) {
+    linkToggleBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var isOpen = linkRow.style.display === 'flex' || linkRow.classList.contains('open');
+      
+      if (hashtagRow) hashtagRow.style.display = 'none';
+      if (moodBar) moodBar.style.display = 'none';
+
+      if (!isOpen) {
+        linkRow.style.display = 'flex';
+        linkRow.classList.add('open');
+        setTimeout(function() { if (linkNameInput) linkNameInput.focus(); }, 50);
+      } else {
+        linkRow.style.display = 'none';
+        linkRow.classList.remove('open');
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      if ((linkRow.style.display === 'flex' || linkRow.classList.contains('open')) && !linkRow.contains(e.target) && !linkToggleBtn.contains(e.target)) {
+        linkRow.style.display = 'none';
+        linkRow.classList.remove('open');
+      }
+    });
+  }
+
+  if (applyLinkBtn && postText) {
+    applyLinkBtn.addEventListener('click', function () {
+      var name = linkNameInput ? linkNameInput.value.trim() : '';
+      var url = linkUrlInput ? linkUrlInput.value.trim() : '';
+
+      if (!name || !url) {
+        showToast('Please provide both Link Name and URL', 'error');
+        return;
+      }
+
+      // Add protocol if missing
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+      }
+
+      var mdLink = '[' + name + '](' + url + ')';
+
+      // Insert at cursor
+      var startPos = postText.selectionStart;
+      var endPos = postText.selectionEnd;
+      var currentVal = postText.value;
+      
+      postText.value = currentVal.substring(0, startPos) + mdLink + currentVal.substring(endPos);
+      postText.focus();
+      postText.selectionStart = startPos + mdLink.length;
+      postText.selectionEnd = postText.selectionStart;
+
+      // Close and clear
+      if (linkNameInput) linkNameInput.value = '';
+      if (linkUrlInput) linkUrlInput.value = '';
+      linkRow.style.display = 'none';
+      linkRow.classList.remove('open');
+    });
+  }
+
   /* ── Media pick ─────────────────────────────────────────── */
   if (mediaUpload) {
     mediaUpload.addEventListener('change', function () {
@@ -295,6 +363,9 @@ document.addEventListener('DOMContentLoaded', function () {
           if (postText) postText.value = '';
           if (hashtagInput) hashtagInput.value = '';
           if (hashtagRow) hashtagRow.style.display = 'none';
+          if (linkNameInput) linkNameInput.value = '';
+          if (linkUrlInput) linkUrlInput.value = '';
+          if (linkRow) linkRow.style.display = 'none';
           if (moodBar) moodBar.style.display = 'none';
           if (selectedMoodDisplay) selectedMoodDisplay.style.display = 'none';
           selectedMood = '';
@@ -425,6 +496,19 @@ document.addEventListener('DOMContentLoaded', function () {
       ? window.MY_PROFILE_URL
       : esc(post.user.profile_url || '/profile/' + post.user.id);
 
+    /* resource card (for resource_share type) */
+    var resourceHtml = '';
+    if (post.resource) {
+      resourceHtml = 
+        '<a href="' + post.resource.url + '" class="post-resource-card">' +
+        '<div class="res-mini-thumb"><img src="' + esc(post.resource.thumbnail_url) + '"></div>' +
+        '<div class="res-mini-info">' +
+        '<div class="res-mini-type">' + esc(post.resource.type) + '</div>' +
+        '<div class="res-mini-title">' + esc(post.resource.title) + '</div>' +
+        '<div class="res-mini-desc">' + esc(post.resource.description) + '</div>' +
+        '</div></a>';
+    }
+
     article.innerHTML =
       '<div class="post-head">'
       + '<a href="' + profileUrl + '" class="post-author-link">'
@@ -439,8 +523,9 @@ document.addEventListener('DOMContentLoaded', function () {
       + '</div>'
       + menuHtml
       + '</div>'
-      + (post.text_content ? '<div class="post-body">' + esc(post.text_content) + '</div>' : '')
+      + (post.text_content ? '<div class="post-body">' + parseMarkdownLinks(esc(post.text_content)) + '</div>' : '')
       + moodHtml
+      + resourceHtml
       + mediaHtml
       + tagsHtml
       + '<div class="post-actions">'
@@ -487,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function () {
           ? '<button class="comment-delete-btn" type="button" data-comment-id="' + c.id + '" title="Delete"><i data-lucide="x"></i></button>'
           : '')
         + '</div>'
-        + '<p class="comment-text">' + esc(c.comment_text) + '</p>'
+        + '<p class="comment-text">' + parseMarkdownLinks(esc(c.comment_text)) + '</p>'
         + '<button class="reply-toggle-btn" type="button" data-comment-id="' + parentId + '" data-post-id="' + (c.post_id || '') + '" data-reply-to="' + esc(c.user.username) + '">Reply</button>'
         + '</div></div>';
     }
@@ -506,7 +591,7 @@ document.addEventListener('DOMContentLoaded', function () {
         ? '<button class="comment-delete-btn" type="button" data-comment-id="' + c.id + '" title="Delete"><i data-lucide="x"></i></button>'
         : '')
       + '</div>'
-      + '<p class="comment-text">' + esc(c.comment_text) + '</p>'
+      + '<p class="comment-text">' + parseMarkdownLinks(esc(c.comment_text)) + '</p>'
       + '<button class="reply-toggle-btn" type="button" data-comment-id="' + c.id + '" data-post-id="' + c.post_id + '">Reply</button>'
       + '<div class="reply-composer hidden" id="dash-reply-composer-' + c.id + '">'
       + '<input type="text" class="comment-input reply-input" placeholder="Write a reply…"'
@@ -516,6 +601,15 @@ document.addEventListener('DOMContentLoaded', function () {
       + '</div>'
       + '<div class="replies-list" id="dash-replies-' + c.id + '">' + repliesHtml + '</div>'
       + '</div></div>';
+  }
+
+  function parseMarkdownLinks(text) {
+    if (!text) return '';
+    // Use an un-escaped regex since `text` here has already been passed through `esc()`
+    // We match \[([^\]]+)\]\(([^)]+)\)
+    return text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, name, url) {
+        return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="post-link" style="color:var(--brand);text-decoration:underline;">' + name + '</a>';
+    });
   }
 
   /* ================================================================

@@ -96,7 +96,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
       <div class="panel nav-panel">
         <a class="nav-item active" href="#"><i data-lucide="home"></i><span>Feed</span></a>
         <a class="nav-item" href="{{ route('groups.index') }}"><i data-lucide="users"></i><span>Support Groups</span></a>
-        <a class="nav-item" href="#"><i data-lucide="book-open"></i><span>Resources</span></a>
+        <a class="nav-item" href="{{ route('resources.index') }}"><i data-lucide="book-open"></i><span>Resources</span></a>
         <a class="nav-item" href="{{ route('profile.show', Auth::id()) }}">
           <i data-lucide="user"></i><span>My Profile</span>
         </a>
@@ -140,6 +140,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
           <input type="text" id="hashtagInput" placeholder="anxiety, hope, recovery  (comma-separated)" />
         </div>
 
+
         {{-- Mood bar --}}
         <div class="mood-bar" id="moodBar" style="display:none;">
           <span class="mood-label">How are you feeling?</span>
@@ -172,6 +173,26 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
           <button class="chip-btn" type="button" id="hashtagToggleBtn" title="Add hashtags">
             <i data-lucide="hash"></i> Tags
           </button>
+
+          {{-- Link button & popup --}}
+          <div class="link-popup-wrap" id="linkWrap">
+            <button class="chip-btn" type="button" id="linkToggleBtn" title="Add link">
+              <i data-lucide="link"></i> Link
+            </button>
+            <div class="link-popup-card" id="linkRow" onclick="event.stopPropagation()">
+              <div class="link-popup-inputs">
+                <div class="link-popup-row">
+                  <i data-lucide="type" class="link-popup-icon" style="width:16px;height:16px;"></i>
+                  <input type="text" id="linkNameInput" placeholder="Text">
+                </div>
+                <div class="link-popup-row">
+                  <i data-lucide="link" class="link-popup-icon" style="width:16px;height:16px;"></i>
+                  <input type="url" id="linkUrlInput" placeholder="Type or paste a link" onkeydown="if(event.key==='Enter'){document.getElementById('applyLinkBtn').click();event.preventDefault();}">
+                </div>
+              </div>
+              <button type="button" class="link-popup-apply" id="applyLinkBtn">Apply</button>
+            </div>
+          </div>
 
           <div id="composerFeedback" class="composer-feedback"></div>
 

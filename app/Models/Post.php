@@ -12,11 +12,17 @@ class Post extends Model
     protected $fillable = [
         'user_id',
         'group_id',
+        'resource_id',
         'post_type',
         'text_content',
         'mood',
         'hashtags',
     ];
+
+    public function resource()
+    {
+        return $this->belongsTo(Resource::class);
+    }
 
     /** Return hashtags as a clean array of strings (without the #). */
     public function getHashtagsArrayAttribute(): array

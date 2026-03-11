@@ -89,7 +89,7 @@
         <a class="nav-item" href="{{ route('groups.index') }}">
           <i data-lucide="users"></i><span>Support Groups</span>
         </a>
-        <a class="nav-item" href="#">
+        <a class="nav-item" href="{{ route('resources.index') }}">
           <i data-lucide="book-open"></i><span>Resources</span>
         </a>
         <a class="nav-item active" href="{{ route('profile.show', $profileUser->id) }}">
@@ -255,12 +255,32 @@
             <div class="avatar sm"><img src="{{ $avatarUrl }}" alt="User"></div>
             <textarea id="postText" placeholder="Share your thoughts, feelings, or progress…" rows="3"></textarea>
           </div>
+
           <div class="composer-preview" id="mediaPreviewArea"></div>
           <div class="composer-bottom">
-            <label for="postMedia" class="chip-btn">
+            <label for="postMedia" class="chip-btn" style="cursor:pointer;">
               <i data-lucide="image"></i> Photo / Video
             </label>
             <input type="file" id="postMedia" accept="image/*,video/*" multiple class="hidden-input">
+            
+            <div class="link-popup-wrap" id="linkWrap">
+              <button class="chip-btn" type="button" id="linkToggleBtn" title="Add link">
+                <i data-lucide="link"></i> Link
+              </button>
+              <div class="link-popup-card" id="linkRow" onclick="event.stopPropagation()">
+                <div class="link-popup-inputs">
+                  <div class="link-popup-row">
+                    <i data-lucide="type" class="link-popup-icon" style="width:16px;height:16px;"></i>
+                    <input type="text" id="linkNameInput" placeholder="Text">
+                  </div>
+                  <div class="link-popup-row">
+                    <i data-lucide="link" class="link-popup-icon" style="width:16px;height:16px;"></i>
+                    <input type="url" id="linkUrlInput" placeholder="Type or paste a link" onkeydown="if(event.key==='Enter'){document.getElementById('applyLinkBtn').click();event.preventDefault();}">
+                  </div>
+                </div>
+                <button type="button" class="link-popup-apply" id="applyLinkBtn">Apply</button>
+              </div>
+            </div>
             <button class="share-btn" type="button" id="submitPostBtn">
               Post <i data-lucide="send"></i>
             </button>

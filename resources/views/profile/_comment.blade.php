@@ -12,7 +12,7 @@
       </button>
       @endif
     </div>
-    <p class="comment-text">{{ $comment->comment_text }}</p>
+    <p class="comment-text">{!! preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" target="_blank" rel="noopener noreferrer" class="post-link" style="color:var(--brand);text-decoration:underline;">$1</a>', htmlspecialchars($comment->comment_text)) !!}</p>
     @auth
     <button class="reply-toggle-btn" type="button" data-comment-id="{{ $comment->id }}" data-post-id="{{ $post->id }}">
       Reply
@@ -49,7 +49,7 @@
               </button>
               @endif
             </div>
-            <p class="comment-text">{{ $reply->comment_text }}</p>
+            <p class="comment-text">{!! preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" target="_blank" rel="noopener noreferrer" class="post-link" style="color:var(--brand);text-decoration:underline;">$1</a>', htmlspecialchars($reply->comment_text)) !!}</p>
             @auth
             <button class="reply-toggle-btn" type="button" data-comment-id="{{ $comment->id }}" data-post-id="{{ $post->id }}" data-reply-to="{{ $reply->user->username }}">
               Reply

@@ -47,7 +47,7 @@
 
   {{-- Post body --}}
   @if($post->text_content)
-  <div class="post-body post-text-content">{{ $post->text_content }}</div>
+  <div class="post-body post-text-content">{!! preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" target="_blank" rel="noopener noreferrer" class="post-link" style="color:var(--brand);text-decoration:underline;">$1</a>', htmlspecialchars($post->text_content)) !!}</div>
   @endif
 
   {{-- Media grid --}}

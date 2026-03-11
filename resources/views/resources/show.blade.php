@@ -1,0 +1,336 @@
+@extends('layouts.dashboard')
+
+@section('title', $resource->title . ' – AskDocPH')
+
+@push('styles')
+  <link rel="stylesheet" href="{{ asset('assets/css/resources.css') }}?v={{ time() }}">
+  <style>
+    .res-show-container {
+        width: 100%;
+        max-width: 900px;
+        background: var(--panel-bg);
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 40px;
+    }
+    .res-show-cover {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+    }
+    .res-show-content {
+        padding: 48px;
+    }
+    .res-show-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        background: var(--res-primary);
+        color: #fff;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+    }
+    .res-show-title {
+        font-size: 36px;
+        font-weight: 900;
+        line-height: 1.2;
+        margin-bottom: 24px;
+        color: var(--text);
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        word-break: break-word;
+    }
+    .res-show-meta {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        margin-bottom: 40px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+    .res-author {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .res-author img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+    .res-author-info {
+        display: flex;
+        flex-direction: column;
+    }
+    .res-author-name {
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--text);
+    }
+    .res-author-role {
+        font-size: 12px;
+        color: var(--muted);
+    }
+    .res-body-text {
+        font-size: 18px;
+        line-height: 1.8;
+        color: var(--text);
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        word-break: break-all;
+    }
+    .res-actions-bar {
+        position: sticky;
+        bottom: 24px;
+        background: #3b82f6;
+        margin-top: 24px;
+        padding: 16px 24px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        z-index: 10;
+        color: #fff;
+    }
+    .share-btn-lg {
+        background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .share-btn-lg:hover {
+        transform: scale(1.02);
+    }
+  </style>
+@endpush
+
+@section('content')
+<div class="res-shell">
+    @include('resources._topbar')
+
+    <div class="res-body">
+        <aside class="res-sidebar">
+            <a href="{{ route('resources.index') }}" class="nav-item active" style="margin-bottom:16px; font-weight:500;">
+                <i data-lucide="arrow-left"></i><span>Back to Resources</span>
+            </a>
+            
+            <div class="panel mini-panel" style="margin-top: 24px;">
+                <div class="mini-title"><i data-lucide="sparkles"></i><span>Curated Resource</span></div>
+                <p class="mini-text">This expert-led content is part of our verified professional library.</p>
+            </div>
+            
+            @if(Auth::check() && Auth::user()->can('update', $resource))
+            <div class="panel mini-panel" style="margin-top: 16px; border-color: var(--border);">
+                <div class="mini-title"><i data-lucide="settings"></i><span>Management</span></div>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+                    <a href="{{ route('resources.edit', $resource->id) }}" class="chip-btn" style="width: 100%; justify-content: center; background: var(--hover); border-color: var(--border);">
+                        <i data-lucide="edit-3"></i> Edit Resource
+                    </a>
+                    
+                    <form action="{{ route('resources.destroy', $resource->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this resource?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="chip-btn" style="width: 100%; justify-content: center; color: var(--danger); background: transparent; border-color: var(--danger); opacity: 0.8;">
+                            <i data-lucide="trash-2"></i> Delete Resource
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @endif
+        </aside>
+
+        <main class="res-main">
+            <div class="res-show-container">
+                @if($resource->thumbnail)
+                <img src="{{ $resource->thumbnail_url }}" alt="{{ $resource->title }}" class="res-show-cover">
+                @endif
+
+                <div class="res-show-content">
+                    <span class="res-show-badge">{{ $resource->type }}</span>
+                    <h1 class="res-show-title">{{ $resource->title }}</h1>
+                    
+                    <div class="res-show-meta">
+                        <div class="res-author">
+                            <img src="{{ $resource->user->avatar_url }}" alt="{{ $resource->user->full_name }}">
+                            <div class="res-author-info">
+                                <span class="res-author-name">{{ $resource->user->full_name }}</span>
+                                <span class="res-author-role">Verified Expert</span>
+                            </div>
+                        </div>
+                        <div class="res-meta-item">
+                            <i data-lucide="calendar"></i>
+                            <span>Published {{ $resource->created_at->format('M d, Y') }}</span>
+                        </div>
+                        @if($resource->duration_meta)
+                        <div class="res-meta-item">
+                            <i data-lucide="clock"></i>
+                            <span>{{ $resource->duration_meta }}</span>
+                        </div>
+                        @endif
+                    </div>
+
+                    <div class="res-body-content" style="display: flex; flex-direction: column; gap: 32px;">
+                        @if($resource->file_path && in_array($resource->type, ['Audio', 'Media', 'Video']))
+                        <div class="res-media-viewer">
+                            @if($resource->type === 'Video' && in_array($resource->file_type, ['mp4', 'webm', 'ogg']))
+                                <video controls style="width: 100%; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                                    <source src="{{ $resource->file_url }}" type="video/{{ $resource->file_type }}">
+                                    Your browser does not support the video tag.
+                                </video>
+                            @elseif($resource->type === 'Audio' && in_array($resource->file_type, ['mp3', 'wav', 'ogg']))
+                                <div style="padding: 24px; background: var(--hover); border-radius: 16px; border: 1px solid var(--border);">
+                                    <h4 style="margin-bottom: 12px; font-size: 14px; font-weight: 600;">Audio Player</h4>
+                                    <audio controls style="width: 100%;">
+                                        <source src="{{ $resource->file_url }}" type="audio/{{ $resource->file_type === 'mp3' ? 'mpeg' : $resource->file_type }}">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                </div>
+                            @elseif($resource->type === 'Media')
+                                @if(in_array($resource->file_type, ['jpg', 'jpeg', 'png', 'gif', 'webp']))
+                                    <img src="{{ $resource->file_url }}" style="width: 100%; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                                @elseif($resource->file_type === 'pdf')
+                                    <div class="res-inline-viewer" style="height: 600px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                                        <iframe src="{{ $resource->file_url }}" width="100%" height="100%" style="border: none;"></iframe>
+                                    </div>
+                                @else
+                                    <div class="res-document-preview" style="padding: 24px; background: var(--hover); border-radius: 16px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: space-between;">
+                                        <div style="display: flex; align-items: center; gap: 16px;">
+                                            <div style="width: 48px; height: 48px; background: var(--res-primary); color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                                <i data-lucide="archive"></i>
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 700; color: var(--text);">Media Resource ({{ strtoupper($resource->file_type) }})</div>
+                                                <div style="font-size: 13px; color: var(--muted);">This media file is ready for download.</div>
+                                            </div>
+                                        </div>
+                                        <a href="{{ $resource->file_url }}" target="_blank" class="chip-btn" style="background: var(--res-primary); color: #fff; border: none; padding: 10px 20px;">
+                                            <i data-lucide="download"></i> Download Media
+                                        </a>
+                                    </div>
+                                @endif
+                            @else
+                                <div class="res-document-preview" style="padding: 24px; background: var(--hover); border-radius: 16px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center; gap: 16px;">
+                                        <div style="width: 48px; height: 48px; background: var(--res-primary); color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                            <i data-lucide="{{ $resource->type === 'Video' ? 'video' : ($resource->type === 'Audio' ? 'headphones' : 'file-text') }}"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 700; color: var(--text);">{{ $resource->type }} Resource ({{ strtoupper($resource->file_type) }})</div>
+                                            <div style="font-size: 13px; color: var(--muted);">Click the button to access the full {{ strtolower($resource->type) }}.</div>
+                                        </div>
+                                    </div>
+                                    <a href="{{ $resource->file_url }}" target="_blank" class="chip-btn" style="background: var(--res-primary); color: #fff; border: none; padding: 10px 20px;">
+                                        <i data-lucide="external-link"></i> Open {{ $resource->type }}
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                        @endif
+
+                        <div class="res-body-text">{!! $resource->content ?: $resource->description !!}</div>
+
+                        @if($resource->file_path && !in_array($resource->type, ['Audio', 'Media', 'Video']))
+                        <div class="res-document-section" style="margin-top: 32px; display: flex; flex-direction: column; gap: 20px;">
+                            <div class="res-document-preview" style="padding: 24px; background: var(--hover); border-radius: 16px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 16px;">
+                                    <div style="width: 48px; height: 48px; background: var(--res-primary); color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                        <i data-lucide="file-text"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 700; color: var(--text);">Attached Document ({{ strtoupper($resource->file_type) }})</div>
+                                        <div style="font-size: 13px; color: var(--muted);">You can view the document inline below or download it.</div>
+                                    </div>
+                                </div>
+                                <a href="{{ $resource->file_url }}" target="_blank" class="chip-btn" style="background: var(--res-primary); color: #fff; border: none; padding: 10px 20px;">
+                                    <i data-lucide="download"></i> Download
+                                </a>
+                            </div>
+
+                            @if($resource->file_type === 'pdf')
+                                <div class="res-inline-viewer" style="height: 600px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                                    <iframe src="{{ $resource->file_url }}" width="100%" height="100%" style="border: none;"></iframe>
+                                </div>
+                            @elseif(in_array($resource->file_type, ['doc', 'docx']))
+                                <div class="res-inline-viewer" style="height: 600px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                                    <iframe src="https://docs.google.com/gview?url={{ urlencode($resource->file_url) }}&embedded=true" width="100%" height="100%" style="border: none;"></iframe>
+                                </div>
+                            @endif
+                        </div>
+                        @endif
+                    </div>
+
+                <div class="res-actions-bar">
+                    <div style="font-size: 14px; font-weight: 600;">
+                        Found this helpful? Share it with your community.
+                    </div>
+                    <button class="share-btn-lg" id="shareToFeedBtn" data-id="{{ $resource->id }}">
+                        <i data-lucide="share-2"></i> Share to Feed
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div id="dash-toast" class="dash-toast" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 1000;"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const shareBtn = document.getElementById('shareToFeedBtn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', async function() {
+            const id = this.dataset.id;
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="spin"></i> Sharing...';
+            if (window.lucide) lucide.createIcons();
+
+            try {
+                const res = await fetch(`/resources/${id}/share`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                if(data.ok) {
+                    showLocalToast('Resource shared to your feed!');
+                    btn.innerHTML = '<i data-lucide="check"></i> Shared';
+                    btn.style.background = '#10b981';
+                }
+            } catch(e) {
+                showLocalToast('Failed to share resource.');
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="share-2"></i> Share to Feed';
+            }
+            if (window.lucide) lucide.createIcons();
+        });
+    }
+});
+
+function showLocalToast(msg) {
+    const toast = document.getElementById('dash-toast');
+    if (toast) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+}
+</script>
+@endsection
