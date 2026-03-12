@@ -76,6 +76,18 @@ class User extends Authenticatable
         return $this->hasOne(DoctorApplication::class)->latest();
     }
 
+    public function following()
+    {
+        return $this->belongsToMany(User::class, 'user_follows', 'follower_id', 'following_id')
+            ->withTimestamps();
+    }
+
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'user_follows', 'following_id', 'follower_id')
+            ->withTimestamps();
+    }
+
     // ── Accessors ─────────────────────────────────────────────────
     public function getFullNameAttribute(): string
     {

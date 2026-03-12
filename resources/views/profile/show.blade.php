@@ -188,6 +188,11 @@
           <button class="edit-profile-btn" id="editProfileBtn" type="button">
             <i data-lucide="pencil"></i> Edit Profile
           </button>
+          @elseif($me)
+          <button class="follow-btn {{ $isFollowing ? 'following' : '' }}" id="followBtn" type="button" data-user-id="{{ $profileUser->id }}" data-following="{{ $isFollowing ? '1' : '0' }}">
+            <i data-lucide="{{ $isFollowing ? 'user-check' : 'user-plus' }}"></i>
+            {{ $isFollowing ? 'Following' : 'Follow' }}
+          </button>
           @endif
         </div>
       </div>
@@ -251,6 +256,9 @@
           </button>
           <button class="tab-btn" data-tab="resources">
             <i data-lucide="book-open"></i> Resources
+          </button>
+          <button class="tab-btn" data-tab="network">
+            <i data-lucide="users"></i> Network
           </button>
           @if($isOwn)
           <button class="tab-btn" data-tab="saved">
@@ -526,6 +534,62 @@
         </div>
       </div>
 
+      {{-- ─ Network Tab ─ --}}
+      <div class="tab-content hidden" id="tab-network">
+        <div class="panel">
+          <div class="prof-section-header" style="padding: 10px 10px 0;">
+            <div class="prof-section-title">
+              <i data-lucide="users"></i>
+              <span>Network</span>
+            </div>
+          </div>
+          <div class="prof-section-body" style="padding: 8px 10px 0;">
+            <div class="network-controls">
+              <div class="network-tabs" id="networkTabs">
+                <button class="network-tab active" data-filter="following">Following</button>
+                <button class="network-tab" data-filter="followers">Followers</button>
+              </div>
+              <div class="network-search">
+                <i data-lucide="search"></i>
+                <input type="text" id="networkSearch" placeholder="Search name or @username">
+              </div>
+            </div>
+
+            <div class="prof-user-list" id="networkList">
+              @forelse($following as $u)
+                <a href="{{ route('profile.show', $u->id) }}" class="prof-user-row" data-type="following" data-name="{{ strtolower($u->full_name) }}" data-username="{{ strtolower($u->username) }}">
+                  <div class="avatar sm"><img src="{{ $u->avatar_url }}" alt="{{ $u->full_name }}"></div>
+                  <div class="prof-user-meta">
+                    <div class="prof-user-name">{{ $u->short_name ?: $u->full_name }}</div>
+                    <div class="prof-user-handle">{{ '@' . $u->username }}</div>
+                  </div>
+                </a>
+              @empty
+                <div class="empty-state soft" data-type="following">
+                  <i data-lucide="user-plus"></i>
+                  <p>No following yet.</p>
+                </div>
+              @endforelse
+
+              @forelse($followers as $u)
+                <a href="{{ route('profile.show', $u->id) }}" class="prof-user-row" data-type="followers" data-name="{{ strtolower($u->full_name) }}" data-username="{{ strtolower($u->username) }}" style="display:none;">
+                  <div class="avatar sm"><img src="{{ $u->avatar_url }}" alt="{{ $u->full_name }}"></div>
+                  <div class="prof-user-meta">
+                    <div class="prof-user-name">{{ $u->short_name ?: $u->full_name }}</div>
+                    <div class="prof-user-handle">{{ '@' . $u->username }}</div>
+                  </div>
+                </a>
+              @empty
+                <div class="empty-state soft" data-type="followers" style="display:none;">
+                  <i data-lucide="users"></i>
+                  <p>No followers yet.</p>
+                </div>
+              @endforelse
+            </div>
+          </div>
+        </div>
+      </div>
+
       {{-- ─ Saved Tab (own profile only) ─ --}}
       @if($isOwn)
       <div class="tab-content hidden" id="tab-saved">
@@ -584,8 +648,10 @@
     destroyPost:   function(id){ return '/profile/posts/' + id; },
     toggleLike:    function(id){ return '/profile/posts/' + id + '/like'; },
     toggleSave:    function(id){ return '/profile/posts/' + id + '/save'; },
+    toggleFollow:  function(id){ return '/profile/' + id + '/follow'; },
     storeComment:  function(id){ return '/profile/posts/' + id + '/comments'; },
     destroyComment:function(id){ return '/profile/comments/' + id; },
+    profileNetwork:function(id){ return '/api/profile/' + id + '/network'; },
   };
 </script>
 @endsection

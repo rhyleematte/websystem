@@ -40,6 +40,9 @@ Route::middleware('auth')->group(function () {
     // Search API
     Route::get('/api/search/users', [ProfileController::class , 'searchUsers'])
         ->name('dashboard.search.users');
+    // Network API
+    Route::get('/api/profile/{user}/network', [ProfileController::class , 'network'])
+        ->name('profile.network');
 
     // Support Groups
     Route::get('/groups', [\App\Http\Controllers\GroupController::class , 'index'])->name('groups.index');
@@ -66,6 +69,7 @@ Route::middleware('auth')->group(function () {
 
     // View profile (own or others)
     Route::get('/profile/{id}', [ProfileController::class , 'show'])->name('profile.show');
+    Route::post('/profile/{user}/follow', [ProfileController::class , 'toggleFollow'])->name('profile.follow');
 
     // Edit own profile info & photo
     Route::post('/profile/update-info', [ProfileController::class , 'updateInfo'])->name('profile.update.info');

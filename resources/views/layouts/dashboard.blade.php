@@ -49,6 +49,7 @@
 </div>
 
 <!-- Dashboard JS -->
+<script src="{{ asset('assets/js/mentions.js') }}?v={{ filemtime(public_path('assets/js/mentions.js')) }}" defer></script>
 <script src="{{ asset('assets/js/dashboard.js') }}?v={{ filemtime(public_path('assets/js/dashboard.js')) }}" defer></script>
 <script src="{{ asset('assets/js/post-ui.js') }}?v={{ filemtime(public_path('assets/js/post-ui.js')) }}" defer></script>
 @stack('scripts')

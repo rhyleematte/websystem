@@ -32,6 +32,12 @@ function apiPost(url, body, method) {
     }).then(function (r) { return r.json(); });
 }
 
+function apiGet(url) {
+    return fetch(url, {
+        headers: { 'Accept': 'application/json' },
+    }).then(function (r) { return r.json(); });
+}
+
 function syncSavedTab(postId, isSaved, sourcePostEl) {
     const savedTab = document.getElementById('tab-saved');
     if (!savedTab) return;
@@ -854,6 +860,184 @@ document.addEventListener('click', (e) => {
 });
 
 /* ================================================================
+   FOLLOW / UNFOLLOW
+================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+    const followBtn = document.getElementById('followBtn');
+    if (!followBtn) return;
+
+    followBtn.addEventListener('click', async () => {
+        const userId = followBtn.dataset.userId;
+        if (!userId) return;
+
+        if (followBtn.dataset.busy === '1') return;
+        followBtn.dataset.busy = '1';
+        followBtn.disabled = true;
+        const isFollowingNow = followBtn.dataset.following === '1';
+        const action = isFollowingNow ? 'unfollow' : 'follow';
+        try {
+            const res = await apiPost(window.ROUTES.toggleFollow(userId), { action: action });
+            if (res.ok) {
+                const isFollowing = res.following !== undefined ? !!res.following : !isFollowingNow;
+                followBtn.dataset.following = isFollowing ? '1' : '0';
+                followBtn.classList.toggle('following', isFollowing);
+                followBtn.innerHTML = `<i data-lucide="${isFollowing ? 'user-check' : 'user-plus'}"></i> ${isFollowing ? 'Following' : 'Follow'}`;
+                if (window.lucide) lucide.createIcons({ root: followBtn });
+                if (window.refreshNetwork) window.refreshNetwork(true);
+            } else {
+                toast(res.message ?? 'Error.', 'error');
+            }
+        } catch {
+            toast('Network error.', 'error');
+        }
+        followBtn.dataset.busy = '0';
+        followBtn.disabled = false;
+    });
+});
+
+/* ================================================================
+   NETWORK TAB FILTER + SEARCH + LIVE UPDATE
+================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+    const tabs = Array.from(document.querySelectorAll('.network-tab'));
+    const list = document.getElementById('networkList');
+    const search = document.getElementById('networkSearch');
+    if (!tabs.length || !list) return;
+
+    let active = 'following';
+    let cache = null;
+    let loading = false;
+
+    tabs.forEach(btn => {
+        if (!btn.dataset.baseLabel) btn.dataset.baseLabel = btn.textContent.trim();
+    });
+
+    function setTabCount(type, count) {
+        const btn = tabs.find(t => t.dataset.filter === type);
+        if (!btn) return;
+        const base = btn.dataset.baseLabel || btn.textContent.trim();
+        btn.textContent = `${base} (${count})`;
+    }
+
+    function buildRow(u, type) {
+        const a = document.createElement('a');
+        a.href = u.profile_url || (`/profile/${u.id}`);
+        a.className = 'prof-user-row';
+        a.dataset.type = type;
+
+        const name = (u.name || '').toString();
+        const uname = (u.username || '').toString();
+        a.dataset.name = name.toLowerCase();
+        a.dataset.username = uname.toLowerCase();
+
+        a.innerHTML = `
+      <div class="avatar sm"><img src="${u.avatar_url}" alt="${escapeHtml(name || 'User')}"></div>
+      <div class="prof-user-meta">
+        <div class="prof-user-name">${escapeHtml(name || uname || 'User')}</div>
+        <div class="prof-user-handle">@${escapeHtml(uname)}</div>
+      </div>`;
+        return a;
+    }
+
+    function buildEmpty(type) {
+        const div = document.createElement('div');
+        div.className = 'empty-state soft';
+        div.dataset.type = type;
+        const icon = type === 'following' ? 'user-plus' : 'users';
+        const msg = type === 'following' ? 'No following yet.' : 'No followers yet.';
+        div.innerHTML = `<i data-lucide="${icon}"></i><p>${msg}</p>`;
+        return div;
+    }
+
+    function renderNetwork(data) {
+        const following = Array.isArray(data.following) ? data.following : [];
+        const followers = Array.isArray(data.followers) ? data.followers : [];
+
+        list.innerHTML = '';
+        following.forEach(u => list.appendChild(buildRow(u, 'following')));
+        if (!following.length) list.appendChild(buildEmpty('following'));
+
+        followers.forEach(u => list.appendChild(buildRow(u, 'followers')));
+        if (!followers.length) list.appendChild(buildEmpty('followers'));
+
+        setTabCount('following', data.following_count ?? following.length);
+        setTabCount('followers', data.followers_count ?? followers.length);
+
+        if (window.lucide) lucide.createIcons({ root: list });
+        apply();
+    }
+
+    function apply() {
+        const q = (search?.value || '').trim().toLowerCase();
+        const rows = Array.from(list.querySelectorAll('.prof-user-row, .empty-state'));
+        let anyVisible = false;
+
+        rows.forEach(row => {
+            const type = row.getAttribute('data-type');
+            if (type !== active) {
+                row.style.display = 'none';
+                return;
+            }
+            if (row.classList.contains('empty-state')) {
+                row.style.display = q ? 'none' : '';
+                if (!q) anyVisible = true;
+                return;
+            }
+
+            const name = row.getAttribute('data-name') || '';
+            const username = row.getAttribute('data-username') || '';
+            const show = !q || name.includes(q) || username.includes(q) || ('@' + username).includes(q);
+            row.style.display = show ? '' : 'none';
+            if (show) anyVisible = true;
+        });
+
+        // If no results and no empty-state shown, show a lightweight empty hint
+        if (!anyVisible) {
+            // no-op for now; keeping simple
+        }
+    }
+
+    async function refreshNetwork(force) {
+        if (!window.ROUTES || !window.ROUTES.profileNetwork || !window.PROFILE_USER_ID) {
+            apply();
+            return;
+        }
+        if (loading) return;
+        if (!force && cache) {
+            renderNetwork(cache);
+            return;
+        }
+        loading = true;
+        try {
+            const res = await apiGet(window.ROUTES.profileNetwork(window.PROFILE_USER_ID));
+            if (res && res.ok) {
+                cache = res;
+                renderNetwork(res);
+            }
+        } catch {
+            // keep existing list on error
+        }
+        loading = false;
+    }
+
+    window.refreshNetwork = refreshNetwork;
+
+    tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            active = btn.dataset.filter || 'following';
+            apply();
+            refreshNetwork(false);
+        });
+    });
+
+    search?.addEventListener('input', apply);
+    refreshNetwork(false);
+    apply();
+});
+
+/* ================================================================
    POST INTERACTIONS — Like, 3-dot menu, Edit, Delete
 ================================================================ */
 document.addEventListener('click', async (e) => {
@@ -1139,17 +1323,23 @@ document.addEventListener('click', async (e) => {
             composer.classList.remove('hidden');
             const inp = composer.querySelector('input');
             if (inp) {
-                inp.focus();
                 if (replyTo && replyTo !== 'undefined' && replyTo !== '') {
-                    const tag = `@${replyTo} `;
-                    const currentVal = inp.value;
-                    if (!currentVal.startsWith(tag)) {
-                        if (/^@[\w.\-]+ /.test(currentVal)) {
-                            inp.value = currentVal.replace(/^@[\w.\-]+ /, tag);
-                        } else {
-                            inp.value = tag + currentVal;
+                    if (window.applyReplyMention) {
+                        window.applyReplyMention(inp, replyTo);
+                    } else {
+                        inp.focus();
+                        const tag = `@${replyTo} `;
+                        const currentVal = inp.value;
+                        if (!currentVal.startsWith(tag)) {
+                            if (/^@[\w.\-]+ /.test(currentVal)) {
+                                inp.value = currentVal.replace(/^@[\w.\-]+ /, tag);
+                            } else {
+                                inp.value = tag + currentVal;
+                            }
                         }
                     }
+                } else {
+                    inp.focus();
                 }
             }
         }

@@ -656,7 +656,7 @@ document.addEventListener('DOMContentLoaded', function () {
         : '')
       + '</div>'
       + '<p class="comment-text">' + parseMarkdownLinks(esc(c.comment_text)) + '</p>'
-      + '<button class="reply-toggle-btn" type="button" data-comment-id="' + c.id + '" data-post-id="' + c.post_id + '">Reply</button>'
+      + '<button class="reply-toggle-btn" type="button" data-comment-id="' + c.id + '" data-post-id="' + c.post_id + '" data-reply-to="' + esc(c.user.username) + '">Reply</button>'
       + '<div class="reply-composer hidden" id="dash-reply-composer-' + c.id + '">'
       + '<input type="text" class="comment-input reply-input" placeholder="Write a reply…"'
       + ' data-post-id="' + c.post_id + '" data-parent-id="' + c.id + '">'
@@ -985,17 +985,23 @@ document.addEventListener('DOMContentLoaded', function () {
         composer.classList.remove('hidden');
         var inp = composer.querySelector('input');
         if (inp) {
-          inp.focus();
           if (replyTo && replyTo !== 'undefined' && replyTo !== '') {
-            var tag = '@' + replyTo + ' ';
-            var currentVal = inp.value;
-            if (!currentVal.startsWith(tag)) {
-              if (/^@[\w.\-]+ /.test(currentVal)) {
-                inp.value = currentVal.replace(/^@[\w.\-]+ /, tag);
-              } else {
-                inp.value = tag + currentVal;
+            if (window.applyReplyMention) {
+              window.applyReplyMention(inp, replyTo);
+            } else {
+              inp.focus();
+              var tag = '@' + replyTo + ' ';
+              var currentVal = inp.value;
+              if (!currentVal.startsWith(tag)) {
+                if (/^@[\w.\-]+ /.test(currentVal)) {
+                  inp.value = currentVal.replace(/^@[\w.\-]+ /, tag);
+                } else {
+                  inp.value = tag + currentVal;
+                }
               }
             }
+          } else {
+            inp.focus();
           }
         }
       }

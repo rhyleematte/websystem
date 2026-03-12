@@ -21,6 +21,7 @@ class ProfileController extends Controller
     public function show($id)
     {
         $profileUser = User::with('doctorApplication')->findOrFail($id);
+        $me = Auth::user();
         $posts = Post::where('user_id', $id)
             ->with(['user', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource', 'sharedPost.user', 'sharedPost.media', 'sharedPost.resource'])
             ->latest()
@@ -89,6 +90,10 @@ class ProfileController extends Controller
                 ->get();
         }
 
+        $followers = $profileUser->followers()->get();
+        $following = $profileUser->following()->get();
+        $isFollowing = $me ? $me->following()->where('following_id', $profileUser->id)->exists() : false;
+
         return view('profile.show', [
             'profileUser'      => $profileUser,
             'posts'            => $posts,
@@ -99,6 +104,9 @@ class ProfileController extends Controller
             'joinedGroups'     => $joinedGroups,
             'createdGroups'    => $createdGroups,
             'savedPosts'       => $savedPosts,
+            'followers'        => $followers,
+            'following'        => $following,
+            'isFollowing'      => $isFollowing,
         ]);
     }
 
@@ -204,7 +212,15 @@ class ProfileController extends Controller
     // ── Dashboard feed (all users, latest) ───────────────────────
     public function dashboardFeed(Request $request)
     {
+        $followedIds = Auth::check()
+            ? Auth::user()->following()->pluck('users.id')->toArray()
+            : [];
+
         $posts = Post::with(['user', 'user.doctorApplication', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource', 'sharedPost.user', 'sharedPost.user.doctorApplication', 'sharedPost.media', 'sharedPost.resource'])
+            ->when(!empty($followedIds), function ($q) use ($followedIds) {
+                $ids = implode(',', $followedIds);
+                $q->orderByRaw("CASE WHEN user_id IN ($ids) THEN 0 ELSE 1 END");
+            })
             ->latest()
             ->paginate(15);
 
@@ -241,18 +257,32 @@ class ProfileController extends Controller
         }
 
         $users = $usersQuery->take(8)->get()->map(function ($u) {
-            return [
-            'id' => $u->id,
-            'name' => $u->short_name ?: $u->full_name,
-            'username' => $u->username,
-            'avatar_url' => $u->avatar_url,
-            'profile_url' => route('profile.show', $u->id),
-            ];
+            return $this->formatUserSummary($u);
         });
 
         return response()->json([
             'ok' => true,
             'users' => $users
+        ]);
+    }
+
+    // â”€â”€ Network: followers + following â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    public function network(User $user)
+    {
+        $followers = $user->followers()->get()->map(function ($u) {
+            return $this->formatUserSummary($u);
+        });
+        $following = $user->following()->get()->map(function ($u) {
+            return $this->formatUserSummary($u);
+        });
+
+        return response()->json([
+            'ok' => true,
+            'user_id' => $user->id,
+            'followers' => $followers,
+            'following' => $following,
+            'followers_count' => $followers->count(),
+            'following_count' => $following->count(),
         ]);
     }
 
@@ -407,6 +437,42 @@ class ProfileController extends Controller
         $post->delete();
 
         return response()->json(['ok' => true, 'message' => 'Post deleted.']);
+    }
+
+    // ── Follow / Unfollow user ─────────────────────────────────────────────
+    public function toggleFollow(Request $request, User $user)
+    {
+        $me = Auth::user();
+        if ($me->id === $user->id) {
+            return response()->json(['ok' => false, 'message' => 'You cannot follow yourself.'], 400);
+        }
+
+        $action = $request->input('action'); // 'follow' | 'unfollow' | null (toggle)
+        $exists = $me->following()->where('users.id', $user->id)->exists();
+        if ($action === 'follow') {
+            if (!$exists) {
+                $me->following()->syncWithoutDetaching([$user->id]);
+            }
+        } elseif ($action === 'unfollow') {
+            if ($exists) {
+                $me->following()->detach($user->id);
+            }
+        } else {
+            if ($exists) {
+                $me->following()->detach($user->id);
+            } else {
+                $me->following()->attach($user->id);
+            }
+        }
+
+        $following = $me->following()->where('users.id', $user->id)->exists();
+
+        return response()->json([
+            'ok' => true,
+            'following' => $following,
+            'followers_count' => $user->followers()->count(),
+            'following_count' => $user->following()->count(),
+        ]);
     }
 
     // ── Toggle like ───────────────────────────────────────────────
@@ -674,6 +740,17 @@ class ProfileController extends Controller
                 'profile_url' => route('profile.show', $comment->user->id),
             ],
             'replies' => $repliesData,
+        ];
+    }
+
+    private function formatUserSummary(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->short_name ?: $user->full_name,
+            'username' => $user->username,
+            'avatar_url' => $user->avatar_url,
+            'profile_url' => route('profile.show', $user->id),
         ];
     }
 }
