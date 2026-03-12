@@ -7,6 +7,9 @@ use App\Models\PostComment;
 use App\Models\PostLike;
 use App\Models\PostMedia;
 use App\Models\User;
+use App\Models\Resource;
+use App\Models\Group;
+use App\Models\GroupMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -17,20 +20,86 @@ class ProfileController extends Controller
     // ── View any user's profile ───────────────────────────────────
     public function show($id)
     {
-        $profileUser = User::findOrFail($id);
+        $profileUser = User::with('doctorApplication')->findOrFail($id);
         $posts = Post::where('user_id', $id)
-            ->with(['user', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource'])
+            ->with(['user', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource', 'sharedPost.user', 'sharedPost.media', 'sharedPost.resource'])
             ->latest()
             ->get();
 
+        // Joined / created resources
+        $joinedResources = $profileUser->joinedResources()
+            ->with('user')
+            ->latest()
+            ->get();
+
+        $createdResources = Resource::with('user')
+            ->where('user_id', $profileUser->id)
+            ->latest()
+            ->get();
+
+        // Joined groups: any group where the user is a member
+        $joinedGroups = Group::withCount('members')
+            ->whereHas('members', function ($q) use ($profileUser) {
+                $q->where('user_id', $profileUser->id);
+            })
+            ->latest()
+            ->get();
+
+        // Created groups: groups where the user is the creator
+        $createdGroups = Group::withCount('members')
+            ->where('creator_id', $profileUser->id)
+            ->latest()
+            ->get();
+
+        // #region agent log: profile doctor filter context
+        try {
+            $payload = [
+                'sessionId' => 'b31335',
+                'runId' => 'profile-filter',
+                'hypothesisId' => 'H-doc-filter',
+                'location' => 'app/Http/Controllers/ProfileController.php:show',
+                'message' => 'profile_doctor_filter_context',
+                'data' => [
+                    'profile_user_id' => $profileUser->id,
+                    'role' => $profileUser->role,
+                    'doctor_status' => $profileUser->doctor_status,
+                    'joined_groups_count' => $joinedGroups->count(),
+                    'created_groups_count' => $createdGroups->count(),
+                    'joined_resources_count' => $joinedResources->count(),
+                    'created_resources_count' => $createdResources->count(),
+                ],
+                'timestamp' => (int) round(microtime(true) * 1000),
+            ];
+            file_put_contents(base_path('debug-b31335.log'), json_encode($payload) . PHP_EOL, FILE_APPEND);
+        } catch (\Throwable $e) {
+            // ignore logging failures
+        }
+        // #endregion agent log: profile doctor filter context
+
         $application = null;
         $requirements = null;
+        $savedPosts = collect();
         if (Auth::check() && Auth::id() === $profileUser->id) {
             $application = \App\Models\DoctorApplication::where('user_id', Auth::id())->first();
             $requirements = \App\Models\DoctorRequirement::all();
+
+            $savedPosts = $profileUser->savedPosts()
+                ->with(['user', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource', 'sharedPost.user', 'sharedPost.media', 'sharedPost.resource'])
+                ->latest('post_saves.created_at')
+                ->get();
         }
 
-        return view('profile.show', compact('profileUser', 'posts', 'application', 'requirements'));
+        return view('profile.show', [
+            'profileUser'      => $profileUser,
+            'posts'            => $posts,
+            'application'      => $application,
+            'requirements'     => $requirements,
+            'joinedResources'  => $joinedResources,
+            'createdResources' => $createdResources,
+            'joinedGroups'     => $joinedGroups,
+            'createdGroups'    => $createdGroups,
+            'savedPosts'       => $savedPosts,
+        ]);
     }
 
     // ── Update bio / name / username ─────────────────────────────
@@ -135,7 +204,7 @@ class ProfileController extends Controller
     // ── Dashboard feed (all users, latest) ───────────────────────
     public function dashboardFeed(Request $request)
     {
-        $posts = Post::with(['user', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource'])
+        $posts = Post::with(['user', 'user.doctorApplication', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource', 'sharedPost.user', 'sharedPost.user.doctorApplication', 'sharedPost.media', 'sharedPost.resource'])
             ->latest()
             ->paginate(15);
 
@@ -321,7 +390,15 @@ class ProfileController extends Controller
     // ── Delete post ───────────────────────────────────────────────
     public function destroyPost(Post $post)
     {
-        abort_if($post->user_id !== Auth::id(), 403);
+        if ($post->user_id !== Auth::id()) {
+            $isGroupCreator = false;
+            if ($post->group_id) {
+                $isGroupCreator = Group::where('id', $post->group_id)
+                    ->where('creator_id', Auth::id())
+                    ->exists();
+            }
+            abort_if(!$isGroupCreator, 403);
+        }
 
         foreach ($post->media as $media) {
             Storage::disk('public')->delete($media->path);
@@ -358,6 +435,26 @@ class ProfileController extends Controller
         ]);
     }
 
+    // ── Toggle save ───────────────────────────────────────────────
+    public function toggleSave(Post $post)
+    {
+        $user = Auth::user();
+        $exists = $user->savedPosts()->where('post_id', $post->id)->exists();
+
+        if ($exists) {
+            $user->savedPosts()->detach($post->id);
+            $saved = false;
+        } else {
+            $user->savedPosts()->attach($post->id);
+            $saved = true;
+        }
+
+        return response()->json([
+            'ok' => true,
+            'saved' => $saved,
+        ]);
+    }
+
     // ── Add comment ───────────────────────────────────────────────
     public function storeComment(Request $request, Post $post)
     {
@@ -388,6 +485,57 @@ class ProfileController extends Controller
         $comment->delete();
 
         return response()->json(['ok' => true, 'message' => 'Comment deleted.']);
+    }
+
+    public function sharePost(Request $request, Post $post)
+    {
+        $request->validate([
+            'text_content' => 'nullable|string|max:5000',
+        ]);
+
+        // Always share the original/root post (not the reshare wrapper)
+        // If the target is already a share, share its original.
+        $origin = $post;
+        $guard = 0;
+        while ($origin->shared_post_id && $guard < 10) {
+            $origin = Post::find($origin->shared_post_id) ?: $origin;
+            $guard++;
+            if ($origin->id === $post->id) {
+                break;
+            }
+        }
+
+        // #region agent log: share origin resolution
+        try {
+            $payload = [
+                'sessionId' => 'b31335',
+                'runId' => 'post-fix',
+                'hypothesisId' => 'S1',
+                'location' => 'app/Http/Controllers/ProfileController.php:sharePost',
+                'message' => 'sharePost_origin_resolved',
+                'data' => [
+                    'input_post_id' => $post->id,
+                    'input_shared_post_id' => $post->shared_post_id,
+                    'origin_post_id' => $origin->id,
+                    'origin_shared_post_id' => $origin->shared_post_id,
+                    'guard' => $guard,
+                ],
+                'timestamp' => (int) round(microtime(true) * 1000),
+            ];
+            file_put_contents(base_path('debug-b31335.log'), json_encode($payload) . PHP_EOL, FILE_APPEND);
+        } catch (\Throwable $e) {
+            // ignore logging failures
+        }
+        // #endregion agent log: share origin resolution
+
+        $shared = Post::create([
+            'user_id' => Auth::id(),
+            'shared_post_id' => $origin->id,
+            'post_type' => 'post_share',
+            'text_content' => $request->text_content,
+        ]);
+
+        return response()->json(['ok' => true, 'message' => 'Post shared!', 'post' => $this->formatPost($shared)]);
     }
 
     public function updateCoverPhoto(Request $request)
@@ -478,6 +626,7 @@ class ProfileController extends Controller
             'like_count' => $post->likes->count(),
             'comment_count' => $post->allComments()->count(),
             'is_liked' => $post->isLikedBy(Auth::id()),
+            'is_saved' => $post->isSavedBy(Auth::id()),
             'can_manage' => $post->user_id === Auth::id(),
             'user' => [
                 'id' => $post->user->id,
@@ -485,6 +634,8 @@ class ProfileController extends Controller
                 'username' => $post->user->username,
                 'avatar_url' => $post->user->avatar_url,
                 'profile_url' => route('profile.show', $post->user->id),
+                'doctor_status' => $post->user->doctor_status,
+                'professional_titles' => optional($post->user->doctorApplication)->professional_titles,
             ],
             'media' => $mediaData,
             'comments' => $commentsData,
@@ -496,6 +647,7 @@ class ProfileController extends Controller
                 'thumbnail_url' => $post->resource->thumbnail_url,
                 'url' => route('resources.show', $post->resource->id),
             ] : null,
+            'shared_post' => $post->sharedPost ? $this->formatPost($post->sharedPost) : null,
         ];
     }
 

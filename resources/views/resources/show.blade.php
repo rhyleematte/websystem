@@ -125,9 +125,16 @@
 
     <div class="res-body">
         <aside class="res-sidebar">
-            <a href="{{ route('resources.index') }}" class="nav-item active" style="margin-bottom:16px; font-weight:500;">
-                <i data-lucide="arrow-left"></i><span>Back to Resources</span>
-            </a>
+            @php $me = Auth::user(); @endphp
+            @if(request('from') === 'profile' && request('profile_id'))
+                <a href="{{ route('profile.show', request('profile_id')) }}?tab=resources" class="nav-item active" style="margin-bottom:16px; font-weight:500;">
+                    <i data-lucide="arrow-left"></i><span>Back to My Profile</span>
+                </a>
+            @else
+                <a href="{{ route('resources.index') }}" class="nav-item active" style="margin-bottom:16px; font-weight:500;">
+                    <i data-lucide="arrow-left"></i><span>Back to Resources</span>
+                </a>
+            @endif
             
             <div class="panel mini-panel" style="margin-top: 24px;">
                 <div class="mini-title"><i data-lucide="sparkles"></i><span>Curated Resource</span></div>
@@ -276,11 +283,32 @@
 
                 <div class="res-actions-bar">
                     <div style="font-size: 14px; font-weight: 600;">
-                        Found this helpful? Share it with your community.
+                        Found this helpful? Join it and share with your community.
                     </div>
-                    <button class="share-btn-lg" id="shareToFeedBtn" data-id="{{ $resource->id }}">
-                        <i data-lucide="share-2"></i> Share to Feed
-                    </button>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        @auth
+                          @if($isJoined ?? false)
+                            <form method="POST" action="{{ route('resources.unjoin', $resource->id) }}">
+                              @csrf
+                              @method('DELETE')
+                              <button type="submit" class="share-btn-lg" style="background:#10b981;">
+                                <i data-lucide="check"></i> Joined
+                              </button>
+                            </form>
+                          @else
+                            <form method="POST" action="{{ route('resources.join', $resource->id) }}">
+                              @csrf
+                              <button type="submit" class="share-btn-lg" style="background:#22c55e;">
+                                <i data-lucide="user-plus"></i> Join Resource
+                              </button>
+                            </form>
+                          @endif
+                        @endauth
+
+                        <button class="share-btn-lg js-share-resource" type="button" data-resource-id="{{ $resource->id }}" data-preview="{{ $resource->title }}">
+                            <i data-lucide="share-2"></i> Share to Feed
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -289,48 +317,4 @@
 
 <div id="dash-toast" class="dash-toast" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 1000;"></div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const shareBtn = document.getElementById('shareToFeedBtn');
-    if (shareBtn) {
-        shareBtn.addEventListener('click', async function() {
-            const id = this.dataset.id;
-            const btn = this;
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader" class="spin"></i> Sharing...';
-            if (window.lucide) lucide.createIcons();
-
-            try {
-                const res = await fetch(`/resources/${id}/share`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    }
-                });
-                const data = await res.json();
-                if(data.ok) {
-                    showLocalToast('Resource shared to your feed!');
-                    btn.innerHTML = '<i data-lucide="check"></i> Shared';
-                    btn.style.background = '#10b981';
-                }
-            } catch(e) {
-                showLocalToast('Failed to share resource.');
-                btn.disabled = false;
-                btn.innerHTML = '<i data-lucide="share-2"></i> Share to Feed';
-            }
-            if (window.lucide) lucide.createIcons();
-        });
-    }
-});
-
-function showLocalToast(msg) {
-    const toast = document.getElementById('dash-toast');
-    if (toast) {
-        toast.textContent = msg;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3000);
-    }
-}
-</script>
 @endsection

@@ -19,6 +19,7 @@
     max-width: 1100px;
     margin: 0 auto;
     align-items: start;
+    min-width: 0;
 }
 
 @media (max-width: 900px) {
@@ -45,6 +46,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    min-width: 0;
 }
 
 .prof-card {
@@ -188,9 +190,16 @@
 
 .prof-card-names {
     display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.prof-name-row {
+    display: flex;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 10px;
+    min-width: 0;
 }
 
 .prof-fullname {
@@ -199,11 +208,16 @@
     margin: 0;
     color: var(--text);
     text-transform: capitalize;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .prof-handle {
     font-size: 14px;
     color: var(--muted);
+    white-space: nowrap;
 }
 
 .verified-badge {
@@ -217,6 +231,12 @@
     border: 1px solid #e6dcff;
     border-radius: 999px;
     padding: 3px 10px;
+    white-space: nowrap;
+}
+
+.verified-badge.verified-inline {
+    margin-left: 4px;
+    flex: 0 0 auto;
 }
 
 html.theme-dark .verified-badge {
@@ -227,6 +247,12 @@ html.theme-dark .verified-badge {
 .verified-badge svg {
     width: 13px;
     height: 13px;
+}
+
+.verified-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
 }
 
 .prof-bio {
@@ -274,10 +300,10 @@ html.theme-dark .verified-badge {
     align-items: center;
     gap: 8px;
     padding: 10px 18px;
-    border: 1px solid var(--border);
+    border: 1px solid #c7b9ff;
     border-radius: 12px;
-    background: var(--chip-bg);
-    color: var(--text);
+    background: linear-gradient(90deg, #7c3aed, #4f46e5);
+    color: #fff;
     font-weight: 800;
     font-size: 14px;
     cursor: pointer;
@@ -286,8 +312,8 @@ html.theme-dark .verified-badge {
 }
 
 .edit-profile-btn:hover {
-    background: var(--hover);
-    box-shadow: 0 4px 14px rgba(124, 58, 237, .15);
+    box-shadow: 0 8px 20px rgba(124, 58, 237, .25);
+    opacity: .95;
 }
 
 .edit-profile-btn svg {
@@ -612,7 +638,8 @@ html:not(.theme-dark) .input-prefix {
     display: none;
 }
 
-#postsFeed {
+#postsFeed,
+#savedPostsFeed {
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -741,6 +768,52 @@ html.theme-dark .post-menu {
 /* ================================================================
    MEDIA GRID
 ================================================================ */
+.prof-shell .panel {
+    border: 1px solid var(--border);
+}
+.post-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.post-name {
+    font-weight: 800;
+    color: var(--text);
+}
+
+.post-handle {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.post-prof-title {
+    margin-top: 2px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.verified-doctor-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #eff6ff;
+    color: #3b82f6;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid #bfdbfe;
+    user-select: none;
+}
+
+.verified-doctor-badge svg {
+    width: 14px;
+    height: 14px;
+}
+
 .post-media-grid {
     display: grid;
     gap: 2px;
@@ -801,6 +874,24 @@ html.theme-dark .post-menu {
     padding: 4px 10px;
     font-size: 13px;
     font-weight: 700;
+}
+
+/* Hashtags */
+.post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0 12px;
+}
+
+.post-tags .tag {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--hover);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--brand);
 }
 
 /* ================================================================
@@ -1046,6 +1137,266 @@ html.theme-dark .post-menu {
 }
 
 /* ================================================================
+   PROFILE SECTIONS: GROUPS & RESOURCES
+================================================================ */
+.prof-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.prof-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 4px 0;
+}
+
+.prof-section-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: 15px;
+}
+
+.prof-section-title svg {
+    width: 18px;
+    height: 18px;
+}
+
+.prof-section-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.prof-section-search {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+}
+
+.prof-section-search svg {
+    width: 14px;
+    height: 14px;
+    color: var(--muted);
+}
+
+.prof-section-search-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    color: var(--text);
+    min-width: 140px;
+}
+
+.prof-section-body {
+    padding-top: 4px;
+}
+
+.prof-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+}
+
+@media (max-width: 640px) {
+    .prof-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+.prof-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 14px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: box-shadow .18s, transform .12s, border-color .18s, background .18s;
+}
+
+.prof-card:hover {
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .18);
+    transform: translateY(-2px);
+    border-color: rgba(124, 58, 237, .3);
+}
+
+.prof-card-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.prof-card-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.prof-card-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.prof-card-desc {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2; /* show at most 2 lines */
+    overflow: hidden;
+}
+
+.prof-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.prof-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.prof-meta-item svg {
+    width: 14px;
+    height: 14px;
+}
+
+.prof-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(124, 58, 237, .12);
+    color: var(--brand);
+}
+
+.prof-badge.muted {
+    background: rgba(148, 163, 184, .16);
+    color: var(--muted);
+}
+
+.prof-res-thumb, .prof-group-thumb {
+    width: 100%;
+    height: 120px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 8px;
+}
+
+.prof-group-card {
+    /* inherits .prof-card */
+}
+
+.prof-resource-card {
+    /* inherits .prof-card */
+}
+
+/* Joined vs Created visibility */
+.prof-section[data-section="groups"][data-current="joined"] .prof-groups-created,
+.prof-section[data-section="groups"][data-current="created"] .prof-groups-joined,
+.prof-section[data-section="resources"][data-current="joined"] .prof-resources-created,
+.prof-section[data-section="resources"][data-current="created"] .prof-resources-joined {
+    display: none;
+}
+
+/* ================================================================
+   PROFILE FILTER DROPDOWN
+================================================================ */
+.prof-filter-dropdown {
+    position: relative;
+}
+
+.prof-filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--chip-bg);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.prof-filter-toggle svg {
+    width: 14px;
+    height: 14px;
+}
+
+.prof-filter-toggle:hover {
+    background: var(--hover);
+}
+
+.prof-filter-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 140px;
+    background: var(--panel);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    padding: 4px;
+    display: none;
+    z-index: 600;
+}
+
+.prof-filter-menu.open {
+    display: block;
+}
+
+.prof-filter-menu button {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    color: var(--text);
+}
+
+.prof-filter-menu button:hover {
+    background: var(--hover);
+}
+
+/* ================================================================
    TOAST
 ================================================================ */
 .toast {
@@ -1145,4 +1496,36 @@ html.theme-dark .post-menu {
 
 .btn-edit-cancel:hover {
     background: var(--hover);
+}
+
+/* Save / bookmark state */
+.post-actions .save-btn.saved i,
+.post-actions .save-btn.saved svg {
+    color: #f59e0b;
+    fill: #f59e0b;
+    stroke: #f59e0b;
+}
+
+.post-actions .like-btn svg,
+.post-actions .like-btn i {
+    color: #ef4444;
+    stroke: #ef4444;
+}
+
+.post-actions .comment-toggle-btn svg,
+.post-actions .comment-toggle-btn i {
+    color: #16a34a;
+    stroke: #16a34a;
+}
+
+.post-actions .save-btn svg,
+.post-actions .save-btn i {
+    color: #f59e0b;
+    stroke: #f59e0b;
+}
+
+.post-actions .js-share-post svg,
+.post-actions .js-share-post i {
+    color: #2563eb;
+    stroke: #2563eb;
 }

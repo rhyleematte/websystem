@@ -457,10 +457,8 @@ document.addEventListener('DOMContentLoaded', function () {
       mediaHtml += '</div>';
     }
 
-    /* mood */
-    var moodHtml = post.mood
-      ? '<div class="post-mood"><i data-lucide="heart-handshake"></i> Feeling: <strong>' + esc(post.mood) + '</strong></div>'
-      : '';
+    /* mood (match profile UI: hidden) */
+    var moodHtml = '';
 
     /* hashtags */
     var tagsHtml = '';
@@ -487,10 +485,19 @@ document.addEventListener('DOMContentLoaded', function () {
         + '</div></div>';
     }
 
-    /* verified badge */
-    var verifiedBadge = (post.user && post.user.role === 'doctor')
-      ? '<span class="verified" title="Verified Doctor"><i data-lucide="badge-check"></i></span>'
-      : '';
+    /* verified badge + professional title (match profile UI) */
+    var verifiedBadge = '';
+    var profTitleHtml = '';
+    if (post.user && post.user.role === 'doctor' && post.user.doctor_status === 'approved') {
+      verifiedBadge =
+        '<span class="verified-doctor-badge" title="Verified Doctor">'
+        + '<i data-lucide="badge-check"></i>'
+        + ' Verified Doctor'
+        + '</span>';
+      if (post.user.professional_titles && post.user.professional_titles.trim()) {
+        profTitleHtml = '<div class="post-prof-title">' + esc(post.user.professional_titles.trim()) + '</div>';
+      }
+    }
 
     var profileUrl = (post.user.id === window.MY_ID)
       ? window.MY_PROFILE_URL
@@ -509,37 +516,89 @@ document.addEventListener('DOMContentLoaded', function () {
         '</div></a>';
     }
 
+    /* shared post card (for post_share type) */
+    var sharedHtml = '';
+    if (post.shared_post) {
+      var sp = post.shared_post;
+      var spProfileUrl = (sp.user.id === window.MY_ID)
+        ? window.MY_PROFILE_URL
+        : esc(sp.user.profile_url || '/profile/' + sp.user.id);
+
+      var spResourceHtml = '';
+      if (sp.resource) {
+        spResourceHtml =
+          '<a href="' + sp.resource.url + '" class="post-resource-card" style="margin-top:10px;">' +
+          '<div class="res-mini-thumb"><img src="' + esc(sp.resource.thumbnail_url) + '"></div>' +
+          '<div class="res-mini-info">' +
+          '<div class="res-mini-type">' + esc(sp.resource.type) + '</div>' +
+          '<div class="res-mini-title">' + esc(sp.resource.title) + '</div>' +
+          '<div class="res-mini-desc">' + esc(sp.resource.description) + '</div>' +
+          '</div></a>';
+      }
+
+      var spMediaMini = '';
+      if (sp.media && sp.media.length) {
+        spMediaMini = '<div class="shared-post-media-mini">';
+        sp.media.slice(0, 3).forEach(function (m) {
+          if (m.media_type === 'video') {
+            spMediaMini += '<video src="' + esc(m.url) + '" muted></video>';
+          } else {
+            spMediaMini += '<img src="' + esc(m.url) + '" alt="Shared media">';
+          }
+        });
+        spMediaMini += '</div>';
+      }
+
+      sharedHtml =
+        '<div class="shared-post-card">' +
+        '<div class="shared-post-head">' +
+        '<a href="' + spProfileUrl + '" class="avatar"><img src="' + esc(sp.user.avatar_url) + '" alt="' + esc(sp.user.name) + '"></a>' +
+        '<div class="shared-post-meta">' +
+        '<div class="shared-post-name"><a href="' + spProfileUrl + '" style="color:inherit;text-decoration:none;">' + esc(sp.user.name) + '</a></div>' +
+        '<div class="shared-post-sub">@' + esc(sp.user.username) + '</div>' +
+        '</div></div>' +
+        (sp.text_content ? '<div class="shared-post-body js-collapsible">' + parseMarkdownLinks(esc(sp.text_content)) + '</div>' : '') +
+        spResourceHtml +
+        spMediaMini +
+        '</div>';
+    }
+
     article.innerHTML =
       '<div class="post-head">'
       + '<a href="' + profileUrl + '" class="post-author-link">'
       + '<div class="avatar md"><img src="' + esc(post.user.avatar_url) + '" alt="' + esc(post.user.name) + '"></div>'
       + '</a>'
       + '<div class="post-meta">'
-      + '<div class="post-name">'
-      + '<a href="' + profileUrl + '" class="post-author-link">' + esc(post.user.name) + '</a>'
+      + '<div class="post-name-row">'
+      + '<a href="' + profileUrl + '" class="post-author-link post-name">' + esc(post.user.name) + '</a>'
+      + '<span class="post-handle">@' + esc(post.user.username) + '</span>'
       + verifiedBadge
       + '</div>'
-      + '<div class="post-sub">@' + esc(post.user.username) + ' · ' + esc(post.created_at) + '</div>'
+      + profTitleHtml
+      + '<div class="post-sub">' + esc(post.created_at) + '</div>'
       + '</div>'
       + menuHtml
       + '</div>'
-      + (post.text_content ? '<div class="post-body">' + parseMarkdownLinks(esc(post.text_content)) + '</div>' : '')
+      + (post.text_content ? '<div class="post-body post-text-content js-collapsible">' + parseMarkdownLinks(esc(post.text_content)) + '</div>' : '')
+      + tagsHtml
       + moodHtml
       + resourceHtml
+      + sharedHtml
       + mediaHtml
-      + tagsHtml
       + '<div class="post-actions">'
-      + '<button class="post-btn dash-like-btn ' + (post.is_liked ? 'liked' : '') + '" type="button"'
+      + '<button class="post-btn like-btn ' + (post.is_liked ? 'liked' : '') + '" type="button"'
       + ' data-post-id="' + post.id + '" data-liked="' + (post.is_liked ? '1' : '0') + '">'
       + '<i data-lucide="heart" class="like-icon"></i>'
       + '<span class="like-count">' + post.like_count + '</span>'
       + '</button>'
-      + '<button class="post-btn dash-comment-toggle" type="button" data-post-id="' + post.id + '">'
+      + '<button class="post-btn comment-toggle-btn" type="button" data-post-id="' + post.id + '">'
       + '<i data-lucide="message-square"></i>'
       + '<span class="comment-count">' + post.comment_count + '</span>'
       + '</button>'
-      + '<button class="post-btn" type="button"><i data-lucide="share-2"></i></button>'
-      + '<button class="post-btn end" type="button" title="Save"><i data-lucide="bookmark"></i></button>'
+      + '<button class="post-btn save-btn ' + (post.is_saved ? 'saved' : '') + ' end" type="button" title="Save" data-post-id="' + post.id + '" data-saved="' + (post.is_saved ? '1' : '0') + '">'
+      + '<i data-lucide="bookmark"></i>'
+      + '</button>'
+      + '<button class="post-btn js-share-post" type="button" data-post-id="' + post.id + '" data-preview="' + esc((post.text_content || '').slice(0, 80) || 'a post') + '"><i data-lucide="share-2"></i></button>'
       + '</div>'
       + '<div class="comments-section hidden" id="dash-comments-' + post.id + '">'
       + '<div class="comment-composer">'
@@ -552,6 +611,11 @@ document.addEventListener('DOMContentLoaded', function () {
       + (post.comments || []).map(function (c) { return buildCommentHtml(c); }).join('')
       + '</div>'
       + '</div>';
+
+    // Let shared UI scripts enhance newly-rendered posts
+    try {
+      document.dispatchEvent(new CustomEvent('post:rendered', { detail: { root: article } }));
+    } catch (e) {}
 
     return article;
   }
@@ -616,10 +680,13 @@ document.addEventListener('DOMContentLoaded', function () {
      INTERACTIONS (delegated)
   ================================================================ */
   document.addEventListener('click', async function (e) {
+    // Only handle post interactions for dashboard feed posts to avoid
+    // interfering with Profile page handlers (profile.js) that share classnames.
+    var inDashFeed = !!e.target.closest('#dashFeed');
 
     /* ── Like ───────────────────────────────────────────────── */
-    var likeBtn = e.target.closest('.dash-like-btn');
-    if (likeBtn) {
+    var likeBtn = e.target.closest('.like-btn, .dash-like-btn');
+    if (likeBtn && inDashFeed) {
       var postId = likeBtn.dataset.postId;
       var isLiked = likeBtn.dataset.liked === '1';
       var countEl = likeBtn.querySelector('.like-count');
@@ -648,9 +715,13 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
+    /* ── Save / bookmark ───────────────────────────────────── */
+    var saveBtn = e.target.closest('.save-btn, .dash-save-btn');
+    if (saveBtn && inDashFeed) return;
+
     /* ── Toggle comments section ────────────────────────────── */
-    var commentToggle = e.target.closest('.dash-comment-toggle');
-    if (commentToggle) {
+    var commentToggle = e.target.closest('.comment-toggle-btn, .dash-comment-toggle');
+    if (commentToggle && inDashFeed) {
       var postId = commentToggle.dataset.postId;
       var section = document.getElementById('dash-comments-' + postId);
       if (section) {
@@ -665,7 +736,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ── 3-dot menu toggle ──────────────────────────────────── */
     var menuBtn = e.target.closest('.post-menu-btn');
-    if (menuBtn) {
+    if (menuBtn && inDashFeed) {
       e.stopPropagation();
       var postMenu = menuBtn.nextElementSibling;
       document.querySelectorAll('.post-menu').forEach(function (m) {
@@ -675,13 +746,13 @@ document.addEventListener('DOMContentLoaded', function () {
       if (window.lucide) lucide.createIcons();
       return;
     }
-    if (!e.target.closest('.post-menu-wrap')) {
+    if (inDashFeed && !e.target.closest('.post-menu-wrap')) {
       document.querySelectorAll('.post-menu').forEach(function (m) { m.classList.add('hidden'); });
     }
 
     /* ── Delete post ────────────────────────────────────────── */
     var deletePostBtn = e.target.closest('.delete-post-btn');
-    if (deletePostBtn) {
+    if (deletePostBtn && inDashFeed) {
       if (!confirm('Delete this post? This cannot be undone.')) return;
       var postId = deletePostBtn.dataset.postId;
       var article = document.querySelector('[data-post-id="' + postId + '"]');
@@ -704,7 +775,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ── Edit post ──────────────────────────────────────────── */
     var editBtn = e.target.closest('.edit-post-btn');
-    if (editBtn) {
+    if (editBtn && inDashFeed) {
       var postId = editBtn.dataset.postId;
       var text = editBtn.dataset.text;
       var mediaData = editBtn.dataset.media ? JSON.parse(editBtn.dataset.media) : [];
@@ -886,7 +957,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ── Comment send ───────────────────────────────────────── */
     var sendBtn = e.target.closest('.comment-send-btn:not(.reply-send-btn)');
-    if (sendBtn) {
+    if (sendBtn && inDashFeed) {
       var postId = sendBtn.dataset.postId;
       var wrap = sendBtn.closest('.comment-input-wrap');
       var input = wrap ? wrap.querySelector('.comment-input') : null;
@@ -896,7 +967,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ── Reply send ─────────────────────────────────────────── */
     var replySend = e.target.closest('.reply-send-btn');
-    if (replySend) {
+    if (replySend && inDashFeed) {
       var postId = replySend.dataset.postId;
       var parentId = replySend.dataset.parentId;
       var input = document.querySelector('.reply-input[data-parent-id="' + parentId + '"]');
@@ -906,7 +977,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ── Reply toggle ───────────────────────────────────────── */
     var replyToggle = e.target.closest('.reply-toggle-btn');
-    if (replyToggle) {
+    if (replyToggle && inDashFeed) {
       var commentId = replyToggle.dataset.commentId;
       var replyTo = replyToggle.dataset.replyTo;
       var composer = document.getElementById('dash-reply-composer-' + commentId);
@@ -933,7 +1004,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ── Delete comment ─────────────────────────────────────── */
     var delComment = e.target.closest('.comment-delete-btn');
-    if (delComment) {
+    if (delComment && inDashFeed) {
       if (!confirm('Delete this comment?')) return;
       var commentId = delComment.dataset.commentId;
       try {
@@ -957,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ── Image Lightbox ─────────────────────────────────────── */
     var mediaItem = e.target.closest('.post-media-item') || e.target.closest('.media-more');
-    if (mediaItem && !e.target.closest('.edit-post-btn') && !e.target.closest('.delete-post-btn')) {
+    if (mediaItem && inDashFeed && !e.target.closest('.edit-post-btn') && !e.target.closest('.delete-post-btn')) {
       if (document.querySelector('.photo-lightbox')) return;
 
       var lb = document.createElement('div');
@@ -1080,9 +1151,10 @@ document.addEventListener('DOMContentLoaded', function () {
   document.addEventListener('keydown', async function (e) {
     if (e.key !== 'Enter') return;
     var input = e.target;
-    if (input.matches && input.matches('.comment-input:not(.reply-input)')) {
+    var inDashFeed = !!(input && input.closest && input.closest('#dashFeed'));
+    if (inDashFeed && input.matches && input.matches('.comment-input:not(.reply-input)')) {
       await submitDashComment(input.dataset.postId, null, input);
-    } else if (input.matches && input.matches('.reply-input')) {
+    } else if (inDashFeed && input.matches && input.matches('.reply-input')) {
       await submitDashComment(input.dataset.postId, input.dataset.parentId, input);
     }
   });
@@ -1124,3 +1196,4 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 });
+

@@ -43,6 +43,21 @@ class Group extends Model
         return $this->hasManyThrough(PostLike::class , Post::class);
     }
 
+    public function getCoverUrlAttribute(): string
+    {
+        $photo = $this->cover_photo;
+
+        if (!$photo) {
+            return asset('assets/img/defaultcover.png');
+        }
+
+        if (strpos($photo, 'http') === 0) {
+            return $photo;
+        }
+
+        return asset('storage/' . ltrim($photo, '/'));
+    }
+
     public function getActivityLevelAttribute()
     {
         $newMembers = $this->recent_members_count ?? 0;

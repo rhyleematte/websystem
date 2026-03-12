@@ -58,6 +58,19 @@ class User extends Authenticatable
         return $this->hasMany(GroupMember::class);
     }
 
+    public function joinedResources()
+    {
+        return $this->belongsToMany(Resource::class, 'resource_user')
+            ->withTimestamps()
+            ->withPivot('status');
+    }
+
+    public function savedPosts()
+    {
+        return $this->belongsToMany(Post::class, 'post_saves')
+            ->withTimestamps();
+    }
+
     public function doctorApplication()
     {
         return $this->hasOne(DoctorApplication::class)->latest();

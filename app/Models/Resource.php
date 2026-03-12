@@ -27,6 +27,13 @@ class Resource extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function joinedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'resource_user')
+            ->withTimestamps()
+            ->withPivot('status');
+    }
+
     public function posts()
     {
         return $this->hasMany(Post::class);
@@ -44,10 +51,17 @@ class Resource extends Model
     /** Get thumbnail URL */
     public function getThumbnailUrlAttribute(): string
     {
-        if (!$this->thumbnail) {
-            return asset('assets/img/default-resource.png');
+        $thumb = $this->thumbnail;
+
+        if (!$thumb) {
+            return asset('assets/img/defaultcover.png');
         }
-        return asset('storage/' . $this->thumbnail);
+
+        if (strpos($thumb, 'http') === 0) {
+            return $thumb;
+        }
+
+        return asset('storage/' . ltrim($thumb, '/'));
     }
 
     /** Get File URL */

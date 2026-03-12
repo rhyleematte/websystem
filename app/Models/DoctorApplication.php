@@ -16,6 +16,12 @@ class DoctorApplication extends Model
         'reviewed_at',
         'reviewed_by_admin_id',
         'admin_notes',
+        'professional_titles',
+        'biometric_consent',
+        'liveness_verified',
+        'face_match_score',
+        'biometric_verified_at',
+        'biometric_reference_hash',
     ];
 
     protected $casts = [

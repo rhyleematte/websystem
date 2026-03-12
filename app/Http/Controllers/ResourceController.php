@@ -13,13 +13,55 @@ class ResourceController extends Controller
     public function index()
     {
         $resources = Resource::with('user')->latest()->get();
-        return view('resources.index', compact('resources'));
+
+        $joinedResourceIds = [];
+        if (Auth::check()) {
+            $joinedResourceIds = Auth::user()
+                ->joinedResources()
+                ->pluck('resources.id')
+                ->toArray();
+        }
+
+        return view('resources.index', [
+            'resources' => $resources,
+            'joinedResourceIds' => $joinedResourceIds,
+        ]);
     }
 
     public function show(Resource $resource)
     {
+        $isJoined = false;
+        if (Auth::check()) {
+            $isJoined = Auth::user()
+                ->joinedResources()
+                ->where('resources.id', $resource->id)
+                ->exists();
+        }
+
+        // #region agent log: resource show navigation context
+        try {
+            $user = Auth::user();
+            $payload = [
+                'sessionId' => 'b31335',
+                'runId' => 'resource-nav',
+                'hypothesisId' => 'H-back-profile',
+                'location' => 'app/Http/Controllers/ResourceController.php:show',
+                'message' => 'resource_show_context',
+                'data' => [
+                    'resource_id' => $resource->id,
+                    'auth_user_id' => $user ? $user->id : null,
+                    'is_joined' => $isJoined,
+                ],
+                'timestamp' => (int) round(microtime(true) * 1000),
+            ];
+            file_put_contents(base_path('debug-b31335.log'), json_encode($payload) . PHP_EOL, FILE_APPEND);
+        } catch (\Throwable $e) {
+            // ignore logging failures
+        }
+        // #endregion agent log: resource show navigation context
+
         // For Article vs others, logic might differ but we'll use same show page for now
-        return view('resources.show', compact('resource'));
+        return view('resources.show', compact('resource', 'isJoined'));
     }
 
     public function create()
@@ -109,17 +151,57 @@ class ResourceController extends Controller
         return redirect()->route('resources.show', $resource->id)->with('success', 'Resource updated successfully.');
     }
 
-    public function share(Resource $resource)
+    public function share(Request $request, Resource $resource)
     {
+        $request->validate([
+            'text_content' => 'nullable|string|max:5000',
+            'hashtags' => 'nullable|string|max:500',
+        ]);
+
         // Sharing a resource creates a post
         $post = Post::create([
             'user_id' => Auth::id(),
             'resource_id' => $resource->id,
             'post_type' => 'resource_share',
-            'text_content' => "Shared a resource: " . $resource->title,
-            'hashtags' => $resource->hashtags,
+            'text_content' => $request->text_content ?: ("Shared a resource: " . $resource->title),
+            'hashtags' => $request->hashtags ?: $resource->hashtags,
         ]);
 
-        return response()->json(['ok' => true, 'message' => 'Shared to feed!']);
+        return response()->json(['ok' => true, 'message' => 'Shared to feed!', 'post_id' => $post->id]);
+    }
+
+    public function join(Resource $resource)
+    {
+        $user = Auth::user();
+        $user->joinedResources()->syncWithoutDetaching([
+            $resource->id => ['status' => 'joined'],
+        ]);
+
+        return back()->with('success', 'Resource joined.');
+    }
+
+    public function unjoin(Resource $resource)
+    {
+        $user = Auth::user();
+        $user->joinedResources()->detach($resource->id);
+
+        return back()->with('success', 'Resource unjoined.');
+    }
+
+    public function destroy(Resource $resource)
+    {
+        $this->authorize('delete', $resource);
+
+        if ($resource->thumbnail) {
+            Storage::disk('public')->delete($resource->thumbnail);
+        }
+
+        if ($resource->file_path) {
+            Storage::disk('public')->delete($resource->file_path);
+        }
+
+        $resource->delete();
+
+        return redirect()->route('resources.index')->with('success', 'Resource deleted successfully.');
     }
 }

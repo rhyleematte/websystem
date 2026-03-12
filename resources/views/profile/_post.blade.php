@@ -1,6 +1,10 @@
 @php
-  $liked    = $me ? $post->isLikedBy($me->id) : false;
-  $canManage = $me && $post->user_id === $me->id;
+  $liked     = $me ? $post->isLikedBy($me->id) : false;
+  $isSaved   = $me ? $post->isSavedBy($me->id) : false;
+  $isOwner   = $me && $post->user_id === $me->id;
+  $isGroupCreator = isset($group) && $me && $group->creator_id === $me->id;
+  $canManage = $isOwner || $isGroupCreator;
+  $canEdit   = $isOwner;
 @endphp
 
 <article class="panel post" data-post-id="{{ $post->id }}">
@@ -10,19 +14,25 @@
       <img src="{{ $post->user->avatar_url }}" alt="{{ $post->user->full_name }}">
     </div>
     <div class="post-meta">
-      <div class="post-name" style="display:flex; align-items:center; gap:6px;">
-        <span style="font-weight:600; color:var(--text);">{{ $post->user->full_name }}</span>
+      <div class="post-name-row">
+        <span class="post-name">{{ $post->user->full_name }}</span>
+        <span class="post-handle">{{ '@' . $post->user->username }}</span>
         @if($post->user->role === 'doctor' && $post->user->doctor_status === 'approved')
-          @php
-             $titles = $post->user->doctorApplication ? $post->user->doctorApplication->professional_titles : '';
-          @endphp
-          <span class="verified-doctor-badge" title="Certified Doctor" style="display:inline-flex; align-items:center; gap:4px; background:#eff6ff; color:#3b82f6; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; border:1px solid #bfdbfe; user-select:none;">
-            <i data-lucide="badge-check" style="width:14px; height:14px;"></i>
-            {{ trim($titles) ? $titles : 'Certified Doctor' }}
+          <span class="verified-doctor-badge" title="Verified Doctor">
+            <i data-lucide="badge-check"></i>
+            Verified Doctor
           </span>
         @endif
       </div>
-      <div class="post-sub">{{ '@' . $post->user->username }} · {{ $post->created_at->diffForHumans() }}</div>
+      @if($post->user->role === 'doctor' && $post->user->doctor_status === 'approved')
+        @php
+           $titles = $post->user->doctorApplication ? $post->user->doctorApplication->professional_titles : '';
+        @endphp
+        @if(trim($titles))
+          <div class="post-prof-title">{{ $titles }}</div>
+        @endif
+      @endif
+      <div class="post-sub">{{ $post->created_at->diffForHumans() }}</div>
     </div>
     @if($canManage)
     <div class="post-menu-wrap">
@@ -30,12 +40,14 @@
         <i data-lucide="more-horizontal"></i>
       </button>
       <div class="post-menu hidden">
+        @if($canEdit)
         <button class="post-menu-item edit-post-btn" type="button"
             data-post-id="{{ $post->id }}"
             data-text="{{ $post->text_content ?? '' }}"
             data-media="{{ json_encode($post->media->map(function($m) { return ['id' => $m->id, 'url' => asset('storage/' . $m->path), 'media_type' => $m->media_type]; })) }}">
           <i data-lucide="pencil"></i> Edit
         </button>
+        @endif
         <button class="post-menu-item delete-post-btn danger" type="button"
             data-post-id="{{ $post->id }}">
           <i data-lucide="trash-2"></i> Delete
@@ -47,7 +59,70 @@
 
   {{-- Post body --}}
   @if($post->text_content)
-  <div class="post-body post-text-content">{!! preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" target="_blank" rel="noopener noreferrer" class="post-link" style="color:var(--brand);text-decoration:underline;">$1</a>', htmlspecialchars($post->text_content)) !!}</div>
+  <div class="post-body post-text-content js-collapsible">{!! preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" target="_blank" rel="noopener noreferrer" class="post-link" style="color:var(--brand);text-decoration:underline;">$1</a>', htmlspecialchars($post->text_content)) !!}</div>
+  @endif
+
+  @if(!empty($post->hashtags_array))
+    <div class="post-tags">
+      @foreach($post->hashtags_array as $tag)
+        <span class="tag">#{{ $tag }}</span>
+      @endforeach
+    </div>
+  @endif
+
+  {{-- Resource card (resource_share) --}}
+  @if($post->resource)
+    <a href="{{ route('resources.show', $post->resource->id) }}" class="post-resource-card" style="display:flex; gap:12px; border:1px solid var(--border); border-radius:14px; padding:12px; text-decoration:none; color:inherit; margin-bottom:12px;">
+      <div class="res-mini-thumb" style="width:64px; height:64px; border-radius:12px; overflow:hidden; flex-shrink:0; background:var(--hover); border:1px solid var(--border);">
+        <img src="{{ $post->resource->thumbnail_url }}" alt="{{ $post->resource->title }}" style="width:100%; height:100%; object-fit:cover;">
+      </div>
+      <div class="res-mini-info" style="min-width:0; display:flex; flex-direction:column; gap:4px;">
+        <div class="res-mini-type" style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase;">{{ $post->resource->type }}</div>
+        <div class="res-mini-title" style="font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $post->resource->title }}</div>
+        <div class="res-mini-desc" style="font-size:13px; color:var(--muted); overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">{{ $post->resource->description }}</div>
+      </div>
+    </a>
+  @endif
+
+  {{-- Shared post card (post_share) --}}
+  @if($post->sharedPost)
+    <div class="shared-post-card">
+      <div class="shared-post-head">
+        <div class="avatar">
+          <img src="{{ $post->sharedPost->user->avatar_url }}" alt="{{ $post->sharedPost->user->full_name }}">
+        </div>
+        <div class="shared-post-meta">
+          <div class="shared-post-name">{{ $post->sharedPost->user->full_name }}</div>
+          <div class="shared-post-sub">{{ '@' . $post->sharedPost->user->username }}</div>
+        </div>
+      </div>
+      @if($post->sharedPost->text_content)
+        <div class="shared-post-body js-collapsible">{!! preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" target="_blank" rel="noopener noreferrer" class="post-link" style="color:var(--brand);text-decoration:underline;">$1</a>', htmlspecialchars($post->sharedPost->text_content)) !!}</div>
+      @endif
+      @if($post->sharedPost->resource)
+        <a href="{{ route('resources.show', $post->sharedPost->resource->id) }}" class="post-resource-card" style="display:flex; gap:12px; border:1px solid var(--border); border-radius:14px; padding:12px; text-decoration:none; color:inherit; margin-top:10px;">
+          <div class="res-mini-thumb" style="width:64px; height:64px; border-radius:12px; overflow:hidden; flex-shrink:0; background:var(--hover); border:1px solid var(--border);">
+            <img src="{{ $post->sharedPost->resource->thumbnail_url }}" alt="{{ $post->sharedPost->resource->title }}" style="width:100%; height:100%; object-fit:cover;">
+          </div>
+          <div class="res-mini-info" style="min-width:0; display:flex; flex-direction:column; gap:4px;">
+            <div class="res-mini-type" style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase;">{{ $post->sharedPost->resource->type }}</div>
+            <div class="res-mini-title" style="font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $post->sharedPost->resource->title }}</div>
+            <div class="res-mini-desc" style="font-size:13px; color:var(--muted); overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">{{ $post->sharedPost->resource->description }}</div>
+          </div>
+        </a>
+      @endif
+      @if($post->sharedPost->media && $post->sharedPost->media->isNotEmpty())
+        <div class="shared-post-media-mini">
+          @foreach($post->sharedPost->media->take(3) as $m)
+            @if($m->media_type === 'video')
+              <video src="{{ asset('storage/' . $m->path) }}" muted></video>
+            @else
+              <img src="{{ asset('storage/' . $m->path) }}" alt="Shared media">
+            @endif
+          @endforeach
+        </div>
+      @endif
+    </div>
   @endif
 
   {{-- Media grid --}}
@@ -80,9 +155,14 @@
       <span class="comment-count">{{ $post->allComments()->count() }}</span>
     </button>
 
-
-    <button class="post-btn end" type="button" title="Save">
+    <button class="post-btn save-btn {{ $isSaved ? 'saved' : '' }} end" type="button" title="Save" data-post-id="{{ $post->id }}" data-saved="{{ $isSaved ? '1' : '0' }}">
       <i data-lucide="bookmark"></i>
+    </button>
+
+    <button class="post-btn js-share-post" type="button" title="Share"
+            data-post-id="{{ $post->id }}"
+            data-preview="{{ $post->text_content ? \Illuminate\Support\Str::limit($post->text_content, 80) : 'a post' }}">
+      <i data-lucide="share-2"></i>
     </button>
   </div>
 
@@ -114,3 +194,4 @@
     </div>
   </div>
 </article>
+

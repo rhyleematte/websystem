@@ -88,6 +88,8 @@
         </a>
       </div>
       
+      
+      
       <div class="panel mini-panel">
         <div class="mini-title"><i data-lucide="sparkles"></i><span>Daily Affirmation</span></div>
         <p class="mini-text" style="font-style:italic; color:#7c3aed;">"You are worthy of support and belonging. Your journey is unique, and every step forward is progress."</p>
@@ -116,13 +118,30 @@
         @endif
       </div>
 
+      <div class="groups-toolbar">
+        <div class="groups-search-wrap">
+          <i data-lucide="search"></i>
+          <input type="text" id="groupHeaderSearch" placeholder="Search groups..." autocomplete="off">
+        </div>
+        <div class="groups-filter-wrap">
+          <select id="groupSortSelect">
+            <option value="newest" {{ ($sort ?? 'newest') === 'newest' ? 'selected' : '' }}>Newest</option>
+            <option value="oldest" {{ ($sort ?? 'newest') === 'oldest' ? 'selected' : '' }}>Oldest</option>
+            <option value="members_desc" {{ ($sort ?? 'newest') === 'members_desc' ? 'selected' : '' }}>Highest Members</option>
+            <option value="members_asc" {{ ($sort ?? 'newest') === 'members_asc' ? 'selected' : '' }}>Lowest Members</option>
+            <option value="active_desc" {{ ($sort ?? 'newest') === 'active_desc' ? 'selected' : '' }}>Most Active</option>
+            <option value="active_asc" {{ ($sort ?? 'newest') === 'active_asc' ? 'selected' : '' }}>Least Active</option>
+          </select>
+        </div>
+      </div>
+
       <div class="groups-grid">
         @foreach($groups as $group)
         @php
             $isJoined = in_array($group->id, $myGroupIds);
         @endphp
         <div class="group-card">
-          <div class="group-cover" style="{{ $group->cover_photo ? 'background-image: url(' . asset('storage/' . $group->cover_photo) . '); background-size: cover; background-position: center;' : 'background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);' }}">
+          <div class="group-cover" style="background-image: url('{{ $group->cover_url }}'); background-size: cover; background-position: center;">
           </div>
           <div class="group-info">
             <h2 class="group-title">{{ $group->name }}</h2>
@@ -259,6 +278,41 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+});
+
+// Simple header search filter for groups list
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('groupHeaderSearch');
+    const cards = Array.from(document.querySelectorAll('.groups-grid .group-card'));
+
+    if (!searchInput || !cards.length) return;
+
+    const norm = (s) => (s || '').toString().trim().toLowerCase();
+
+    function apply() {
+        const q = norm(searchInput.value);
+        cards.forEach(card => {
+            const titleEl = card.querySelector('.group-title');
+            const descEl = card.querySelector('.group-desc');
+            const hay = norm((titleEl?.textContent || '') + ' ' + (descEl?.textContent || ''));
+            const show = !q || hay.indexOf(q) !== -1;
+            card.style.display = show ? '' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', apply);
+});
+
+// Sort selector
+document.addEventListener('DOMContentLoaded', () => {
+    const sortSelect = document.getElementById('groupSortSelect');
+    if (!sortSelect) return;
+
+    sortSelect.addEventListener('change', () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('sort', sortSelect.value);
+        window.location.href = url.toString();
+    });
 });
 </script>
 @endpush

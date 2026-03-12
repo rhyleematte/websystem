@@ -66,12 +66,75 @@
     max-width: 600px;
 }
 
+/* Search + Filter toolbar */
+.groups-toolbar {
+    margin: 14px 0 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.groups-search-wrap {
+    min-width: 280px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid #ddd6fe;
+    background: linear-gradient(90deg, #f5f3ff, #eef2ff);
+    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.08);
+}
+
+.groups-search-wrap i {
+    width: 16px;
+    height: 16px;
+    color: #6d28d9;
+}
+
+.groups-search-wrap input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+    color: var(--text);
+    width: 100%;
+}
+
+.groups-filter-wrap select {
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid #c7d2fe;
+    background: linear-gradient(90deg, #eef2ff, #e0e7ff);
+    color: #1f2937;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.12);
+}
+
+.groups-filter-wrap select:hover {
+    filter: brightness(0.98);
+}
+
+@media (max-width: 900px) {
+    .groups-toolbar {
+        justify-content: flex-start;
+    }
+    .groups-search-wrap {
+        min-width: 100%;
+    }
+}
+
 /* ── Groups Grid ──────────────────────────────────────────────── */
 .groups-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 24px;
 }
+
 
 .group-card {
     display: flex;

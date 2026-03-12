@@ -88,9 +88,15 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
 
   <div class="groups-body">
     <aside class="groups-sidebar">
-      <a href="{{ route('groups.index') }}" class="nav-item active" style="margin-bottom:16px; font-weight:500;">
-        <i data-lucide="arrow-left"></i><span>Back to Groups</span>
-      </a>
+      @if(request('from') === 'profile' && request('profile_id'))
+        <a href="{{ route('profile.show', request('profile_id')) }}?tab=groups" class="nav-item active" style="margin-bottom:16px; font-weight:500;">
+          <i data-lucide="arrow-left"></i><span>Back to My Profile</span>
+        </a>
+      @else
+        <a href="{{ route('groups.index') }}" class="nav-item active" style="margin-bottom:16px; font-weight:500;">
+          <i data-lucide="arrow-left"></i><span>Back to Groups</span>
+        </a>
+      @endif
 
       {{-- Guidelines Moved to Left Sidebar --}}
       <div class="panel group-guidelines-widget" style="margin-top: 24px; padding: 20px;">
@@ -119,7 +125,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
     <main class="groups-main">
       {{-- ── Group Hero Header ── --}}
       <div class="panel group-hero">
-        <div class="group-hero-cover" style="{{ $group->cover_photo ? 'background-image: url(' . asset('storage/' . $group->cover_photo) . '); background-size: cover; background-position: center;' : 'background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);' }}">
+        <div class="group-hero-cover" style="background-image: url('{{ $group->cover_url }}'); background-size: cover; background-position: center;">
           @if(Auth::id() === $group->creator_id)
           <div class="dropdown" style="position:absolute; bottom:24px; right:24px; z-index:10;">
             <button id="coverToggleBtn" class="btn dropdown-toggle" style="background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:8px; padding:8px 16px; font-size:13px; font-weight:500; display:flex; gap:8px; align-items:center;">
@@ -160,6 +166,15 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
               <button class="btn primary" onclick="leaveGroup({{ $group->id }})" style="padding:10px 24px; border-radius:8px; background:linear-gradient(90deg, #7c3aed, #4f46e5); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.2); border:none; color:#fff;">
                 Leave Group
               </button>
+              @else
+              <div style="display:flex; gap:10px;">
+                <button class="btn secondary" type="button" onclick="openEditGroupModal()" style="padding:10px 18px; border-radius:8px; border:1px solid var(--border); background:var(--chip-bg); color:var(--text);">
+                  <i data-lucide="pencil" style="width:16px;height:16px;"></i> Edit Group
+                </button>
+                <button class="btn secondary" type="button" onclick="deleteGroup({{ $group->id }})" style="padding:10px 18px; border-radius:8px; border:1px solid #fecaca; background:#fff1f2; color:#b91c1c;">
+                  <i data-lucide="trash-2" style="width:16px;height:16px;"></i> Delete
+                </button>
+              </div>
               @endif
             @else
             <button class="btn primary" onclick="joinGroup({{ $group->id }})" style="padding:10px 24px; border-radius:8px; background:linear-gradient(90deg, #7c3aed, #4f46e5); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.2); border:none; color:#fff;">
@@ -245,7 +260,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
                 </div>
               </div>
               <div id="composerFeedback" class="composer-feedback"></div>
-              <button class="share-btn" type="button" id="dashShareBtn" style="background:var(--primary);">
+              <button class="share-btn" type="button" id="dashShareBtn">
                 Post <i data-lucide="send"></i>
               </button>
             </div>
@@ -261,7 +276,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
           @if($isMember)
           <div id="dashFeed">
             @forelse($posts as $post)
-              @include('profile._post', ['post' => $post, 'me' => $me])
+              @include('profile._post', ['post' => $post, 'me' => $me, 'group' => $group])
             @empty
               <div id="feedEmpty" class="empty-state panel">
                 <i data-lucide="file-text"></i>
@@ -278,6 +293,37 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
   </div>
 </div>
 
+@if($me->id === $group->creator_id)
+<div class="modal-backdrop" id="editGroupModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Edit Group</h2>
+      <button class="modal-close" type="button" onclick="closeEditGroupModal()"><i data-lucide="x"></i></button>
+    </div>
+    <form id="editGroupForm" onsubmit="updateGroup(event, {{ $group->id }})" style="padding: 0 24px 24px;">
+      @csrf
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--text); font-size:14px;">Group Name <span style="color:var(--danger);">*</span></label>
+        <input type="text" id="editGroupName" required value="{{ $group->name }}" style="width:100%; padding:12px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); border-radius:10px; font-size:14px;">
+      </div>
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--text); font-size:14px;">Description <span style="color:var(--danger);">*</span></label>
+        <textarea id="editGroupDesc" required rows="3" style="width:100%; padding:12px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); border-radius:10px; font-size:14px; resize:vertical;">{{ $group->description }}</textarea>
+      </div>
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--text); font-size:14px;">Guidelines</label>
+        <textarea id="editGroupGuidelines" rows="4" style="width:100%; padding:12px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); border-radius:10px; font-size:14px; resize:vertical;">{{ $group->guidelines }}</textarea>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button type="button" class="btn secondary" onclick="closeEditGroupModal()" style="padding:10px 20px; border-radius:10px; font-weight:600; background:var(--hover); color:var(--text); border:1px solid var(--border);">Cancel</button>
+        <button type="submit" class="btn primary" style="background:linear-gradient(90deg, #7c3aed, #4f46e5); color:#fff; border:none; padding:10px 24px; border-radius:10px; font-weight:600;">Save</button>
+      </div>
+      <div class="form-feedback" id="editGroupFeedback" style="margin-top:10px;"></div>
+    </form>
+  </div>
+</div>
+@endif
+
 <div id="toast" class="toast"></div>
 
 @endsection
@@ -285,6 +331,104 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+function openEditGroupModal() {
+    const modal = document.getElementById('editGroupModal');
+    if (modal) modal.classList.add('open');
+}
+
+function closeEditGroupModal() {
+    const modal = document.getElementById('editGroupModal');
+    if (modal) modal.classList.remove('open');
+    const feedback = document.getElementById('editGroupFeedback');
+    if (feedback) feedback.textContent = '';
+}
+
+async function updateGroup(e, id) {
+    e.preventDefault();
+    const nameEl = document.getElementById('editGroupName');
+    const descEl = document.getElementById('editGroupDesc');
+    const guideEl = document.getElementById('editGroupGuidelines');
+    const feedback = document.getElementById('editGroupFeedback');
+
+    const payload = {
+        name: nameEl ? nameEl.value.trim() : '',
+        description: descEl ? descEl.value.trim() : '',
+        guidelines: guideEl ? guideEl.value.trim() : ''
+    };
+
+    try {
+        const res = await fetch(`/groups/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.ok) {
+            const titleEl = document.querySelector('.group-hero-title');
+            if (titleEl) titleEl.textContent = data.group.name;
+            const desc = document.getElementById('groupDesc');
+            if (desc) desc.textContent = data.group.description;
+
+            const list = document.querySelector('.group-guidelines-list');
+            if (list) {
+                list.innerHTML = '';
+                if (data.group.guidelines) {
+                    data.group.guidelines.split(/\r?\n/).forEach(rule => {
+                        const t = rule.trim();
+                        if (!t) return;
+                        const li = document.createElement('li');
+                        li.textContent = t;
+                        list.appendChild(li);
+                    });
+                }
+            }
+
+            closeEditGroupModal();
+            Swal.fire({ title: 'Updated', text: 'Group updated successfully.', icon: 'success', confirmButtonColor: '#7c3aed' });
+        } else {
+            if (feedback) feedback.textContent = data.message || 'Failed to update group.';
+        }
+    } catch (e2) {
+        if (feedback) feedback.textContent = 'Network error. Please try again.';
+    }
+}
+
+async function deleteGroup(id) {
+    const result = await Swal.fire({
+        title: 'Delete this group?',
+        text: 'This will permanently delete the group and all its posts.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Yes, delete it'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+        const res = await fetch(`/groups/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        });
+        const data = await res.json();
+        if (data.ok && data.redirect) {
+            window.location.href = data.redirect;
+        } else {
+            Swal.fire('Error', data.message || 'Failed to delete group.', 'error');
+        }
+    } catch (e3) {
+        Swal.fire('Error', 'Network error. Please try again.', 'error');
+    }
+}
+
 async function joinGroup(id) {
     try {
         let res = await fetch(`/groups/${id}/join`, {

@@ -24,8 +24,33 @@
 
 @yield('content')
 
+<!-- Share modal (used by Dashboard/Profile/Resources) -->
+<div class="modal-backdrop share-modal" id="shareModal" aria-hidden="true">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
+    <div class="modal-header">
+      <h2 id="shareModalTitle">Share</h2>
+      <button class="modal-close" id="shareModalCloseBtn" type="button" aria-label="Close">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="share-modal-body">
+      <label class="share-modal-label" for="shareModalText">Add a comment (optional)</label>
+      <textarea id="shareModalText" class="share-modal-textarea" rows="4" placeholder="Say something about this..."></textarea>
+      <div class="share-modal-preview" id="shareModalPreview" style="display:none;"></div>
+      <div class="share-modal-actions">
+        <button type="button" class="btn-cancel" id="shareModalCancelBtn">Cancel</button>
+        <button type="button" class="btn-save" id="shareModalShareBtn">
+          Share <i data-lucide="send"></i>
+        </button>
+      </div>
+      <div class="form-feedback" id="shareModalFeedback"></div>
+    </div>
+  </div>
+</div>
+
 <!-- Dashboard JS -->
 <script src="{{ asset('assets/js/dashboard.js') }}?v={{ filemtime(public_path('assets/js/dashboard.js')) }}" defer></script>
+<script src="{{ asset('assets/js/post-ui.js') }}?v={{ filemtime(public_path('assets/js/post-ui.js')) }}" defer></script>
 @stack('scripts')
 </body>
 </html>

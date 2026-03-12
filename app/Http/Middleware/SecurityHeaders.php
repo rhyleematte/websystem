@@ -29,6 +29,13 @@ class SecurityHeaders
         // Content-Security-Policy — allows same-origin, Google Fonts,
         // CDN scripts (Lucide), and inline scripts needed by the app.
         // Adjust as you add third-party resources.
+        // In local/dev, allow the debug logger endpoint (Cursor debug mode).
+        // This is intentionally scoped to non-production to avoid weakening CSP in production.
+        $debugConnectSrc = '';
+        if (app()->environment('local', 'development', 'testing')) {
+            $debugConnectSrc = ' http://127.0.0.1:7658';
+        }
+
         $csp = implode('; ', [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' blob: https://unpkg.com https://cdn.jsdelivr.net",
@@ -37,7 +44,7 @@ class SecurityHeaders
             "font-src 'self' https://fonts.gstatic.com",
             "img-src 'self' data: blob: https:",
             "media-src 'self' blob:",
-            "connect-src 'self' https://unpkg.com https://cdn.jsdelivr.net",
+            "connect-src 'self'{$debugConnectSrc} https://unpkg.com https://cdn.jsdelivr.net",
             "frame-ancestors 'self'",
             "form-action 'self'",
             "base-uri 'self'",

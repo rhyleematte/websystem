@@ -47,6 +47,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/groups/{id}', [\App\Http\Controllers\GroupController::class , 'show'])->name('groups.show');
     Route::post('/groups/{id}/join', [\App\Http\Controllers\GroupController::class , 'join'])->name('groups.join');
     Route::post('/groups/{id}/leave', [\App\Http\Controllers\GroupController::class , 'leave'])->name('groups.leave');
+    Route::put('/groups/{id}', [\App\Http\Controllers\GroupController::class , 'update'])->name('groups.update');
+    Route::delete('/groups/{id}', [\App\Http\Controllers\GroupController::class , 'destroy'])->name('groups.destroy');
 
     // Group Cover Photo
     Route::post('/groups/{id}/update-cover', [\App\Http\Controllers\GroupController::class , 'updateCoverPhoto'])->name('groups.update.cover');
@@ -55,6 +57,8 @@ Route::middleware('auth')->group(function () {
     // Resources
     Route::resource('resources', \App\Http\Controllers\ResourceController::class);
     Route::post('resources/{resource}/share', [\App\Http\Controllers\ResourceController::class, 'share'])->name('resources.share');
+    Route::post('resources/{resource}/join', [\App\Http\Controllers\ResourceController::class, 'join'])->name('resources.join');
+    Route::delete('resources/{resource}/join', [\App\Http\Controllers\ResourceController::class, 'unjoin'])->name('resources.unjoin');
 });
 
 // ── Profile ────────────────────────────────────────────────────
@@ -79,6 +83,8 @@ Route::middleware('auth')->group(function () {
 
     // Reactions
     Route::post('/profile/posts/{post}/like', [ProfileController::class , 'toggleLike'])->name('profile.posts.like');
+    Route::post('/profile/posts/{post}/share', [ProfileController::class , 'sharePost'])->name('profile.posts.share');
+    Route::post('/profile/posts/{post}/save', [ProfileController::class , 'toggleSave'])->name('profile.posts.save');
 
     // Comments
     Route::post('/profile/posts/{post}/comments', [ProfileController::class , 'storeComment'])->name('profile.comments.store');

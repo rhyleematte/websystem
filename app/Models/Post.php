@@ -13,6 +13,7 @@ class Post extends Model
         'user_id',
         'group_id',
         'resource_id',
+        'shared_post_id',
         'post_type',
         'text_content',
         'mood',
@@ -22,6 +23,11 @@ class Post extends Model
     public function resource()
     {
         return $this->belongsTo(Resource::class);
+    }
+
+    public function sharedPost()
+    {
+        return $this->belongsTo(Post::class, 'shared_post_id');
     }
 
     /** Return hashtags as a clean array of strings (without the #). */
@@ -67,5 +73,21 @@ class Post extends Model
     public function isLikedBy($userId)
     {
         return $this->likes()->where('user_id', $userId)->exists();
+    }
+
+    public function savedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'post_saves')
+            ->withTimestamps();
+    }
+
+    public function isSavedBy($userId): bool
+    {
+        if (!$userId) {
+            return false;
+        }
+        return $this->savedByUsers()
+            ->where('user_id', $userId)
+            ->exists();
     }
 }

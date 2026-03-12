@@ -53,7 +53,7 @@ class ResourcePolicy
      */
     public function update(User $user, Resource $resource)
     {
-        return $user->id === $resource->user_id && $user->doctor_status === 'approved';
+        return $user->id == $resource->user_id;
     }
 
     /**
@@ -65,7 +65,7 @@ class ResourcePolicy
      */
     public function delete(User $user, Resource $resource)
     {
-        return $user->id === $resource->user_id && $user->doctor_status === 'approved';
+        return $user->id == $resource->user_id;
     }
 
     /**

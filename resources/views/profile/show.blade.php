@@ -14,6 +14,11 @@
   $fullName  = $profileUser->short_name ?: $profileUser->full_name;
   $shortName = $me ? ($me->short_name ?: $me->full_name) : '';
   $username  = $profileUser->username ?? 'username';
+  $groupsJoinedCount = isset($joinedGroups) ? $joinedGroups->count() : 0;
+  $resourcesJoinedCount = isset($joinedResources) ? $joinedResources->count() : 0;
+  $hasCreatedGroups = isset($createdGroups) && $createdGroups->isNotEmpty();
+  $hasCreatedResources = isset($createdResources) && $createdResources->isNotEmpty();
+  $isVerifiedDoctor = $profileUser->role === 'doctor' && $profileUser->doctor_status === 'approved';
 @endphp
 
 {{-- ════════════════════════════════════════════════════════════════
@@ -103,7 +108,7 @@
 
       {{-- ─ Cover + Avatar card ─ --}}
       <div class="panel prof-card">
-        <div class="prof-cover" id="coverDisplay" style="background-image: url('{{ $profileUser->cover_url }}'); background-size: cover; background-position: center;">
+        <div class="prof-cover" id="coverDisplay" data-view-image data-fullsrc="{{ $profileUser->cover_url }}" style="background-image: url('{{ $profileUser->cover_url }}'); background-size: cover; background-position: center;">
           @if(!$profileUser->cover_photo)
           <div class="prof-cover-grad" id="coverGradientOverlay"></div>
           @endif
@@ -124,7 +129,7 @@
         <div class="prof-card-body">
           {{-- Avatar with upload overlay --}}
           <div class="prof-avatar-wrap">
-            <img src="{{ $avatarUrl }}" alt="{{ $fullName }}" class="prof-avatar" id="previewAvatar">
+            <img src="{{ $avatarUrl }}" alt="{{ $fullName }}" class="prof-avatar" id="previewAvatar" data-view-image data-fullsrc="{{ $avatarUrl }}">
             @if($isOwn)
             <div class="prof-avatar-actions">
               <label for="photoUpload" class="avatar-action-btn" title="Change photo">
@@ -140,10 +145,20 @@
 
           <div class="prof-card-info">
             <div class="prof-card-names">
-              <h1 class="prof-fullname">{{ $fullName }}</h1>
-              <span class="prof-handle" id="profHandle">{{ '@' . $username }}</span>
-              @if($profileUser->role === 'doctor')
-                <span class="verified-badge"><i data-lucide="badge-check"></i> Verified Doctor</span>
+              <div class="prof-name-row">
+                <h1 class="prof-fullname">{{ $fullName }}</h1>
+                <span class="prof-handle" id="profHandle">{{ '@' . $username }}</span>
+                @if($isVerifiedDoctor)
+                  <span class="verified-badge verified-inline"><i data-lucide="badge-check"></i> Verified Doctor</span>
+                @endif
+              </div>
+              @if($isVerifiedDoctor)
+                @php
+                  $profTitle = $profileUser->doctorApplication ? $profileUser->doctorApplication->professional_titles : '';
+                @endphp
+                @if(trim($profTitle))
+                  <div class="verified-title">{{ $profTitle }}</div>
+                @endif
               @endif
             </div>
 
@@ -159,11 +174,11 @@
                 <span class="stat-lbl">Posts</span>
               </div>
               <div class="stat-item">
-                <span class="stat-num">0</span>
+                <span class="stat-num">{{ $groupsJoinedCount }}</span>
                 <span class="stat-lbl">Groups</span>
               </div>
               <div class="stat-item">
-                <span class="stat-num">0</span>
+                <span class="stat-num">{{ $resourcesJoinedCount }}</span>
                 <span class="stat-lbl">Resources</span>
               </div>
             </div>
@@ -237,6 +252,11 @@
           <button class="tab-btn" data-tab="resources">
             <i data-lucide="book-open"></i> Resources
           </button>
+          @if($isOwn)
+          <button class="tab-btn" data-tab="saved">
+            <i data-lucide="bookmark"></i> Saved
+          </button>
+          @endif
           @if($isOwn && $profileUser->doctor_status !== 'none' && $profileUser->doctor_status !== null)
           <button class="tab-btn" data-tab="application">
             <i data-lucide="stethoscope"></i> Application
@@ -304,21 +324,235 @@
 
       {{-- ─ Groups Tab ─ --}}
       <div class="tab-content hidden" id="tab-groups">
-        <div class="empty-state panel">
-          <i data-lucide="users"></i>
-          <p>No support group activity yet.</p>
-          <a href="#" class="btn-primary">Browse Groups</a>
+        <div class="panel prof-section" data-section="groups" data-current="joined">
+          <div class="prof-section-header">
+            <div class="prof-section-title">
+              <i data-lucide="users"></i>
+              <span>My Groups</span>
+            </div>
+            <div class="prof-section-tools">
+              <div class="prof-section-search">
+                <i data-lucide="search"></i>
+                <input type="text" class="prof-section-search-input" data-prof-search="groups" placeholder="Search groups...">
+              </div>
+            @if($isVerifiedDoctor)
+              <div class="prof-filter-dropdown" data-target="groups">
+                <button type="button" class="prof-filter-toggle" data-current="joined">
+                  <span>Joined</span>
+                  <i data-lucide="chevron-down"></i>
+                </button>
+                <div class="prof-filter-menu">
+                  <button type="button" data-value="joined">Joined</button>
+                  <button type="button" data-value="created">Created</button>
+                </div>
+              </div>
+            @endif
+            </div>
+          </div>
+
+          <div class="prof-section-body">
+            {{-- Joined Groups --}}
+            <div class="prof-grid prof-grid-groups prof-groups-joined">
+              @forelse($joinedGroups as $group)
+                <a href="{{ route('groups.show', $group->id) }}?from=profile&profile_id={{ $profileUser->id }}&tab=groups" class="prof-card prof-group-card">
+                  <div class="prof-group-thumb" style="background-image:url('{{ $group->cover_url }}');"></div>
+                  <div class="prof-card-main">
+                    <div class="prof-card-title-row">
+                      <span class="prof-card-title">{{ $group->name }}</span>
+                      @if($group->visibility === 'private')
+                        <span class="prof-badge muted">Private</span>
+                      @else
+                        <span class="prof-badge">Public</span>
+                      @endif
+                    </div>
+                    @if($group->description)
+                      <p class="prof-card-desc">{{ \Illuminate\Support\Str::limit($group->description, 120) }}</p>
+                    @endif
+                  </div>
+                  <div class="prof-card-meta">
+                    <span class="prof-meta-item">
+                      <i data-lucide="users"></i>
+                      <span>{{ $group->members_count ?? $group->members()->count() }} members</span>
+                    </span>
+                  </div>
+                </a>
+              @empty
+                <div class="empty-state soft">
+                  <i data-lucide="users"></i>
+                  <p>No joined groups yet.</p>
+                </div>
+              @endforelse
+            </div>
+
+            {{-- Created Groups --}}
+            <div class="prof-grid prof-grid-groups prof-groups-created">
+              @forelse($createdGroups as $group)
+                <a href="{{ route('groups.show', $group->id) }}?from=profile&profile_id={{ $profileUser->id }}&tab=groups" class="prof-card prof-group-card">
+                  <div class="prof-group-thumb" style="background-image:url('{{ $group->cover_url }}');"></div>
+                  <div class="prof-card-main">
+                    <div class="prof-card-title-row">
+                      <span class="prof-card-title">{{ $group->name }}</span>
+                      @if($group->visibility === 'private')
+                        <span class="prof-badge muted">Private</span>
+                      @else
+                        <span class="prof-badge">Public</span>
+                      @endif
+                    </div>
+                    @if($group->description)
+                      <p class="prof-card-desc">{{ \Illuminate\Support\Str::limit($group->description, 120) }}</p>
+                    @endif
+                  </div>
+                  <div class="prof-card-meta">
+                    <span class="prof-meta-item">
+                      <i data-lucide="users"></i>
+                      <span>{{ $group->members_count ?? $group->members()->count() }} members</span>
+                    </span>
+                  </div>
+                </a>
+              @empty
+                <div class="empty-state soft">
+                  <i data-lucide="users"></i>
+                  <p>No created groups yet.</p>
+                </div>
+              @endforelse
+            </div>
+          </div>
         </div>
       </div>
 
       {{-- ─ Resources Tab ─ --}}
       <div class="tab-content hidden" id="tab-resources">
-        <div class="empty-state panel">
-          <i data-lucide="book-open"></i>
-          <p>No resource activity yet.</p>
-          <a href="#" class="btn-primary">Browse Resources</a>
+        <div class="panel prof-section" data-section="resources" data-current="joined">
+          <div class="prof-section-header">
+            <div class="prof-section-title">
+              <i data-lucide="book-open"></i>
+              <span>My Resources</span>
+            </div>
+            <div class="prof-section-tools">
+              <div class="prof-section-search">
+                <i data-lucide="search"></i>
+                <input type="text" class="prof-section-search-input" data-prof-search="resources" placeholder="Search resources...">
+              </div>
+            @if($isVerifiedDoctor)
+              <div class="prof-filter-dropdown" data-target="resources">
+                <button type="button" class="prof-filter-toggle" data-current="joined">
+                  <span>Joined</span>
+                  <i data-lucide="chevron-down"></i>
+                </button>
+                <div class="prof-filter-menu">
+                  <button type="button" data-value="joined">Joined</button>
+                  <button type="button" data-value="created">Created</button>
+                </div>
+              </div>
+            @endif
+            </div>
+          </div>
+
+          <div class="prof-section-body">
+            {{-- Joined Resources --}}
+            <div class="prof-grid prof-grid-resources prof-resources-joined">
+              @forelse($joinedResources as $res)
+                <a href="{{ route('resources.show', $res->id) }}?from=profile&profile_id={{ $profileUser->id }}&tab=resources" class="prof-card prof-resource-card">
+                  <div class="prof-res-thumb" style="background-image:url('{{ $res->thumbnail_url }}');"></div>
+                  <div class="prof-card-main">
+                    <div class="prof-card-title-row">
+                      <span class="prof-card-title">{{ $res->title }}</span>
+                      @if($res->type)
+                        <span class="prof-badge">{{ ucfirst($res->type) }}</span>
+                      @endif
+                    </div>
+                    @if($res->description)
+                      <p class="prof-card-desc">{{ \Illuminate\Support\Str::limit($res->description, 140) }}</p>
+                    @endif
+                  </div>
+                  <div class="prof-card-meta">
+                    <span class="prof-meta-item">
+                      <i data-lucide="user"></i>
+                      <span>{{ $res->user->short_name ?: $res->user->full_name }}</span>
+                    </span>
+                    @if($res->duration_meta)
+                      <span class="prof-meta-item">
+                        <i data-lucide="clock"></i>
+                        <span>{{ $res->duration_meta }}</span>
+                      </span>
+                    @endif
+                  </div>
+                </a>
+              @empty
+                <div class="empty-state soft">
+                  <i data-lucide="book-open"></i>
+                  <p>No joined resources yet.</p>
+                </div>
+              @endforelse
+            </div>
+
+            {{-- Created Resources --}}
+            <div class="prof-grid prof-grid-resources prof-resources-created">
+              @forelse($createdResources as $res)
+                <a href="{{ route('resources.show', $res->id) }}?from=profile&profile_id={{ $profileUser->id }}&tab=resources" class="prof-card prof-resource-card">
+                  <div class="prof-res-thumb" style="background-image:url('{{ $res->thumbnail_url }}');"></div>
+                  <div class="prof-card-main">
+                    <div class="prof-card-title-row">
+                      <span class="prof-card-title">{{ $res->title }}</span>
+                      @if($res->type)
+                        <span class="prof-badge">{{ ucfirst($res->type) }}</span>
+                      @endif
+                    </div>
+                    @if($res->description)
+                      <p class="prof-card-desc">{{ \Illuminate\Support\Str::limit($res->description, 140) }}</p>
+                    @endif
+                  </div>
+                  <div class="prof-card-meta">
+                    <span class="prof-meta-item">
+                      <i data-lucide="user"></i>
+                      <span>{{ $res->user->short_name ?: $res->user->full_name }}</span>
+                    </span>
+                    @if($res->duration_meta)
+                      <span class="prof-meta-item">
+                        <i data-lucide="clock"></i>
+                        <span>{{ $res->duration_meta }}</span>
+                      </span>
+                    @endif
+                  </div>
+                </a>
+              @empty
+                <div class="empty-state soft">
+                  <i data-lucide="book-open"></i>
+                  <p>No created resources yet.</p>
+                </div>
+              @endforelse
+            </div>
+          </div>
         </div>
       </div>
+
+      {{-- ─ Saved Tab (own profile only) ─ --}}
+      @if($isOwn)
+      <div class="tab-content hidden" id="tab-saved">
+        <div class="panel">
+          <div class="prof-section-header" style="padding: 10px 10px 0;">
+            <div class="prof-section-title">
+              <i data-lucide="bookmark"></i>
+              <span>Saved Posts</span>
+            </div>
+          </div>
+          <div class="prof-section-body" style="padding: 8px 10px 0;">
+            @if(isset($savedPosts) && $savedPosts->count())
+              <div id="savedPostsFeed">
+                @foreach($savedPosts as $post)
+                  @include('profile._post', ['post' => $post, 'isOwn' => $isOwn, 'me' => $me])
+                @endforeach
+              </div>
+            @else
+              <div class="empty-state">
+                <i data-lucide="bookmark"></i>
+                <p>No saved posts yet. Tap the bookmark on any post to save it here.</p>
+              </div>
+            @endif
+          </div>
+        </div>
+      </div>
+      @endif
 
       {{-- ─ Application Tab ─ --}}
       @if($isOwn && $profileUser->doctor_status !== 'none' && $profileUser->doctor_status !== null)
@@ -349,6 +583,7 @@
     updatePost:    function(id){ return '/profile/posts/' + id; },
     destroyPost:   function(id){ return '/profile/posts/' + id; },
     toggleLike:    function(id){ return '/profile/posts/' + id + '/like'; },
+    toggleSave:    function(id){ return '/profile/posts/' + id + '/save'; },
     storeComment:  function(id){ return '/profile/posts/' + id + '/comments'; },
     destroyComment:function(id){ return '/profile/comments/' + id; },
   };

@@ -6,12 +6,16 @@ use Illuminate\Http\Request;
 use App\Models\Group;
 use App\Models\GroupMember;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class GroupController extends Controller
 {
     public function index()
     {
-        $groups = Group::withCount([
+        $sort = request()->query('sort', 'newest');
+
+        $groupsQuery = Group::withCount([
             'members',
             'members as recent_members_count' => function ($query) {
             $query->where('group_members.created_at', '>=', now()->subDays(30));
@@ -25,12 +29,28 @@ class GroupController extends Controller
             'allLikes as recent_likes_count' => function ($query) {
             $query->where('post_likes.created_at', '>=', now()->subDays(30));
         }
-        ])->get();
+        ]);
+
+        if ($sort === 'members_desc') {
+            $groupsQuery->orderBy('members_count', 'desc');
+        } elseif ($sort === 'members_asc') {
+            $groupsQuery->orderBy('members_count', 'asc');
+        } elseif ($sort === 'active_desc') {
+            $groupsQuery->orderByRaw('(recent_posts_count * 5 + recent_members_count * 3 + recent_comments_count * 2 + recent_likes_count) desc');
+        } elseif ($sort === 'active_asc') {
+            $groupsQuery->orderByRaw('(recent_posts_count * 5 + recent_members_count * 3 + recent_comments_count * 2 + recent_likes_count) asc');
+        } elseif ($sort === 'oldest') {
+            $groupsQuery->orderBy('created_at', 'asc');
+        } else {
+            $groupsQuery->orderBy('created_at', 'desc');
+        }
+
+        $groups = $groupsQuery->get();
         // Get active user's memberships to show "Joined" status
         $user = Auth::user();
         $myGroupIds = $user ? $user->groups()->pluck('group_id')->toArray() : [];
 
-        return view('groups.index', compact('groups', 'myGroupIds'));
+        return view('groups.index', compact('groups', 'myGroupIds', 'sort'));
     }
 
     public function show($id)
@@ -182,5 +202,55 @@ class GroupController extends Controller
         }
 
         return response()->json(['ok' => false, 'message' => 'No cover photo to remove.'], 400);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = Auth::user();
+        $group = Group::findOrFail($id);
+
+        if ($group->creator_id !== $user->id) {
+            return response()->json(['ok' => false, 'message' => 'Unauthorized. Only the group creator can edit this group.'], 403);
+        }
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'guidelines' => ['nullable', 'string'],
+        ]);
+
+        $group->update($data);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Group updated.',
+            'group' => [
+                'name' => $group->name,
+                'description' => $group->description,
+                'guidelines' => $group->guidelines,
+            ],
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $user = Auth::user();
+        $group = Group::findOrFail($id);
+
+        if ($group->creator_id !== $user->id) {
+            return response()->json(['ok' => false, 'message' => 'Unauthorized. Only the group creator can delete this group.'], 403);
+        }
+
+        if ($group->cover_photo) {
+            Storage::disk('public')->delete($group->cover_photo);
+        }
+
+        $group->delete();
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Group deleted.',
+            'redirect' => route('groups.index'),
+        ]);
     }
 }

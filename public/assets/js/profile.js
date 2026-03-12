@@ -32,6 +32,52 @@ function apiPost(url, body, method) {
     }).then(function (r) { return r.json(); });
 }
 
+function syncSavedTab(postId, isSaved, sourcePostEl) {
+    const savedTab = document.getElementById('tab-saved');
+    if (!savedTab) return;
+
+    let feed = document.getElementById('savedPostsFeed');
+    const emptyState = savedTab.querySelector('.empty-state');
+
+    if (isSaved) {
+        if (!feed) {
+            feed = document.createElement('div');
+            feed.id = 'savedPostsFeed';
+            savedTab.querySelector('.panel .prof-section-body')?.appendChild(feed);
+            if (emptyState) emptyState.remove();
+        }
+
+        if (feed.querySelector(`[data-post-id="${postId}"]`)) return;
+
+        const src = sourcePostEl || document.querySelector(`article.post[data-post-id="${postId}"]`);
+        if (!src) return;
+
+        const clone = src.cloneNode(true);
+
+        // Remove comments section to avoid duplicate IDs and conflicts
+        const comments = clone.querySelector('.comments-section');
+        if (comments) comments.remove();
+        clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+
+        feed.prepend(clone);
+        if (window.lucide) lucide.createIcons({ root: clone });
+        return;
+    }
+
+    if (feed) {
+        const existing = feed.querySelector(`[data-post-id="${postId}"]`);
+        if (existing) existing.remove();
+
+        if (feed.querySelectorAll('.post').length === 0) {
+            feed.remove();
+            const empty = document.createElement('div');
+            empty.className = 'empty-state';
+            empty.innerHTML = '<i data-lucide="bookmark"></i><p>No saved posts yet. Tap the bookmark on any post to save it here.</p>';
+            savedTab.querySelector('.panel .prof-section-body')?.appendChild(empty);
+            if (window.lucide) lucide.createIcons({ root: empty });
+        }
+    }
+}
 
 
 /* ================================================================
@@ -325,6 +371,103 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ================================================================
+   PROFILE FILTER DROPDOWNS (Groups / Resources: Joined vs Created)
+================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+    const dropdowns = $$('.prof-filter-dropdown');
+
+    function closeAllMenus(except) {
+        $$('.prof-filter-menu').forEach(menu => {
+            if (!except || menu !== except) {
+                menu.classList.remove('open');
+            }
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        const toggle = e.target.closest('.prof-filter-toggle');
+        const option = e.target.closest('.prof-filter-menu button[data-value]');
+
+        if (toggle) {
+            e.stopPropagation();
+            const menu = toggle.parentElement.querySelector('.prof-filter-menu');
+            const isOpen = menu.classList.contains('open');
+            closeAllMenus(isOpen ? null : menu);
+            if (!isOpen) {
+                menu.classList.add('open');
+            }
+            return;
+        }
+
+        if (option) {
+            e.stopPropagation();
+            const dropdown = option.closest('.prof-filter-dropdown');
+            const target = dropdown.dataset.target;
+            const value = option.dataset.value; // 'joined' | 'created'
+
+            const toggleBtn = dropdown.querySelector('.prof-filter-toggle');
+            const labelSpan = toggleBtn?.querySelector('span');
+            if (toggleBtn) toggleBtn.dataset.current = value;
+            if (labelSpan) labelSpan.textContent = value === 'created' ? 'Created' : 'Joined';
+
+            const section = document.querySelector(`.prof-section[data-section="${target}"]`);
+            if (section) {
+                section.setAttribute('data-current', value);
+            }
+
+            const menu = dropdown.querySelector('.prof-filter-menu');
+            if (menu) menu.classList.remove('open');
+
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        // Click outside: close all menus
+        if (!e.target.closest('.prof-filter-dropdown')) {
+            closeAllMenus();
+        }
+    });
+});
+
+/* ================================================================
+   PROFILE SECTION SEARCH (Groups / Resources)
+================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+    const norm = (s) => (s || '').toString().trim().toLowerCase();
+
+    function attachSearch(input, target) {
+        if (!input) return;
+        const section = document.querySelector(`.prof-section[data-section="${target}"]`);
+        if (!section) return;
+
+        const joinedGrid = section.querySelector(target === 'groups' ? '.prof-groups-joined' : '.prof-resources-joined');
+        const createdGrid = section.querySelector(target === 'groups' ? '.prof-groups-created' : '.prof-resources-created');
+
+        const allCards = [
+            ...(joinedGrid ? Array.from(joinedGrid.querySelectorAll('.prof-card')) : []),
+            ...(createdGrid ? Array.from(createdGrid.querySelectorAll('.prof-card')) : []),
+        ];
+        if (!allCards.length) return;
+
+        const apply = () => {
+            const q = norm(input.value);
+            allCards.forEach(card => {
+                const titleEl = card.querySelector('.prof-card-title');
+                const descEl = card.querySelector('.prof-card-desc');
+                const hay = norm((titleEl?.textContent || '') + ' ' + (descEl?.textContent || ''));
+                const show = !q || hay.indexOf(q) !== -1;
+                card.style.display = show ? '' : 'none';
+            });
+        };
+
+        input.addEventListener('input', apply);
+    }
+
+    attachSearch(document.querySelector('.prof-section-search-input[data-prof-search="groups"]'), 'groups');
+    attachSearch(document.querySelector('.prof-section-search-input[data-prof-search="resources"]'), 'resources');
+});
+
+/* ================================================================
    CREATE POST
 ================================================================ */
 document.addEventListener('DOMContentLoaded', () => {
@@ -525,6 +668,10 @@ function buildPostEl(post) {
        </div>`
         : '';
 
+    const tagsHtml = post.hashtags && post.hashtags.length
+      ? `<div class="post-tags">${post.hashtags.map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>`
+      : '';
+
     article.innerHTML = `
     <div class="post-head">
       <div class="avatar md"><img src="${post.user.avatar_url}" alt="${escapeHtml(post.user.name)}"></div>
@@ -534,7 +681,18 @@ function buildPostEl(post) {
       </div>
       ${menuHtml}
     </div>
-    ${post.text_content ? `<div class="post-body post-text-content">${parseMarkdownLinks(escapeHtml(post.text_content))}</div>` : ''}
+    ${post.text_content ? `<div class="post-body post-text-content js-collapsible">${parseMarkdownLinks(escapeHtml(post.text_content))}</div>` : ''}
+    ${tagsHtml}
+    ${post.resource ? `
+      <a href="${post.resource.url}" class="post-resource-card" style="margin-bottom:12px;">
+        <div class="res-mini-thumb"><img src="${post.resource.thumbnail_url}"></div>
+        <div class="res-mini-info">
+          <div class="res-mini-type">${escapeHtml(post.resource.type)}</div>
+          <div class="res-mini-title">${escapeHtml(post.resource.title)}</div>
+          <div class="res-mini-desc">${escapeHtml(post.resource.description)}</div>
+        </div>
+      </a>` : ''}
+    ${post.shared_post ? renderSharedPostCard(post.shared_post) : ''}
     ${mediaHtml}
     <div class="post-actions">
       <button class="post-btn like-btn ${post.is_liked ? 'liked' : ''}" type="button" data-post-id="${post.id}">
@@ -545,8 +703,10 @@ function buildPostEl(post) {
         <i data-lucide="message-square"></i>
         <span class="comment-count">${post.comment_count}</span>
       </button>
-      <button class="post-btn" type="button"><i data-lucide="share-2"></i></button>
-      <button class="post-btn end" type="button"><i data-lucide="bookmark"></i></button>
+      <button class="post-btn save-btn ${post.is_saved ? 'saved' : ''} end" type="button" data-post-id="${post.id}" data-saved="${post.is_saved ? 1 : 0}" title="Save">
+        <i data-lucide="bookmark"></i>
+      </button>
+      <button class="post-btn js-share-post" type="button" data-post-id="${post.id}" data-preview="${escapeHtml((post.text_content || '').slice(0, 80) || 'a post')}"><i data-lucide="share-2"></i></button>
     </div>
     <div class="comments-section hidden" id="comments-${post.id}">
       <div class="comment-composer">
@@ -561,7 +721,49 @@ function buildPostEl(post) {
       </div>
     </div>`;
 
+    // Let shared UI scripts enhance newly-rendered posts
+    try {
+        document.dispatchEvent(new CustomEvent('post:rendered', { detail: { root: article } }));
+    } catch (e) {}
+
     return article;
+}
+
+function renderSharedPostCard(sp) {
+    if (!sp || !sp.user) return '';
+    const profileUrl = sp.user.profile_url || `/profile/${sp.user.id}`;
+    const spResource = sp.resource ? `
+      <a href="${sp.resource.url}" class="post-resource-card" style="margin-top:10px;">
+        <div class="res-mini-thumb"><img src="${sp.resource.thumbnail_url}"></div>
+        <div class="res-mini-info">
+          <div class="res-mini-type">${escapeHtml(sp.resource.type)}</div>
+          <div class="res-mini-title">${escapeHtml(sp.resource.title)}</div>
+          <div class="res-mini-desc">${escapeHtml(sp.resource.description)}</div>
+        </div>
+      </a>` : '';
+
+    const spMediaMini = (sp.media && sp.media.length)
+      ? `<div class="shared-post-media-mini">
+          ${sp.media.slice(0, 3).map(m => m.media_type === 'video'
+            ? `<video src="${m.url}" muted></video>`
+            : `<img src="${m.url}" alt="Shared media">`
+          ).join('')}
+        </div>`
+      : '';
+
+    return `
+      <div class="shared-post-card">
+        <div class="shared-post-head">
+          <a href="${profileUrl}" class="avatar"><img src="${sp.user.avatar_url}" alt="${escapeHtml(sp.user.name)}"></a>
+          <div class="shared-post-meta">
+            <div class="shared-post-name"><a href="${profileUrl}" style="color:inherit;text-decoration:none;">${escapeHtml(sp.user.name)}</a></div>
+            <div class="shared-post-sub">@${escapeHtml(sp.user.username)}</div>
+          </div>
+        </div>
+        ${sp.text_content ? `<div class="shared-post-body js-collapsible">${parseMarkdownLinks(escapeHtml(sp.text_content))}</div>` : ''}
+        ${spResource}
+        ${spMediaMini}
+      </div>`;
 }
 
 function buildCommentHtml(comment, isReply = false, parentId = null) {
@@ -604,6 +806,54 @@ function parseMarkdownLinks(text) {
 }
 
 /* ================================================================
+   VIEW PROFILE COVER / AVATAR (lightbox)
+================================================================ */
+document.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-view-image]');
+    if (!target) return;
+
+    const src = target.dataset.fullsrc || target.getAttribute('src');
+    if (!src) return;
+
+    if (document.querySelector('.photo-lightbox')) return;
+
+    const lb = document.createElement('div');
+    lb.className = 'photo-lightbox';
+    lb.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px); opacity:0; transition:opacity 0.3s;';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = 'position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.15); border:none; color:#fff; font-size:32px; width:48px; height:48px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; padding-bottom:4px; transition:background 0.2s; z-index:100000;';
+    closeBtn.onmouseover = () => closeBtn.style.background = 'rgba(255,255,255,0.25)';
+    closeBtn.onmouseout = () => closeBtn.style.background = 'rgba(255,255,255,0.15)';
+    lb.appendChild(closeBtn);
+
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = 'Preview';
+    img.style.cssText = 'max-width:90vw; max-height:90vh; object-fit:contain; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,0.5); transition:transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform:scale(0.98);';
+    lb.appendChild(img);
+
+    const closeLb = () => {
+        lb.style.opacity = '0';
+        img.style.transform = 'scale(0.95)';
+        setTimeout(() => lb.remove(), 300);
+    };
+
+    closeBtn.onclick = closeLb;
+    lb.onclick = (ev) => { if (ev.target === lb) closeLb(); };
+    document.addEventListener('keydown', function escListener(ev) {
+        if (ev.key === 'Escape') {
+            closeLb();
+            document.removeEventListener('keydown', escListener);
+        }
+    });
+
+    document.body.appendChild(lb);
+    requestAnimationFrame(() => { lb.style.opacity = '1'; img.style.transform = 'scale(1)'; });
+});
+
+/* ================================================================
    POST INTERACTIONS — Like, 3-dot menu, Edit, Delete
 ================================================================ */
 document.addEventListener('click', async (e) => {
@@ -624,6 +874,10 @@ document.addEventListener('click', async (e) => {
         } catch { toast('Error.', 'error'); }
         return;
     }
+
+    // ── SAVE / BOOKMARK ──────────────────────────────────────────
+    const saveBtn = e.target.closest('.save-btn');
+    if (saveBtn) return;
 
     // ── TOGGLE COMMENTS ───────────────────────────────────────────
     const commentToggle = e.target.closest('.comment-toggle-btn');

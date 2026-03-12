@@ -304,7 +304,7 @@
       z-index: 100;
     }
 
-    /* ── Popups (Link / Emoji) ──────────────────────────────── */
+    /* ── Popups (Emoji) ─────────────────────────────── */
     .composer-popup {
       position: absolute;
       background: var(--panel-bg);
@@ -320,41 +320,6 @@
       from { opacity: 0; transform: translateY(6px) scale(0.97); }
       to   { opacity: 1; transform: translateY(0) scale(1); }
     }
-    /* ── Link Popup ─────────────────────────────────────── */
-    .link-popup {
-      bottom: calc(100% + 10px);
-      left: 0;
-      width: max-content;
-      padding: 12px 16px !important;
-      border-radius: 12px;
-      background: var(--panel-bg);
-      border: 1px solid var(--border);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      z-index: 100;
-      flex-direction: row !important;
-      align-items: center !important;
-      gap: 16px !important;
-    }
-    .link-popup-inputs { display: flex; flex-direction: column; gap: 8px; }
-    .link-popup-row {
-      display: flex; align-items: center; gap: 10px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
-      border-radius: 6px; padding: 6px 12px;
-      width: 260px; transition: all 0.2s;
-    }
-    .link-popup-row:focus-within { border-color: #7c3aed; background: rgba(124, 58, 237, 0.08); }
-    .link-popup-icon { color: var(--muted); flex-shrink: 0; }
-    .link-popup-row input {
-      flex: 1; border: none; background: transparent; color: var(--text);
-      font-size: 13px; outline: none; width: 100%;
-    }
-    .link-popup-row input::placeholder { color: var(--muted); }
-    .link-popup-apply {
-      background: none; border: none; font-weight: 600; font-size: 14px;
-      cursor: pointer; padding: 8px; color: #94a3b8; transition: color 0.15s;
-    }
-    .link-popup-apply:hover { color: #7c3aed; }
 
     /* Emoji grid */
     .emoji-popup { bottom: calc(100% + 10px); left: 0; padding: 12px; width: 280px; }
@@ -484,8 +449,20 @@
         <input type="hidden" name="content" id="contentInput">
 
 
-        {{-- Thumbnail preview --}}
-        <img id="thumbPreview" src="" alt="Thumbnail preview">
+        {{-- Cover photo (thumbnail used on cards and detail header) --}}
+        <div class="composer-field">
+          <span class="composer-field-label">Cover photo</span>
+          <div style="display:flex;align-items:center;gap:10px;flex:1;flex-wrap:wrap;">
+            <button type="button" class="chip-btn" style="border-radius:999px;padding:6px 14px;font-size:13px;"
+                    onclick="document.getElementById('thumbnailInput').click()">
+              <i data-lucide="image"></i> Choose image
+            </button>
+            <span id="thumbFileName" style="font-size:13px;color:var(--muted);">No image selected</span>
+          </div>
+        </div>
+
+        {{-- Cover preview --}}
+        <img id="thumbPreview" src="" alt="Cover preview">
 
         {{-- Rich Body Editor (Quill) --}}
         <div class="composer-body">
@@ -526,8 +503,6 @@
 
             <div class="tool-divider"></div>
 
-
-
             {{-- Insert Emoji --}}
             <div style="position: relative;">
               <button type="button" class="tool-btn" data-tip="Insert emoji" onclick="togglePopup('emojiPopup')">
@@ -560,7 +535,7 @@
             </button>
 
             {{-- Set Thumbnail (card image) --}}
-            <button type="button" class="tool-btn" data-tip="Set Thumbnail" onclick="document.getElementById('thumbnailInput').click()">
+            <button type="button" class="tool-btn" data-tip="Set Cover photo" onclick="document.getElementById('thumbnailInput').click()">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             </button>
 
@@ -585,7 +560,7 @@
     </div>
   </div>
 
-  {{-- (Link dialog removed) --}}
+  {{-- Link popup is now inline in the toolbar --}}
 </div>
 
 <div id="dash-toast" style="
@@ -905,37 +880,31 @@ quill.keyboard.addBinding({ key: 'B', shortKey: true }, () => quillFormat('bold'
 quill.keyboard.addBinding({ key: 'I', shortKey: true }, () => quillFormat('italic'));
 quill.keyboard.addBinding({ key: 'U', shortKey: true }, () => quillFormat('underline'));
 
-// ── Popup management ─────────────────────────────────────────
+// ── Popup management + Emoji ────────────────────────────────
+
 function togglePopup(id) {
   const el = document.getElementById(id);
+  if (!el) return;
   const isOpen = el.classList.contains('open');
   document.querySelectorAll('.composer-popup').forEach(p => p.classList.remove('open'));
-  if (!isOpen) {
+  if (!isOpen && id === 'emojiPopup') {
+    renderEmojis('');
     el.classList.add('open');
-    document.getElementById('quill-editor').style.pointerEvents = 'none';
-  } else {
-    document.getElementById('quill-editor').style.pointerEvents = 'auto';
   }
-  if (id === 'emojiPopup') renderEmojis('');
 }
-function closePopup(id) { 
-  document.getElementById(id).classList.remove('open'); 
-  document.getElementById('quill-editor').style.pointerEvents = 'auto';
+function closePopup(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('open');
 }
 document.addEventListener('mousedown', e => {
-  // If the user clicks inside a popup, do not close it, and stop propagation
-  // so Quill doesn't steal focus.
   if (e.target.closest('.composer-popup')) {
     e.stopPropagation();
     return;
   }
-
   if (!e.target.closest('.tool-btn')) {
     document.querySelectorAll('.composer-popup').forEach(p => p.classList.remove('open'));
-    document.getElementById('quill-editor').style.pointerEvents = 'auto';
   }
 });
-
 
 // ── Emoji ────────────────────────────────────────────────────
 const ALL_EMOJIS = [
@@ -1029,6 +998,8 @@ document.getElementById('thumbnailInput').addEventListener('change', function(e)
     toast('✅ Card thumbnail updated!');
   };
   reader.readAsDataURL(file);
+  const label = document.getElementById('thumbFileName');
+  if (label) label.textContent = file.name;
 });
 
 // ── Primary Media (fileInput) ─────────────────────────────────

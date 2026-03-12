@@ -17,6 +17,7 @@ window.DASH_ROUTES = {
   feed:          "{{ route('dashboard.feed') }}",
   storePost:     "{{ route('profile.posts.store') }}",
   toggleLike:    function(id){ return "/profile/posts/" + id + "/like"; },
+  toggleSave:    function(id){ return "/profile/posts/" + id + "/save"; },
   storeComment:  function(id){ return "/profile/posts/" + id + "/comments"; },
   destroyComment:function(id){ return "/profile/comments/" + id; },
   destroyPost:   function(id){ return "/profile/posts/" + id; },
