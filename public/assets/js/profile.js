@@ -757,13 +757,27 @@ function renderSharedPostCard(sp) {
         </div>`
       : '';
 
+    const isVerified = sp.user && sp.user.doctor_status === 'approved' && (!sp.user.role || sp.user.role === 'doctor');
+    const verifiedBadge = isVerified
+      ? `<span class="verified-doctor-badge" title="Verified Doctor">
+          <i data-lucide="badge-check"></i> Verified Doctor
+        </span>`
+      : '';
+    const profTitle = (isVerified && sp.user.professional_titles && sp.user.professional_titles.trim())
+      ? `<div class="post-prof-title">${escapeHtml(sp.user.professional_titles.trim())}</div>`
+      : '';
+
     return `
       <div class="shared-post-card">
         <div class="shared-post-head">
           <a href="${profileUrl}" class="avatar"><img src="${sp.user.avatar_url}" alt="${escapeHtml(sp.user.name)}"></a>
           <div class="shared-post-meta">
-            <div class="shared-post-name"><a href="${profileUrl}" style="color:inherit;text-decoration:none;">${escapeHtml(sp.user.name)}</a></div>
-            <div class="shared-post-sub">@${escapeHtml(sp.user.username)}</div>
+            <div class="post-name-row">
+              <a href="${profileUrl}" class="post-name" style="color:inherit;text-decoration:none;">${escapeHtml(sp.user.name)}</a>
+              <span class="post-handle">@${escapeHtml(sp.user.username)}</span>
+              ${verifiedBadge}
+            </div>
+            ${profTitle}
           </div>
         </div>
         ${sp.text_content ? `<div class="shared-post-body js-collapsible">${parseMarkdownLinks(escapeHtml(sp.text_content))}</div>` : ''}
@@ -1537,4 +1551,36 @@ document.addEventListener('keydown', async (e) => {
         const parentId = input.dataset.parentId;
         await sendComment(postId, parentId, input);
     }
+});
+
+/* ================================================================
+   SCROLL TO POST FROM QUERY PARAMS
+================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get('post_id');
+    const commentId = params.get('comment_id');
+    if (!postId) return;
+
+    let done = false;
+    const tryScroll = () => {
+        if (done) return;
+        const article = document.querySelector(`[data-post-id="${postId}"]`);
+        if (!article) return;
+
+        article.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        article.classList.add('post-highlight');
+        setTimeout(() => article.classList.remove('post-highlight'), 3000);
+
+        if (commentId) {
+            const section = article.querySelector('.comments-section');
+            section?.classList.remove('hidden');
+            const commentEl = document.getElementById(`comment-${commentId}`);
+            commentEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        done = true;
+    };
+
+    tryScroll();
+    document.addEventListener('post:rendered', tryScroll);
 });

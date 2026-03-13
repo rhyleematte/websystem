@@ -9,67 +9,9 @@
 @section('content')
 @php
   $me        = Auth::user();
-  $avatarUrl = $me ? $me->avatar_url : asset('assets/img/default.png');
-  $fullName  = $me ? ($me->short_name ?: $me->full_name) : 'User';
-  $username  = $me ? $me->username : 'username';
 @endphp
 
 <div class="groups-shell">
-  {{-- ── Topbar ── --}}
-  <header class="dash-topbar">
-    <div class="brand">
-      <img src="{{ asset('assets/img/AskDocPH.png') }}" class="logo" alt="AskDocPH">
-    </div>
-
-    <div class="dash-search">
-      <i data-lucide="search"></i>
-      <input type="text" placeholder="Search for support, resources, or people…" />
-    </div>
-
-    <div class="dash-actions">
-      <a href="{{ route('user.dashboard') }}" class="icon-btn" title="Dashboard">
-        <i data-lucide="home"></i>
-      </a>
-      <button class="icon-btn" type="button" aria-label="Notifications">
-        <i data-lucide="bell"></i>
-      </button>
-
-      {{-- Profile dropdown --}}
-      <div class="avatar-dropdown">
-        <button class="avatar-btn" type="button" id="profileToggle">
-          <img src="{{ $avatarUrl }}" alt="User" />
-          <div class="avatar-meta">
-            <div class="avatar-name">{{ $fullName }}</div>
-            <div class="avatar-username">{{ '@' . $username }}</div>
-          </div>
-          <i data-lucide="chevron-down" class="dropdown-icon"></i>
-        </button>
-
-        <div class="dropdown-menu" id="profileDropdown">
-          <a href="{{ route('profile.show', $me->id) }}" class="dropdown-profile-link">
-            <div class="dropdown-profile">
-              <div class="dropdown-avatar"><img src="{{ $avatarUrl }}" alt="User" /></div>
-              <div class="dropdown-info">
-                <div class="profile-fullname">{{ $fullName }}</div>
-                <div class="profile-username">{{ '@' . $username }}</div>
-              </div>
-            </div>
-          </a>
-          <button type="button" class="dropdown-item" id="themeToggleBtn">
-            <i data-lucide="moon"></i><span>Dark mode</span>
-          </button>
-          <hr class="dropdown-divider">
-          <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="dropdown-logout">
-              <i data-lucide="log-out"></i><span>Logout</span>
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </header>
-
   <div class="groups-body">
     {{-- ══ LEFT – sticky sidebar ══ --}}
     <aside class="groups-sidebar">
@@ -87,8 +29,6 @@
           <i data-lucide="user"></i><span>My Profile</span>
         </a>
       </div>
-      
-      
       
       <div class="panel mini-panel">
         <div class="mini-title"><i data-lucide="sparkles"></i><span>Daily Affirmation</span></div>

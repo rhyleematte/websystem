@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Resource;
 use App\Models\Group;
 use App\Models\GroupMember;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -107,6 +108,42 @@ class ProfileController extends Controller
             'followers'        => $followers,
             'following'        => $following,
             'isFollowing'      => $isFollowing,
+        ]);
+    }
+
+    public function showPost(Request $request, Post $post)
+    {
+        $me = Auth::user();
+
+        $post->load([
+            'user',
+            'user.doctorApplication',
+            'likes',
+            'comments.user',
+            'comments.replies.user',
+            'media',
+            'resource',
+            'sharedPost.user',
+            'sharedPost.media',
+            'sharedPost.resource',
+        ]);
+
+        $group = null;
+        $canView = true;
+
+        if ($post->group_id) {
+            $group = Group::with('creator')->find($post->group_id);
+            if ($group) {
+                $isMember = $group->members()->where('user_id', $me->id)->exists();
+                $canView = $isMember || $group->creator_id === $me->id || $post->user_id === $me->id;
+            }
+        }
+
+        return view('posts.show', [
+            'post' => $post,
+            'me' => $me,
+            'group' => $group,
+            'canView' => $canView,
         ]);
     }
 
@@ -342,6 +379,32 @@ class ProfileController extends Controller
 
         $post->load(['user', 'likes', 'comments.user', 'media']);
 
+        // Notifications: group post + mentions
+        $actorName = $user->short_name ?: $user->full_name;
+        if ($post->group_id) {
+            $group = Group::with('creator')->find($post->group_id);
+            if ($group && $group->creator_id && $group->creator_id !== $user->id) {
+                NotificationService::create($group->creator, $user, 'group_post', [
+                    'message' => $actorName . ' posted in your group ' . $group->name . '.',
+                    'url' => $this->postUrl($post),
+                    'group_id' => $group->id,
+                    'post_id' => $post->id,
+                ]);
+            }
+        }
+
+        if ($post->text_content) {
+            $mentionMsg = $post->group_id
+                ? $actorName . ' mentioned you in a group post.'
+                : $actorName . ' mentioned you in a post.';
+            NotificationService::notifyMentions($post->text_content, $user, [
+                'message' => $mentionMsg,
+                'url' => $this->postUrl($post),
+                'group_id' => $post->group_id,
+                'post_id' => $post->id,
+            ]);
+        }
+
         return response()->json(['ok' => true, 'post' => $this->formatPost($post)]);
     }
 
@@ -449,6 +512,7 @@ class ProfileController extends Controller
 
         $action = $request->input('action'); // 'follow' | 'unfollow' | null (toggle)
         $exists = $me->following()->where('users.id', $user->id)->exists();
+        $wasFollowing = $exists;
         if ($action === 'follow') {
             if (!$exists) {
                 $me->following()->syncWithoutDetaching([$user->id]);
@@ -466,6 +530,14 @@ class ProfileController extends Controller
         }
 
         $following = $me->following()->where('users.id', $user->id)->exists();
+
+        if (!$wasFollowing && $following) {
+            $actorName = $me->short_name ?: $me->full_name;
+            NotificationService::create($user, $me, 'follow', [
+                'message' => $actorName . ' followed you.',
+                'url' => route('profile.show', $me->id),
+            ]);
+        }
 
         return response()->json([
             'ok' => true,
@@ -538,6 +610,47 @@ class ProfileController extends Controller
 
         $comment->load('user');
 
+        // Notifications: post owner + group creator + mentions
+        $actor = Auth::user();
+        $actorName = $actor->short_name ?: $actor->full_name;
+        $postUrl = $this->postUrl($post, $comment->id);
+
+        if ($post->user_id !== $actor->id) {
+            NotificationService::create($post->user, $actor, 'post_comment', [
+                'message' => $actorName . ' commented on your post.',
+                'url' => $postUrl,
+                'post_id' => $post->id,
+                'comment_id' => $comment->id,
+                'group_id' => $post->group_id,
+            ]);
+        }
+
+        if ($post->group_id) {
+            $group = Group::with('creator')->find($post->group_id);
+            if ($group && $group->creator_id && $group->creator_id !== $actor->id && $group->creator_id !== $post->user_id) {
+                NotificationService::create($group->creator, $actor, 'group_comment', [
+                    'message' => $actorName . ' commented in your group ' . $group->name . '.',
+                    'url' => $postUrl,
+                    'group_id' => $group->id,
+                    'post_id' => $post->id,
+                    'comment_id' => $comment->id,
+                ]);
+            }
+        }
+
+        if ($comment->comment_text) {
+            $mentionMsg = $post->group_id
+                ? $actorName . ' mentioned you in a group comment.'
+                : $actorName . ' mentioned you in a comment.';
+            NotificationService::notifyMentions($comment->comment_text, $actor, [
+                'message' => $mentionMsg,
+                'url' => $postUrl,
+                'group_id' => $post->group_id,
+                'post_id' => $post->id,
+                'comment_id' => $comment->id,
+            ]);
+        }
+
         return response()->json([
             'ok' => true,
             'comment' => $this->formatComment($comment),
@@ -600,6 +713,26 @@ class ProfileController extends Controller
             'post_type' => 'post_share',
             'text_content' => $request->text_content,
         ]);
+
+        // Notifications: shared post owner + mentions in share text
+        $actor = Auth::user();
+        $actorName = $actor->short_name ?: $actor->full_name;
+        if ($origin->user_id !== $actor->id) {
+            NotificationService::create($origin->user, $actor, 'post_share', [
+                'message' => $actorName . ' shared your post.',
+                'url' => $this->postUrl($shared),
+                'post_id' => $origin->id,
+                'shared_post_id' => $shared->id,
+            ]);
+        }
+
+        if ($request->text_content) {
+            NotificationService::notifyMentions($request->text_content, $actor, [
+                'message' => $actorName . ' mentioned you in a shared post.',
+                'url' => $this->postUrl($shared),
+                'post_id' => $shared->id,
+            ]);
+        }
 
         return response()->json(['ok' => true, 'message' => 'Post shared!', 'post' => $this->formatPost($shared)]);
     }
@@ -696,6 +829,7 @@ class ProfileController extends Controller
             'can_manage' => $post->user_id === Auth::id(),
             'user' => [
                 'id' => $post->user->id,
+                'role' => $post->user->role,
                 'name' => $post->user->full_name,
                 'username' => $post->user->username,
                 'avatar_url' => $post->user->avatar_url,
@@ -752,5 +886,17 @@ class ProfileController extends Controller
             'avatar_url' => $user->avatar_url,
             'profile_url' => route('profile.show', $user->id),
         ];
+    }
+
+    private function postUrl(Post $post, ?int $commentId = null): string
+    {
+        $base = route('posts.show', $post->id);
+
+        $params = ['post_id' => $post->id];
+        if ($commentId) {
+            $params['comment_id'] = $commentId;
+        }
+
+        return $base . '?' . http_build_query($params);
     }
 }

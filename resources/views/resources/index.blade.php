@@ -12,8 +12,6 @@
 @endphp
 
 <div class="res-shell">
-  {{-- Reuse Topbar --}}
-  @include('resources._topbar')
 
   <div class="res-body">
     <aside class="res-sidebar">

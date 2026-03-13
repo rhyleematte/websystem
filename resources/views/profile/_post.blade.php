@@ -17,21 +17,7 @@
       <div class="post-name-row">
         <span class="post-name">{{ $post->user->full_name }}</span>
         <span class="post-handle">{{ '@' . $post->user->username }}</span>
-        @if($post->user->role === 'doctor' && $post->user->doctor_status === 'approved')
-          <span class="verified-doctor-badge" title="Verified Doctor">
-            <i data-lucide="badge-check"></i>
-            Verified Doctor
-          </span>
-        @endif
       </div>
-      @if($post->user->role === 'doctor' && $post->user->doctor_status === 'approved')
-        @php
-           $titles = $post->user->doctorApplication ? $post->user->doctorApplication->professional_titles : '';
-        @endphp
-        @if(trim($titles))
-          <div class="post-prof-title">{{ $titles }}</div>
-        @endif
-      @endif
       <div class="post-sub">{{ $post->created_at->diffForHumans() }}</div>
     </div>
     @if($canManage)
@@ -91,9 +77,14 @@
         <div class="avatar">
           <img src="{{ $post->sharedPost->user->avatar_url }}" alt="{{ $post->sharedPost->user->full_name }}">
         </div>
+        @php
+          $sharedUser = $post->sharedPost->user;
+        @endphp
         <div class="shared-post-meta">
-          <div class="shared-post-name">{{ $post->sharedPost->user->full_name }}</div>
-          <div class="shared-post-sub">{{ '@' . $post->sharedPost->user->username }}</div>
+          <div class="post-name-row">
+            <span class="post-name">{{ $sharedUser->full_name }}</span>
+            <span class="post-handle">{{ '@' . $sharedUser->username }}</span>
+          </div>
         </div>
       </div>
       @if($post->sharedPost->text_content)

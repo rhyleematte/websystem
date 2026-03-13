@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Group;
 use App\Models\GroupMember;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -130,13 +131,22 @@ class GroupController extends Controller
 
     public function join($id)
     {
-        $group = Group::findOrFail($id);
+        $group = Group::with('creator')->findOrFail($id);
         $user = Auth::user();
 
-        GroupMember::firstOrCreate([
+        $membership = GroupMember::firstOrCreate([
             'group_id' => $group->id,
             'user_id' => $user->id,
         ]);
+
+        if ($membership->wasRecentlyCreated && $group->creator_id && $group->creator_id !== $user->id) {
+            $actorName = $user->short_name ?: $user->full_name;
+            NotificationService::create($group->creator, $user, 'group_join', [
+                'message' => $actorName . ' joined your group ' . $group->name . '.',
+                'url' => route('groups.show', $group->id),
+                'group_id' => $group->id,
+            ]);
+        }
 
         return response()->json(['ok' => true, 'message' => 'Joined group!']);
     }

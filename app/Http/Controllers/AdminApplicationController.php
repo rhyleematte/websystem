@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\DoctorApplication;
 use App\Models\User;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 
 class AdminApplicationController extends Controller
@@ -108,6 +109,15 @@ class AdminApplicationController extends Controller
         // Accept all documents for simplicity if approved
         foreach ($application->documents as $doc) {
             $doc->update(['status' => 'accepted']);
+        }
+
+        $user = $application->user;
+        if ($user) {
+            NotificationService::create($user, null, 'doctor_approved', [
+                'message' => 'Your doctor application has been approved.',
+                'url' => route('profile.show', $user->id) . '?tab=application',
+                'application_id' => $application->id,
+            ]);
         }
 
         return redirect()->route('admin.applications.index')->with('success', 'Application approved successfully.');

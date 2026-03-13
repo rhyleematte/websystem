@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -44,6 +45,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/profile/{user}/network', [ProfileController::class , 'network'])
         ->name('profile.network');
 
+    // Notifications API
+    Route::get('/api/notifications', [NotificationController::class , 'index'])
+        ->name('notifications.index');
+    Route::post('/api/notifications/read-all', [NotificationController::class , 'markAllRead'])
+        ->name('notifications.readAll');
+    Route::post('/api/notifications/{notification}/read', [NotificationController::class , 'markRead'])
+        ->name('notifications.read');
+
     // Support Groups
     Route::get('/groups', [\App\Http\Controllers\GroupController::class , 'index'])->name('groups.index');
     Route::post('/groups', [\App\Http\Controllers\GroupController::class , 'store'])->name('groups.store');
@@ -62,10 +71,18 @@ Route::middleware('auth')->group(function () {
     Route::post('resources/{resource}/share', [\App\Http\Controllers\ResourceController::class, 'share'])->name('resources.share');
     Route::post('resources/{resource}/join', [\App\Http\Controllers\ResourceController::class, 'join'])->name('resources.join');
     Route::delete('resources/{resource}/join', [\App\Http\Controllers\ResourceController::class, 'unjoin'])->name('resources.unjoin');
+
+    // Messenger API
+    Route::get('/api/messenger/conversations', [\App\Http\Controllers\ChatController::class, 'getConversations']);
+    Route::get('/api/messenger/messages/{conversation}', [\App\Http\Controllers\ChatController::class, 'getMessages']);
+    Route::post('/api/messenger/send', [\App\Http\Controllers\ChatController::class, 'sendMessage']);
+    Route::get('/api/messenger/search', [\App\Http\Controllers\ChatController::class, 'searchUsers']);
 });
 
 // ── Profile ────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
+
+    Route::get('/posts/{post}', [ProfileController::class , 'showPost'])->name('posts.show');
 
     // View profile (own or others)
     Route::get('/profile/{id}', [ProfileController::class , 'show'])->name('profile.show');

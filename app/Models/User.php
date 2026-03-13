@@ -88,8 +88,25 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class)->latest();
+    }
+
+    public function conversations()
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_participants')
+            ->withPivot('last_read_message_id', 'muted', 'archived')
+            ->withTimestamps();
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class, 'sender_user_id');
+    }
+
     // ── Accessors ─────────────────────────────────────────────────
-    public function getFullNameAttribute(): string
+    public function getFullNameAttribute()
     {
         // Normalize each part: first letter uppercase, rest lowercase
         $parts = [];
@@ -102,7 +119,7 @@ class User extends Authenticatable
         return implode(' ', $parts);
     }
 
-    public function getShortNameAttribute(): string
+    public function getShortNameAttribute()
     {
         $parts = [];
 
@@ -123,17 +140,29 @@ class User extends Authenticatable
         return implode(' ', $parts);
     }
 
+    public function isApprovedDoctor()
+    {
+        return $this->doctor_status === 'approved';
+    }
+
+    public function getProfessionalTitleAttribute()
+    {
+        if (!$this->isApprovedDoctor()) return null;
+        $app = $this->doctorApplication;
+        return $app ? $app->professional_titles : null;
+    }
+
     /**
      * Converts a string to Title Case — each word's first letter
      * uppercase, the rest lowercase. Handles compound names with hyphens.
      */
-    private function toTitleCase(string $str): string
+    private function toTitleCase(string $str)
     {
         // mb_convert_case handles Unicode (e.g. Filipino names)
         return mb_convert_case(mb_strtolower($str), MB_CASE_TITLE, 'UTF-8');
     }
 
-    public function getAvatarUrlAttribute(): string
+    public function getAvatarUrlAttribute()
     {
         $photo = $this->profile_photo;
 
@@ -148,7 +177,7 @@ class User extends Authenticatable
         return asset('storage/' . ltrim($photo, '/'));
     }
 
-    public function getCoverUrlAttribute(): string
+    public function getCoverUrlAttribute()
     {
         $photo = $this->cover_photo;
 

@@ -121,7 +121,6 @@
 
 @section('content')
 <div class="res-shell">
-    @include('resources._topbar')
 
     <div class="res-body">
         <aside class="res-sidebar">

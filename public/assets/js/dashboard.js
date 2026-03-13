@@ -524,6 +524,19 @@ document.addEventListener('DOMContentLoaded', function () {
         ? window.MY_PROFILE_URL
         : esc(sp.user.profile_url || '/profile/' + sp.user.id);
 
+      var spVerifiedBadge = '';
+      var spProfTitleHtml = '';
+      if (sp.user && sp.user.doctor_status === 'approved' && (!sp.user.role || sp.user.role === 'doctor')) {
+        spVerifiedBadge =
+          '<span class="verified-doctor-badge" title="Verified Doctor">'
+          + '<i data-lucide="badge-check"></i>'
+          + ' Verified Doctor'
+          + '</span>';
+        if (sp.user.professional_titles && sp.user.professional_titles.trim()) {
+          spProfTitleHtml = '<div class="post-prof-title">' + esc(sp.user.professional_titles.trim()) + '</div>';
+        }
+      }
+
       var spResourceHtml = '';
       if (sp.resource) {
         spResourceHtml =
@@ -554,8 +567,12 @@ document.addEventListener('DOMContentLoaded', function () {
         '<div class="shared-post-head">' +
         '<a href="' + spProfileUrl + '" class="avatar"><img src="' + esc(sp.user.avatar_url) + '" alt="' + esc(sp.user.name) + '"></a>' +
         '<div class="shared-post-meta">' +
-        '<div class="shared-post-name"><a href="' + spProfileUrl + '" style="color:inherit;text-decoration:none;">' + esc(sp.user.name) + '</a></div>' +
-        '<div class="shared-post-sub">@' + esc(sp.user.username) + '</div>' +
+        '<div class="post-name-row">' +
+        '<a href="' + spProfileUrl + '" class="post-name" style="color:inherit;text-decoration:none;">' + esc(sp.user.name) + '</a>' +
+        '<span class="post-handle">@' + esc(sp.user.username) + '</span>' +
+        spVerifiedBadge +
+        '</div>' +
+        spProfTitleHtml +
         '</div></div>' +
         (sp.text_content ? '<div class="shared-post-body js-collapsible">' + parseMarkdownLinks(esc(sp.text_content)) + '</div>' : '') +
         spResourceHtml +
@@ -1201,5 +1218,37 @@ document.addEventListener('DOMContentLoaded', function () {
       showToast('Network error.', 'error');
     }
   }
+
+  /* ================================================================
+     SCROLL TO POST FROM QUERY PARAMS
+  ================================================================ */
+  (function initScrollToPost() {
+    var params = new URLSearchParams(window.location.search);
+    var postId = params.get('post_id');
+    var commentId = params.get('comment_id');
+    if (!postId) return;
+
+    var done = false;
+    function tryScroll() {
+      if (done) return;
+      var article = document.querySelector('article.post[data-post-id="' + postId + '"]');
+      if (!article) return;
+
+      article.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      article.classList.add('post-highlight');
+      setTimeout(function () { article.classList.remove('post-highlight'); }, 3000);
+
+      if (commentId) {
+        var section = article.querySelector('.comments-section');
+        if (section) section.classList.remove('hidden');
+        var c = document.getElementById('comment-' + commentId) || document.getElementById('dash-comment-' + commentId);
+        if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      done = true;
+    }
+
+    tryScroll();
+    document.addEventListener('post:rendered', tryScroll);
+  })();
 });
 

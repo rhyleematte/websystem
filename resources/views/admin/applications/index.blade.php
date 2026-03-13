@@ -206,72 +206,7 @@
 
 @section('content')
 
-@php
-  // Get currently authed admin
-  $admin = Auth::guard('admin')->user();
-  $adminName = $admin->fname . ' ' . $admin->lname;
-  $avatarUrl = $admin->avatar_url ? asset('storage/' . $admin->avatar_url) : asset('assets/img/default.png');
-@endphp
-
 <main class="dash">
-
-  {{-- Admin Top Bar --}}
-  <header class="dash-topbar">
-    <div class="brand">
-      <img src="{{ asset('assets/img/AskDocPH.png') }}" class="logo" alt="AskDocPH">
-      <span style="font-weight:700; font-size: 1.1rem; color: var(--primary); margin-left:10px;">Admin Portal</span>
-    </div>
-
-    <div class="dash-actions" style="margin-left: auto;">
-      {{-- Admin Avatar Dropdown inside topbar --}}
-      <div class="avatar-dropdown">
-        <button class="avatar-btn" type="button" id="profileToggle"
-                aria-label="Profile" aria-haspopup="true" aria-expanded="false">
-          <img src="{{ $avatarUrl }}" alt="Admin" />
-          <div class="avatar-meta">
-            <div class="avatar-name">{{ $admin->fname }}</div>
-            <div class="avatar-username">Administrator</div>
-          </div>
-          <i data-lucide="chevron-down" class="dropdown-icon"></i>
-        </button>
-
-        {{-- Dropdown Menu --}}
-        <div class="dropdown-menu" id="profileDropdown" aria-labelledby="profileToggle">
-          <div class="dropdown-profile" style="padding: 16px;">
-            <div class="dropdown-avatar"><img src="{{ $avatarUrl }}" alt="Admin" /></div>
-            <div class="dropdown-info">
-              <div class="profile-fullname" style="color: var(--text);">{{ $adminName }}</div>
-              <div class="profile-username" style="color: var(--text-muted);">{{ $admin->email }}</div>
-            </div>
-          </div>
-          
-          <hr class="dropdown-divider">
-          
-          {{-- My Profile Link --}}
-          <a href="{{ route('admin.profile') }}" class="dropdown-item" style="text-decoration: none; color: var(--text);">
-            <i data-lucide="user"></i><span>My Profile</span>
-          </a>
-
-          <hr class="dropdown-divider">
-          
-          {{-- Theme Toggle --}}
-          <button type="button" class="dropdown-item" id="themeToggleBtn">
-            <i data-lucide="moon"></i><span>Toggle Theme</span>
-          </button>
-          
-          <hr class="dropdown-divider">
-          
-          {{-- Secure Admin Logout --}}
-          <form method="POST" action="{{ route('admin.logout') }}" class="logout-form" style="margin:0;">
-            @csrf
-            <button type="submit" class="dropdown-logout" style="width:100%;">
-              <i data-lucide="log-out"></i><span>Logout</span>
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </header>
 
   <div class="admin-body">
     {{-- Admin Feed Area --}}

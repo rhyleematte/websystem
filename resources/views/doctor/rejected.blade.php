@@ -114,53 +114,8 @@
 @endpush
 
 @section('content')
-@php
-  $user      = Auth::user();
-  $avatarUrl = $user->avatar_url ?? asset('assets/img/default.png');
-  $shortName = $user->short_name;
-  $username  = $user->username;
-@endphp
 
 <main class="dash">
-  {{-- Top bar --}}
-  <header class="dash-topbar" style="display: flex; justify-content: space-between;">
-    <div class="brand">
-      <img src="{{ asset('assets/img/AskDocPH.png') }}" class="logo" alt="AskDocPH">
-      <span style="font-weight:700; font-size: 1.1rem; color: var(--primary); margin-left:10px;">Doctor Portal</span>
-    </div>
-
-    <div class="dash-actions">
-      <div class="avatar-dropdown">
-        <button class="avatar-btn" type="button" id="profileToggle">
-          <img src="{{ $avatarUrl }}" alt="User" />
-          <div class="avatar-meta">
-            <div class="avatar-name">{{ $shortName }}</div>
-            <div class="avatar-username">{{ '@'.$username }}</div>
-          </div>
-          <i data-lucide="chevron-down" class="dropdown-icon"></i>
-        </button>
-
-        <div class="dropdown-menu" id="profileDropdown" style="right: 0; left: auto;">
-          <a href="{{ route('profile.show', Auth::id()) }}" class="dropdown-profile-link">
-            <div class="dropdown-profile">
-              <div class="dropdown-avatar"><img src="{{ $avatarUrl }}" alt="User" /></div>
-              <div class="dropdown-info">
-                <div class="profile-fullname">{{ $shortName }}</div>
-                <div class="profile-username">{{ '@'.$username }}</div>
-              </div>
-            </div>
-          </a>
-          <hr class="dropdown-divider">
-          <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="dropdown-logout">
-              <i data-lucide="log-out"></i><span>Logout</span>
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </header>
 
   <div class="dash-body" style="display: block;">
     <div class="rejected-container">

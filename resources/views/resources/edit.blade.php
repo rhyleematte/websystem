@@ -416,8 +416,6 @@
 
 @section('content')
 <div class="composer-shell">
-  @include('resources._topbar')
-
   <div class="composer-wrap">
     <div class="composer-card">
 

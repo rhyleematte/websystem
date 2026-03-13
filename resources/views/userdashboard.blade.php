@@ -31,64 +31,6 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
 
 <main class="dash">
 
-  {{-- Top bar --}}
-  <header class="dash-topbar">
-    <div class="brand">
-      <img src="{{ asset('assets/img/AskDocPH.png') }}" class="logo" alt="AskDocPH">
-    </div>
-
-    <div class="dash-search">
-      <i data-lucide="search"></i>
-      <input type="text" placeholder="Search for support, resources, or people..." />
-    </div>
-
-    <div class="dash-actions">
-      <button class="icon-btn" type="button" aria-label="Messages">
-        <i data-lucide="message-circle"></i>
-      </button>
-      <button class="icon-btn" type="button" aria-label="Notifications">
-        <i data-lucide="bell"></i>
-        <span class="dot"></span>
-      </button>
-
-      {{-- Profile dropdown --}}
-      <div class="avatar-dropdown">
-        <button class="avatar-btn" type="button" id="profileToggle"
-                aria-label="Profile" aria-haspopup="true" aria-expanded="false">
-          <img src="{{ $avatarUrl }}" alt="User" />
-          <div class="avatar-meta">
-            <div class="avatar-name">{{ $shortName }}</div>
-            <div class="avatar-username">{{ '@'.$username }}</div>
-          </div>
-          <i data-lucide="chevron-down" class="dropdown-icon"></i>
-        </button>
-
-        <div class="dropdown-menu" id="profileDropdown" aria-labelledby="profileToggle">
-          <a href="{{ route('profile.show', Auth::id()) }}" class="dropdown-profile-link">
-            <div class="dropdown-profile">
-              <div class="dropdown-avatar"><img src="{{ $avatarUrl }}" alt="User" /></div>
-              <div class="dropdown-info">
-                <div class="profile-fullname">{{ $fullName }}</div>
-                <div class="profile-username">{{ '@'.$username }}</div>
-              </div>
-            </div>
-          </a>
-          <hr class="dropdown-divider">
-          <button type="button" class="dropdown-item" id="themeToggleBtn">
-            <i data-lucide="moon"></i><span>Dark mode</span>
-          </button>
-          <hr class="dropdown-divider">
-          <form method="POST" action="{{ route('logout') }}" class="logout-form">
-            @csrf
-            <button type="submit" class="dropdown-logout">
-              <i data-lucide="log-out"></i><span>Logout</span>
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </header>
-
   {{-- Body --}}
   <div class="dash-body">
 

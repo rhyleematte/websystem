@@ -375,13 +375,11 @@
       .composer-field-row .divider { display: none; }
       .toolbar-left { gap: 1px; }
       .tool-btn { width: 30px; height: 30px; }
-    }
   </style>
 @endpush
 
 @section('content')
 <div class="composer-shell">
-  @include('resources._topbar')
 
   <div class="composer-wrap">
     <div class="composer-card">
