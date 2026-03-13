@@ -375,6 +375,87 @@
       .composer-field-row .divider { display: none; }
       .toolbar-left { gap: 1px; }
       .tool-btn { width: 30px; height: 30px; }
+    }
+
+    /* ── Media Resize & Align Toolbar ────────────────────────── */
+    #mediaResizeBar {
+      position: absolute;
+      background: #1e293b;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      z-index: 1000;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      user-select: none;
+    }
+    .mrb-section { display: flex; align-items: center; gap: 8px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 12px; }
+    .mrb-section:last-child { border-right: none; padding-right: 0; }
+    .mrb-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+    .mrb-preset {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #fff;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .mrb-preset:hover { background: rgba(255,255,255,0.2); }
+    .mrb-preset.active { background: var(--res-primary); }
+    .mrb-slider-wrap { display: flex; align-items: center; gap: 8px; }
+    #mediaWidthSlider { width: 80px; accent-color: var(--res-primary); }
+    #mediaWidthLabel { font-size: 11px; font-weight: 700; min-width: 32px; }
+    .mrb-align-group { display: flex; gap: 4px; }
+    .mrb-align-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mrb-align-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .mrb-align-btn.active { background: var(--res-primary); color: #fff; }
+    .mrb-close {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 18px;
+      cursor: pointer;
+      margin-left: 4px;
+    }
+    .mrb-close:hover { color: #f87171; }
+
+    /* Handles */
+    .media-handle {
+      position: fixed;
+      width: 14px;
+      height: 14px;
+      background: #fff;
+      border: 3px solid var(--res-primary);
+      border-radius: 50%;
+      cursor: nwse-resize;
+      z-index: 10001;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.1s ease;
+      pointer-events: auto;
+    }
+    .media-handle:hover { transform: scale(1.2); }
+    .media-handle.tr { cursor: nesw-resize; }
+    .media-handle.bl { cursor: nesw-resize; }
+    .selected-media { outline: 2px solid var(--res-primary); outline-offset: 4px; border-radius: 2px; }
+    body.is-resizing { cursor: nwse-resize !important; user-select: none; }
   </style>
 @endpush
 
@@ -527,6 +608,11 @@
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </button>
 
+            {{-- Add Audio (inline) --}}
+            <button type="button" class="tool-btn" data-tip="Add Audio" onclick="document.getElementById('audioInput').click()">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </button>
+
             {{-- Add Video (inline) --}}
             <button type="button" class="tool-btn" data-tip="Add Video" onclick="document.getElementById('videoInput').click()">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
@@ -555,6 +641,7 @@
       <input type="file" id="photoInput" class="hidden-file" accept="image/*">
       <input type="file" id="attachInput" class="hidden-file" multiple>
       <input type="file" id="videoInput" class="hidden-file" accept="video/*">
+      <input type="file" id="audioInput" class="hidden-file" accept="audio/*">
     </div>
   </div>
 
@@ -570,101 +657,29 @@
 "></div>
 
 <style>
-/* ── Media resize/align floating card ─────────────────────── */
-#mediaResizeBar {
+
+/* Resize handles */
+.media-handle {
   position: fixed;
+  width: 12px;
+  height: 12px;
+  background: #7c3aed;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  z-index: 10000;
   display: none;
-  flex-direction: column;
-  gap: 0;
-  background: rgba(15, 23, 42, 0.96);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  border-radius: 14px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,58,237,0.15);
-  z-index: 9999;
-  user-select: none;
-  min-width: 260px;
-  overflow: hidden;
+  cursor: nwse-resize;
+  box-shadow: 0 0 5px rgba(0,0,0,0.3);
 }
-/* Section rows */
-#mediaResizeBar .mrb-section {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-}
-#mediaResizeBar .mrb-section + .mrb-section {
-  border-top: 1px solid rgba(148,163,184,0.1);
-}
-/* Section label */
-#mediaResizeBar .mrb-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: #64748b;
-  min-width: 36px;
-}
-/* Size preset buttons */
-#mediaResizeBar .mrb-preset {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: #cbd5e1;
-  border-radius: 6px;
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-#mediaResizeBar .mrb-preset:hover { background: rgba(124,58,237,0.25); border-color: #7c3aed; color: #fff; }
-#mediaResizeBar .mrb-preset.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
-/* Slider */
-.mrb-slider-wrap { display: flex; align-items: center; gap: 6px; flex: 1; }
-.mrb-slider-wrap input[type=range] { flex:1; accent-color: #7c3aed; cursor: pointer; height: 4px; }
-.mrb-slider-wrap span { font-size: 11px; color: #94a3b8; min-width: 32px; text-align: right; }
-/* Align buttons */
-.mrb-align-group { display: flex; gap: 4px; }
-.mrb-align-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px; height: 34px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.15s;
-  color: #94a3b8;
-}
-.mrb-align-btn:hover { background: rgba(124,58,237,0.20); border-color: #7c3aed; color: #c4b5fd; }
-.mrb-align-btn.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
-.mrb-align-btn svg { width: 16px; height: 16px; }
-/* Close button */
-.mrb-close {
-  margin-left: auto;
-  background: none;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: color 0.15s;
-  line-height: 1;
-}
-.mrb-close:hover { color: #f87171; background: rgba(248,113,113,0.1); }
-/* Selected outline */
-.ql-editor img.selected-media, .ql-editor video.selected-media {
-  outline: 3px solid #7c3aed;
-  outline-offset: 3px;
-  border-radius: 4px;
-  cursor: pointer;
-}
+.media-handle.tr, .media-handle.bl { cursor: nesw-resize; }
 </style>
 
 <div id="mediaResizeBar">
+
+<div id="handleNW" class="media-handle tl"></div>
+<div id="handleNE" class="media-handle tr"></div>
+<div id="handleSW" class="media-handle bl"></div>
+<div id="handleSE" class="media-handle br"></div>
 
   {{-- Row 1: Size --}}
   <div class="mrb-section">
@@ -712,6 +727,12 @@
 
 </div>
 
+<div id="handleNW" class="media-handle tl"></div>
+<div id="handleNE" class="media-handle tr"></div>
+<div id="handleSW" class="media-handle bl"></div>
+<div id="handleSE" class="media-handle br"></div>
+
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.19/mammoth.browser.min.js"></script>
@@ -735,6 +756,22 @@ class VideoBlot extends BlockEmbed {
 VideoBlot.blotName = 'htmlVideo'; VideoBlot.tagName = 'video';
 Quill.register(VideoBlot);
 
+class AudioBlot extends BlockEmbed {
+  static create(value) {
+    const node = super.create();
+    node.setAttribute('src', typeof value === 'string' ? value : value.src);
+    node.setAttribute('controls', 'true');
+    node.style.width = (typeof value === 'object' && value.width) ? value.width : '100%';
+    node.style.maxWidth = node.style.width;
+    node.style.margin = '8px 0';
+    node.style.display = 'block';
+    return node;
+  }
+  static value(node) { return { src: node.getAttribute('src'), width: node.style.width }; }
+}
+AudioBlot.blotName = 'htmlAudio'; AudioBlot.tagName = 'audio';
+Quill.register(AudioBlot);
+
 // ── Quill init ───────────────────────────────────────────────
 const quill = new Quill('#quill-editor', {
   theme: 'snow',
@@ -749,44 +786,123 @@ const widthSlider = document.getElementById('mediaWidthSlider');
 const widthLabel  = document.getElementById('mediaWidthLabel');
 
 quill.root.addEventListener('click', function(e) {
-  const target = e.target.closest('img, video');
+  const target = e.target.closest('img, video, audio');
   // Deselect previous
   if (selectedMedia) selectedMedia.classList.remove('selected-media');
   if (!target) { closeResizeBar(); return; }
   selectedMedia = target;
   selectedMedia.classList.add('selected-media');
-  // Show resize bar near the element
-  const rect = target.getBoundingClientRect();
+  
+  updateResizeUi();
+  e.stopPropagation();
+});
+
+function updateResizeUi() {
+  if (!selectedMedia) return;
+  const rect = selectedMedia.getBoundingClientRect();
+  
+  // Bar
   resizeBar.style.display = 'flex';
-  resizeBar.style.top  = Math.max(8, rect.bottom + 8) + 'px';
+  resizeBar.style.position = 'fixed';
+  resizeBar.style.zIndex = '10000';
+  resizeBar.style.top  = Math.max(8, rect.bottom + 12) + 'px';
   resizeBar.style.left = Math.max(8, rect.left) + 'px';
-  // Sync slider to current width
+  
+  // Handles
+  const handles = ['handleNW', 'handleNE', 'handleSW', 'handleSE'];
+  handles.forEach(h => document.getElementById(h).style.display = 'block');
+  
+  const nw = document.getElementById('handleNW');
+  const ne = document.getElementById('handleNE');
+  const sw = document.getElementById('handleSW');
+  const se = document.getElementById('handleSE');
+  
+  const hSize = 14; 
+  const offset = hSize / 2;
+  
+  nw.style.top = (rect.top - offset) + 'px';
+  nw.style.left = (rect.left - offset) + 'px';
+  
+  ne.style.top = (rect.top - offset) + 'px';
+  ne.style.left = (rect.right - offset) + 'px';
+  
+  sw.style.top = (rect.bottom - offset) + 'px';
+  sw.style.left = (rect.left - offset) + 'px';
+  
+  se.style.top = (rect.bottom - offset) + 'px';
+  se.style.left = (rect.right - offset) + 'px';
+
+  // Slider
   const curW = parseInt(selectedMedia.style.width) || 100;
   widthSlider.value = curW;
   widthLabel.textContent = curW + '%';
   syncActivePresets(curW);
-  e.stopPropagation();
+}
+
+// Update on scroll/resize
+window.addEventListener('scroll', updateResizeUi, true);
+window.addEventListener('resize', updateResizeUi);
+
+// Dragging logic
+let isResizing = false;
+let startX, startWidth, startWidthPct, activeHandle;
+
+['handleNW', 'handleNE', 'handleSW', 'handleSE'].forEach(id => {
+  document.getElementById(id).addEventListener('mousedown', function(e) {
+    if (!selectedMedia) return;
+    isResizing = true;
+    document.body.classList.add('is-resizing');
+    activeHandle = id;
+    startX = e.clientX;
+    startWidth = selectedMedia.offsetWidth;
+    const parentW = selectedMedia.parentElement.offsetWidth;
+    startWidthPct = (startWidth / parentW) * 100;
+    
+    document.addEventListener('mousemove', handleResizeMove);
+    document.addEventListener('mouseup', handleResizeUp);
+    e.preventDefault();
+  });
 });
 
+function handleResizeMove(e) {
+  if (!isResizing || !selectedMedia) return;
+  const delta = e.clientX - startX;
+  const parentW = selectedMedia.parentElement.offsetWidth;
+  
+  let newWidthPct;
+  if (activeHandle === 'handleSE' || activeHandle === 'handleNE') {
+    newWidthPct = startWidthPct + (delta / parentW) * 100;
+  } else {
+    newWidthPct = startWidthPct - (delta / parentW) * 100;
+  }
+  
+  newWidthPct = Math.min(100, Math.max(10, newWidthPct));
+  setMediaWidth(newWidthPct);
+}
+
+function handleResizeUp() {
+  isResizing = false;
+  activeHandle = null;
+  document.body.classList.remove('is-resizing');
+  document.removeEventListener('mousemove', handleResizeMove);
+  document.removeEventListener('mouseup', handleResizeUp);
+}
+
 document.addEventListener('click', e => {
-  if (!e.target.closest('#mediaResizeBar') && !e.target.closest('.ql-editor')) {
-    if (selectedMedia) { selectedMedia.classList.remove('selected-media'); selectedMedia = null; }
+  if (!e.target.closest('#mediaResizeBar') && !e.target.closest('.ql-editor') && !e.target.closest('.media-handle')) {
     closeResizeBar();
   }
 });
 
 function setMediaWidth(pct) {
   if (!selectedMedia) return;
-  pct = parseInt(pct);
+  pct = Math.round(pct);
   selectedMedia.style.width    = pct + '%';
   selectedMedia.style.maxWidth = pct + '%';
   widthSlider.value = pct;
   widthLabel.textContent = pct + '%';
   syncActivePresets(pct);
-  // Reposition bar
-  const rect = selectedMedia.getBoundingClientRect();
-  resizeBar.style.top  = Math.max(8, rect.bottom + 8) + 'px';
-  resizeBar.style.left = Math.max(8, rect.left) + 'px';
+  updateResizeUi();
 }
 function syncActivePresets(pct) {
   resizeBar.querySelectorAll('.mrb-preset').forEach(b => {
@@ -821,6 +937,8 @@ function setMediaAlign(align) {
 }
 function closeResizeBar() {
   resizeBar.style.display = 'none';
+  const handles = ['handleNW', 'handleNE', 'handleSW', 'handleSE'];
+  handles.forEach(h => document.getElementById(h).style.display = 'none');
   if (selectedMedia) { selectedMedia.classList.remove('selected-media'); selectedMedia = null; }
 }
 
@@ -950,8 +1068,13 @@ document.getElementById('attachInput').addEventListener('change', function(e) {
     const idx = range ? range.index : quill.getLength();
     const ext = file.name.split('.').pop().toLowerCase();
     const icon = (ext === 'mp3' || ext === 'wav') ? '🎵 ' : ext === 'mp4' ? '🎬 ' : ext === 'pdf' ? '📄 ' : '📎 ';
-    quill.insertText(idx, '\n' + icon + file.name + '\n', { bold: false });
-    quill.setSelection(idx + file.name.length + 3);
+    if (ext === 'pdf') {
+      const pdfLink = `<p><br></p><p><a href="javascript:void(0)" class="pdf-link-placeholder" style="color:var(--res-primary);font-weight:700;text-decoration:underline;">📄 View PDF: ${file.name}</a></p><p><br></p>`;
+      quill.clipboard.dangerouslyPasteHTML(idx, pdfLink);
+    } else {
+      quill.insertText(idx, '\n' + icon + file.name + '\n', { bold: false });
+      quill.setSelection(idx + file.name.length + 3);
+    }
   });
   this.value = '';
 });
@@ -982,6 +1105,20 @@ document.getElementById('videoInput').addEventListener('change', function(e) {
   quill.setSelection(idx + 2);
   addAttachmentChip(file);
   toast('🎬 Video inserted at cursor! Click it to resize.');
+  this.value = '';
+});
+
+// ── Add Audio (inline at cursor via AudioBlot) ──────────────
+document.getElementById('audioInput').addEventListener('change', function(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const url = URL.createObjectURL(file);
+  const range = quill.getSelection(true);
+  const idx = range ? range.index : quill.getLength();
+  quill.insertEmbed(idx, 'htmlAudio', url);
+  quill.insertText(idx + 1, '\n');
+  quill.setSelection(idx + 2);
+  addAttachmentChip(file);
+  toast('🎵 Audio inserted at cursor! Click it to resize.');
   this.value = '';
 });
 
@@ -1037,8 +1174,11 @@ fileInput.addEventListener('change', function(e) {
         if (text.trim()) {
           const range = quill.getSelection(true);
           const idx = range ? range.index : 0;
-          quill.clipboard.dangerouslyPasteHTML(idx, text.trim().replace(/\n\n/g, '<p><br></p>').replace(/\n/g, '<br>'));
-          toast('📄 PDF extracted at cursor!');
+          
+          // Instead of plain extraction, provide a clickable link if extraction worked
+          const pdfLink = `<p><br></p><p><a href="javascript:void(0)" class="pdf-link-placeholder" style="color:var(--res-primary);font-weight:700;text-decoration:underline;">📄 View PDF: ${file.name}</a></p><p><br></p>`;
+          quill.clipboard.dangerouslyPasteHTML(idx, pdfLink + text.trim().replace(/\n\n/g, '<p><br></p>').replace(/\n/g, '<br>'));
+          toast('📄 PDF inserted with link!');
         }
       } catch(err) { console.error(err); }
     };
@@ -1057,19 +1197,9 @@ fileInput.addEventListener('change', function(e) {
     };
     reader.readAsArrayBuffer(file);
   } else if (['mp3','wav','ogg','m4a'].includes(ext)) {
-    // Insert audio player at cursor
-    const url = URL.createObjectURL(file);
-    const range = quill.getSelection(true);
-    const html = `<p><audio controls style="width:100%;border-radius:8px;" src="${url}"></audio></p><p><br></p>`;
-    quill.clipboard.dangerouslyPasteHTML(range ? range.index : quill.getLength(), html);
-    toast('🎵 Audio inserted at cursor!');
+    toast('🎵 Audio attached! (Will be available after publishing)');
   } else if (['mp4','webm','mov'].includes(ext)) {
-    // Insert video player at cursor
-    const url = URL.createObjectURL(file);
-    const range = quill.getSelection(true);
-    const html = `<p><video controls style="max-width:100%;border-radius:12px;margin:8px 0;" src="${url}"></video></p><p><br></p>`;
-    quill.clipboard.dangerouslyPasteHTML(range ? range.index : quill.getLength(), html);
-    toast('🎬 Video inserted at cursor!');
+    toast('🎬 Video attached! (Will be available after publishing)');
   } else {
     toast('✅ File attached!');
   }
@@ -1087,5 +1217,5 @@ function toast(msg) {
   clearTimeout(t._t); t._t = setTimeout(() => t.style.opacity = '0', 3000);
 }
 </script>
-
+@endpush
 @endsection

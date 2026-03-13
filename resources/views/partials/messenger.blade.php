@@ -37,6 +37,10 @@
         <div class="chat-box-messages">
             {{-- Messages load here --}}
         </div>
+        <div class="typing-indicator">
+            <div class="dot"></div>
+            <span class="typing-text">someone is typing...</span>
+        </div>
         <div class="chat-box-input">
             <textarea placeholder="Type a message..."></textarea>
             <button class="send-message-btn"><i data-lucide="send"></i></button>

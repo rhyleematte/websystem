@@ -23,9 +23,6 @@ window.DASH_ROUTES = {
   destroyPost:   function(id){ return "/profile/posts/" + id; },
   updatePost:    function(id){ return "/profile/posts/" + id; },
 };
-window.MY_AVATAR      = "{{ $avatarUrl }}";
-window.MY_NAME        = "{{ addslashes($fullName) }}";
-window.MY_ID          = {{ Auth::id() }};
 window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
 </script>
 

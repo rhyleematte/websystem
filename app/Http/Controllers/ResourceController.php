@@ -79,7 +79,7 @@ class ResourceController extends Controller
             'type' => 'required|in:Article,Audio,Workbook,Media,Video',
             'description' => 'required|string',
             'content' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'file' => 'nullable|file|mimes:pdf,doc,docx,mp3,wav,ogg,mp4,webm,mov|max:51200', // 50MB max
             'thumbnail' => 'nullable|image|max:5120',
             'duration_meta' => 'nullable|string|max:50',
             'hashtags' => 'nullable|string',
@@ -120,7 +120,7 @@ class ResourceController extends Controller
             'type' => 'required|in:Article,Audio,Workbook,Media,Video',
             'description' => 'required|string',
             'content' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'file' => 'nullable|file|mimes:pdf,doc,docx,mp3,wav,ogg,mp4,webm,mov|max:51200', // 50MB max
             'thumbnail' => 'nullable|image|max:5120',
             'duration_meta' => 'nullable|string|max:50',
             'hashtags' => 'nullable|string',

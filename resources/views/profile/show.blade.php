@@ -93,16 +93,11 @@
                 <h1 class="prof-fullname">{{ $fullName }}</h1>
                 <span class="prof-handle" id="profHandle">{{ '@' . $username }}</span>
                 @if($isVerifiedDoctor)
-                  <span class="verified-badge verified-inline"><i data-lucide="badge-check"></i> Verified Doctor</span>
+                  <i data-lucide="badge-check" class="doctor-badge" title="Verified Doctor"></i>
                 @endif
               </div>
-              @if($isVerifiedDoctor)
-                @php
-                  $profTitle = $profileUser->doctorApplication ? $profileUser->doctorApplication->professional_titles : '';
-                @endphp
-                @if(trim($profTitle))
-                  <div class="verified-title">{{ $profTitle }}</div>
-                @endif
+              @if($profileUser->professional_title)
+                <div class="prof-title">{{ $profileUser->professional_title }}</div>
               @endif
             </div>
 

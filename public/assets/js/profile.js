@@ -736,12 +736,25 @@ function buildPostEl(post) {
       ? `<div class="post-tags">${post.hashtags.map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>`
       : '';
 
+    const isVerified = post.user && post.user.role === 'doctor' && post.user.doctor_status === 'approved';
+    const verifiedBadge = isVerified
+      ? `<i data-lucide="badge-check" class="doctor-badge" title="Verified Doctor"></i>`
+      : '';
+    const profTitleHtml = (isVerified && post.user.professional_titles && post.user.professional_titles.trim())
+      ? `<div class="post-prof-title">${escapeHtml(post.user.professional_titles.trim())}</div>`
+      : '';
+
     article.innerHTML = `
     <div class="post-head">
       <div class="avatar md"><img src="${post.user.avatar_url}" alt="${escapeHtml(post.user.name)}"></div>
       <div class="post-meta">
-        <div class="post-name">${escapeHtml(post.user.name)}</div>
-        <div class="post-sub">@${escapeHtml(post.user.username)} · ${post.created_at}</div>
+        <div class="post-name-row">
+          <div class="post-name">${escapeHtml(post.user.name)}</div>
+          <span class="post-handle">@${escapeHtml(post.user.username)}</span>
+          ${verifiedBadge}
+        </div>
+        ${profTitleHtml}
+        <div class="post-sub">${post.created_at}</div>
       </div>
       ${menuHtml}
     </div>
@@ -817,9 +830,7 @@ function renderSharedPostCard(sp) {
 
     const isVerified = sp.user && sp.user.doctor_status === 'approved' && (!sp.user.role || sp.user.role === 'doctor');
     const verifiedBadge = isVerified
-      ? `<span class="verified-doctor-badge" title="Verified Doctor">
-          <i data-lucide="badge-check"></i> Verified Doctor
-        </span>`
+      ? `<i data-lucide="badge-check" class="doctor-badge" title="Verified Doctor"></i>`
       : '';
     const profTitle = (isVerified && sp.user.professional_titles && sp.user.professional_titles.trim())
       ? `<div class="post-prof-title">${escapeHtml(sp.user.professional_titles.trim())}</div>`

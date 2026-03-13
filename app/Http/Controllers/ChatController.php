@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\ConversationParticipant;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class ChatController extends Controller
 {
@@ -16,9 +17,10 @@ class ChatController extends Controller
     {
         $user = Auth::user();
         
-        // 1. Get existing conversations
+        // 1. Get existing conversations (not deleted for this user)
         $conversations = $user->conversations()
             ->with(['users', 'latestMessage'])
+            ->wherePivot('deleted_at', null)
             ->get();
 
         $existingConversationUserIds = $conversations->flatMap(function($conv) use ($user) {
@@ -92,12 +94,31 @@ class ChatController extends Controller
         return response()->json($sorted);
     }
 
-    public function getMessages($conversationId)
+    public function deleteConversation($id)
     {
-        $messages = Message::where('conversation_id', $conversationId)
+        $user = Auth::user();
+        
+        DB::table('conversation_participants')
+            ->where('conversation_id', $id)
+            ->where('user_id', $user->id)
+            ->update(['deleted_at' => now()]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function getMessages($conversationId, Request $request)
+    {
+        $afterId = $request->get('after_id');
+        
+        $query = Message::where('conversation_id', $conversationId)
             ->with('sender')
-            ->orderBy('created_at', 'asc')
-            ->get();
+            ->orderBy('created_at', 'asc');
+
+        if ($afterId) {
+            $query->where('id', '>', $afterId);
+        }
+
+        $messages = $query->get();
 
         return response()->json($messages);
     }
@@ -140,7 +161,46 @@ class ChatController extends Controller
             'message_type' => 'text',
         ]);
 
+        // Restore conversation visibility for everyone in the conversation
+        DB::table('conversation_participants')
+            ->where('conversation_id', $conversationId)
+            ->update(['deleted_at' => null]);
+
         return response()->json($message->load('sender'));
+    }
+
+    public function setTyping(Request $request)
+    {
+        $request->validate([
+            'conversation_id' => 'required',
+            'is_typing' => 'required|boolean'
+        ]);
+
+        $userId = Auth::id();
+        $convId = $request->conversation_id;
+        $key = "typing.{$convId}.{$userId}";
+
+        if ($request->is_typing) {
+            Cache::put($key, true, now()->addSeconds(5));
+        } else {
+            Cache::forget($key);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function getTyping(Request $request, $conversationId)
+    {
+        $user = Auth::user();
+        $conversation = Conversation::with('users')->findOrFail($conversationId);
+        
+        $otherUser = $conversation->users->where('id', '!=', $user->id)->first();
+        
+        if (!$otherUser) return response()->json(['is_typing' => false]);
+
+        $isTyping = Cache::has("typing.{$conversationId}.{$otherUser->id}");
+
+        return response()->json(['is_typing' => $isTyping]);
     }
 
     public function searchUsers(Request $request)

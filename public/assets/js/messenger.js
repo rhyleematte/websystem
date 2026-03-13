@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatTray = document.querySelector('#chat-tray');
     const chatBoxTemplate = document.querySelector('#chat-box-template');
 
-    let openChats = new Map(); // conversationId -> DOM Element
+    let openChats = new Map(); // conversationId -> { element, lastMsgId, pollInterval, typingInterval, isTyping }
+    let convPollInterval = null;
 
     // Toggle Drawer
     if (messengerToggle) {
@@ -19,6 +20,12 @@ document.addEventListener('DOMContentLoaded', function() {
             messengerDrawer.classList.toggle('open');
             if (messengerDrawer.classList.contains('open')) {
                 loadConversations();
+                if (!convPollInterval) {
+                    convPollInterval = setInterval(loadConversations, 5000);
+                }
+            } else {
+                clearInterval(convPollInterval);
+                convPollInterval = null;
             }
         });
     }
@@ -26,11 +33,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (closeDrawer) {
         closeDrawer.addEventListener('click', () => {
             messengerDrawer.classList.remove('open');
+            clearInterval(convPollInterval);
+            convPollInterval = null;
         });
     }
 
     // Load Conversations
     async function loadConversations() {
+        if (document.activeElement && (document.activeElement.id === 'messenger-user-search')) return;
+        if (document.querySelector('.conv-menu-popover.open')) return;
+
         try {
             const response = await fetch('/api/messenger/conversations');
             const conversations = await response.json();
@@ -65,8 +77,57 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div class="conv-last-msg">${lastMsg}</div>
                     </div>
+                    ${isConversation ? `
+                    <div class="conv-actions">
+                        <button class="conv-menu-btn" type="button"><i data-lucide="more-vertical"></i></button>
+                        <div class="conv-menu-popover">
+                            <div class="conv-menu-item danger delete-conv" data-id="${conv.id}">
+                                Archive
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
                 `;
-                item.addEventListener('click', () => openChatBox(conv));
+
+                item.addEventListener('click', (e) => {
+                    if (e.target.closest('.conv-actions')) return;
+                    openChatBox(conv);
+                });
+
+                if (isConversation) {
+                    const menuBtn = item.querySelector('.conv-menu-btn');
+                    const popover = item.querySelector('.conv-menu-popover');
+                    const deleteBtn = item.querySelector('.delete-conv');
+
+                    menuBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        document.querySelectorAll('.conv-menu-popover.open').forEach(p => {
+                            if (p !== popover) p.classList.remove('open');
+                        });
+                        popover.classList.toggle('open');
+                    });
+
+                    deleteBtn.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        if (!confirm('Are you sure you want to archive this conversation? It will hide for you but re-appear if you send a new message.')) return;
+                        
+                        try {
+                            const response = await fetch(`/api/messenger/conversations/${conv.id}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                }
+                            });
+                            if (response.ok) {
+                                item.remove();
+                                // Logic update: Archive only removes from list, doesn't close box
+                            }
+                        } catch (err) {
+                            console.error('Archive failed:', err);
+                        }
+                    });
+                }
+
                 conversationList.appendChild(item);
             });
             lucide.createIcons();
@@ -74,6 +135,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading conversations:', error);
         }
     }
+
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.conv-menu-popover.open').forEach(p => p.classList.remove('open'));
+    });
 
     // Search Users
     userSearchInput.addEventListener('input', async (e) => {
@@ -126,7 +191,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Open Chat Box
     function openChatBox(conv) {
         const convId = conv.id || `temp-${conv.other_user.id}`;
-        if (openChats.has(convId)) return;
+        if (openChats.has(convId)) {
+            const chatObj = openChats.get(convId);
+            chatObj.element.classList.remove('minimized');
+            return;
+        }
 
         const clone = chatBoxTemplate.content.cloneNode(true);
         const chatBox = clone.querySelector('.chat-box');
@@ -146,6 +215,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Actions
         chatBox.querySelector('.close-chat').addEventListener('click', (e) => {
             e.stopPropagation();
+            const chatObj = openChats.get(convId);
+            if (chatObj) {
+                clearInterval(chatObj.pollInterval);
+                clearInterval(chatObj.typingInterval);
+            }
             chatBox.remove();
             openChats.delete(convId);
         });
@@ -185,13 +259,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.value = '';
                 addMessageToBox(chatBox, msg, 'sent');
                 
-                // If it was a temp chat, update conversation ID
                 if (!conv.id) {
                     chatBox.dataset.conversationId = msg.conversation_id;
                     openChats.delete(convId);
-                    openChats.set(msg.conversation_id, chatBox);
+                    
+                    const newChatObj = {
+                        element: chatBox,
+                        lastMsgId: msg.id,
+                        pollInterval: setInterval(() => pollForMessages(chatBox, msg.conversation_id), 3000),
+                        typingInterval: setInterval(() => pollForTyping(chatBox, msg.conversation_id), 3000),
+                        isTyping: false
+                    };
+                    openChats.set(msg.conversation_id, newChatObj);
                     conv.id = msg.conversation_id;
+                } else {
+                    const chatObj = openChats.get(conv.id);
+                    if (chatObj) chatObj.lastMsgId = msg.id;
                 }
+                
+                setTypingStatus(conv.id, false);
+                loadConversations();
             } catch (error) {
                 console.error('Error sending message:', error);
             }
@@ -205,8 +292,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        let typingTimeout;
+        input.addEventListener('input', () => {
+            if (!conv.id) return;
+            setTypingStatus(conv.id, true);
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                setTypingStatus(conv.id, false);
+            }, 3000);
+        });
+
         chatTray.appendChild(chatBox);
-        openChats.set(convId, chatBox);
+        
+        const chatObj = {
+            element: chatBox,
+            lastMsgId: 0,
+            pollInterval: conv.id ? setInterval(() => pollForMessages(chatBox, conv.id), 3000) : null,
+            typingInterval: conv.id ? setInterval(() => pollForTyping(chatBox, conv.id), 3000) : null,
+            isTyping: false
+        };
+        openChats.set(convId, chatObj);
+        
         lucide.createIcons();
 
         if (conv.id) {
@@ -214,16 +321,79 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Load Messages
+    async function setTypingStatus(convId, isTyping) {
+        if (!convId) return;
+        try {
+            fetch('/api/messenger/typing', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ conversation_id: convId, is_typing: isTyping })
+            });
+        } catch (e) {}
+    }
+
+    async function pollForTyping(chatBox, convId) {
+        if (!convId || chatBox.classList.contains('minimized')) return;
+        try {
+            const response = await fetch(`/api/messenger/typing/${convId}`);
+            const data = await response.json();
+            const statusLabel = chatBox.querySelector('.chat-user-status');
+            const typingIndicator = chatBox.querySelector('.typing-indicator');
+            const typingText = typingIndicator.querySelector('.typing-text');
+            const otherUserName = chatBox.querySelector('.chat-user-name').textContent;
+
+            if (data.is_typing) {
+                statusLabel.textContent = 'typing...';
+                statusLabel.style.fontSize = '11px';
+                statusLabel.style.opacity = '0.8';
+                
+                typingText.textContent = `${otherUserName} is typing...`;
+                typingIndicator.style.display = 'flex';
+                
+                const container = chatBox.querySelector('.chat-box-messages');
+                container.scrollTop = container.scrollHeight;
+            } else {
+                statusLabel.textContent = '';
+                typingIndicator.style.display = 'none';
+            }
+        } catch (e) {}
+    }
+
+    async function pollForMessages(chatBox, convId) {
+        const chatObj = openChats.get(convId);
+        if (!chatObj || chatBox.classList.contains('minimized')) return;
+
+        try {
+            const response = await fetch(`/api/messenger/messages/${convId}?after_id=${chatObj.lastMsgId}`);
+            const messages = await response.json();
+            if (messages.length > 0) {
+                messages.forEach(msg => {
+                    if (msg.sender_user_id != window.MY_ID) {
+                        addMessageToBox(chatBox, msg, 'received');
+                    }
+                    chatObj.lastMsgId = Math.max(chatObj.lastMsgId, msg.id);
+                });
+                loadConversations();
+            }
+        } catch (e) {}
+    }
+
     async function loadMessages(chatBox, convId) {
         try {
             const response = await fetch(`/api/messenger/messages/${convId}`);
             const messages = await response.json();
             const container = chatBox.querySelector('.chat-box-messages');
             container.innerHTML = '';
+            
+            const chatObj = openChats.get(convId);
+            
             messages.forEach(msg => {
                 const type = msg.sender_user_id == window.MY_ID ? 'sent' : 'received';
                 addMessageToBox(chatBox, msg, type);
+                if (chatObj) chatObj.lastMsgId = Math.max(chatObj.lastMsgId, msg.id);
             });
         } catch (error) {
             console.error('Error loading messages:', error);

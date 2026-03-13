@@ -74,9 +74,12 @@ Route::middleware('auth')->group(function () {
 
     // Messenger API
     Route::get('/api/messenger/conversations', [\App\Http\Controllers\ChatController::class, 'getConversations']);
+    Route::delete('/api/messenger/conversations/{conversation}', [\App\Http\Controllers\ChatController::class, 'deleteConversation']);
     Route::get('/api/messenger/messages/{conversation}', [\App\Http\Controllers\ChatController::class, 'getMessages']);
     Route::post('/api/messenger/send', [\App\Http\Controllers\ChatController::class, 'sendMessage']);
     Route::get('/api/messenger/search', [\App\Http\Controllers\ChatController::class, 'searchUsers']);
+    Route::post('/api/messenger/typing', [\App\Http\Controllers\ChatController::class, 'setTyping']);
+    Route::get('/api/messenger/typing/{conversation}', [\App\Http\Controllers\ChatController::class, 'getTyping']);
 });
 
 // ── Profile ────────────────────────────────────────────────────

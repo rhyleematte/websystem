@@ -96,7 +96,7 @@ class User extends Authenticatable
     public function conversations()
     {
         return $this->belongsToMany(Conversation::class, 'conversation_participants')
-            ->withPivot('last_read_message_id', 'muted', 'archived')
+            ->withPivot('last_read_message_id', 'muted', 'archived', 'last_read_at', 'deleted_at')
             ->withTimestamps();
     }
 

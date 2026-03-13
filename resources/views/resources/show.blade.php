@@ -191,93 +191,31 @@
                     </div>
 
                     <div class="res-body-content" style="display: flex; flex-direction: column; gap: 32px;">
-                        @if($resource->file_path && in_array($resource->type, ['Audio', 'Media', 'Video']))
-                        <div class="res-media-viewer">
-                            @if($resource->type === 'Video' && in_array($resource->file_type, ['mp4', 'webm', 'ogg']))
-                                <video controls style="width: 100%; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                                    <source src="{{ $resource->file_url }}" type="video/{{ $resource->file_type }}">
-                                    Your browser does not support the video tag.
-                                </video>
-                            @elseif($resource->type === 'Audio' && in_array($resource->file_type, ['mp3', 'wav', 'ogg']))
-                                <div style="padding: 24px; background: var(--hover); border-radius: 16px; border: 1px solid var(--border);">
-                                    <h4 style="margin-bottom: 12px; font-size: 14px; font-weight: 600;">Audio Player</h4>
-                                    <audio controls style="width: 100%;">
-                                        <source src="{{ $resource->file_url }}" type="audio/{{ $resource->file_type === 'mp3' ? 'mpeg' : $resource->file_type }}">
-                                        Your browser does not support the audio element.
-                                    </audio>
-                                </div>
-                            @elseif($resource->type === 'Media')
-                                @if(in_array($resource->file_type, ['jpg', 'jpeg', 'png', 'gif', 'webp']))
-                                    <img src="{{ $resource->file_url }}" style="width: 100%; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                                @elseif($resource->file_type === 'pdf')
-                                    <div class="res-inline-viewer" style="height: 600px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                                        <iframe src="{{ $resource->file_url }}" width="100%" height="100%" style="border: none;"></iframe>
-                                    </div>
-                                @else
-                                    <div class="res-document-preview" style="padding: 24px; background: var(--hover); border-radius: 16px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: space-between;">
-                                        <div style="display: flex; align-items: center; gap: 16px;">
-                                            <div style="width: 48px; height: 48px; background: var(--res-primary); color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                                <i data-lucide="archive"></i>
-                                            </div>
-                                            <div>
-                                                <div style="font-weight: 700; color: var(--text);">Media Resource ({{ strtoupper($resource->file_type) }})</div>
-                                                <div style="font-size: 13px; color: var(--muted);">This media file is ready for download.</div>
-                                            </div>
-                                        </div>
-                                        <a href="{{ $resource->file_url }}" target="_blank" class="chip-btn" style="background: var(--res-primary); color: #fff; border: none; padding: 10px 20px;">
-                                            <i data-lucide="download"></i> Download Media
-                                        </a>
-                                    </div>
-                                @endif
-                            @else
-                                <div class="res-document-preview" style="padding: 24px; background: var(--hover); border-radius: 16px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: space-between;">
-                                    <div style="display: flex; align-items: center; gap: 16px;">
-                                        <div style="width: 48px; height: 48px; background: var(--res-primary); color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                            <i data-lucide="{{ $resource->type === 'Video' ? 'video' : ($resource->type === 'Audio' ? 'headphones' : 'file-text') }}"></i>
-                                        </div>
-                                        <div>
-                                            <div style="font-weight: 700; color: var(--text);">{{ $resource->type }} Resource ({{ strtoupper($resource->file_type) }})</div>
-                                            <div style="font-size: 13px; color: var(--muted);">Click the button to access the full {{ strtolower($resource->type) }}.</div>
-                                        </div>
-                                    </div>
-                                    <a href="{{ $resource->file_url }}" target="_blank" class="chip-btn" style="background: var(--res-primary); color: #fff; border: none; padding: 10px 20px;">
-                                        <i data-lucide="external-link"></i> Open {{ $resource->type }}
-                                    </a>
-                                </div>
-                            @endif
-                        </div>
+                        @if(in_array($resource->file_type, ['pdf']))
+                            <div class="res-inline-viewer" style="height: 600px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                                <iframe src="{{ $resource->file_url }}" width="100%" height="100%" style="border: none;"></iframe>
+                            </div>
                         @endif
 
-                        <div class="res-body-text">{!! $resource->content ?: $resource->description !!}</div>
-
-                        @if($resource->file_path && !in_array($resource->type, ['Audio', 'Media', 'Video']))
-                        <div class="res-document-section" style="margin-top: 32px; display: flex; flex-direction: column; gap: 20px;">
-                            <div class="res-document-preview" style="padding: 24px; background: var(--hover); border-radius: 16px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: space-between;">
-                                <div style="display: flex; align-items: center; gap: 16px;">
-                                    <div style="width: 48px; height: 48px; background: var(--res-primary); color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                        <i data-lucide="file-text"></i>
-                                    </div>
-                                    <div>
-                                        <div style="font-weight: 700; color: var(--text);">Attached Document ({{ strtoupper($resource->file_type) }})</div>
-                                        <div style="font-size: 13px; color: var(--muted);">You can view the document inline below or download it.</div>
-                                    </div>
-                                </div>
-                                <a href="{{ $resource->file_url }}" target="_blank" class="chip-btn" style="background: var(--res-primary); color: #fff; border: none; padding: 10px 20px;">
-                                    <i data-lucide="download"></i> Download
-                                </a>
-                            </div>
-
-                            @if($resource->file_type === 'pdf')
-                                <div class="res-inline-viewer" style="height: 600px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                                    <iframe src="{{ $resource->file_url }}" width="100%" height="100%" style="border: none;"></iframe>
-                                </div>
-                            @elseif(in_array($resource->file_type, ['doc', 'docx']))
+                            {{-- Legacy: Inline viewer for docs only --}}
+                            @if(in_array($resource->file_type, ['doc', 'docx']))
                                 <div class="res-inline-viewer" style="height: 600px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
                                     <iframe src="https://docs.google.com/gview?url={{ urlencode($resource->file_url) }}&embedded=true" width="100%" height="100%" style="border: none;"></iframe>
                                 </div>
+                            @elseif(in_array($resource->file_type, ['jpg', 'jpeg', 'png', 'gif', 'webp']))
+                                <img src="{{ $resource->file_url }}" style="width: 100%; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
                             @endif
                         </div>
-                        @endif
+
+                        @php
+                            $safeContent = $resource->content ?: $resource->description;
+                            // Multi-pass cleanup for any persistent blob URLs
+                            $safeContent = preg_replace('/<(video|audio|source|img)\s+[^>]*src="blob:[^"]+"[^>]*>.*?<\/\1>/is', '', $safeContent);
+                            $safeContent = preg_replace('/<(video|audio|source|img)\s+[^>]*src="blob:[^"]+"[^>]*>/is', '', $safeContent);
+                            // Cleanup empty paragraphs left behind
+                            $safeContent = preg_replace('/<p>\s*<\/p>/i', '', $safeContent);
+                        @endphp
+                        <div class="res-body-text">{!! $safeContent !!}</div>
                     </div>
 
                 <div class="res-actions-bar">
@@ -309,10 +247,24 @@
                         </button>
                     </div>
                 </div>
+                </div>
             </div>
         </main>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Activate inline PDF placeholders with the actual resource file URL
+    const fileUrl = "{{ $resource->file_url }}";
+    if (fileUrl) {
+        document.querySelectorAll('.pdf-link-placeholder').forEach(link => {
+            link.href = fileUrl;
+            link.target = "_blank";
+        });
+    }
+});
+</script>
 
 <div id="dash-toast" class="dash-toast" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 1000;"></div>
 

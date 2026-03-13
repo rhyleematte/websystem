@@ -489,11 +489,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var verifiedBadge = '';
     var profTitleHtml = '';
     if (post.user && post.user.role === 'doctor' && post.user.doctor_status === 'approved') {
-      verifiedBadge =
-        '<span class="verified-doctor-badge" title="Verified Doctor">'
-        + '<i data-lucide="badge-check"></i>'
-        + ' Verified Doctor'
-        + '</span>';
+      verifiedBadge = '<i data-lucide="badge-check" class="doctor-badge" title="Verified Doctor"></i>';
       if (post.user.professional_titles && post.user.professional_titles.trim()) {
         profTitleHtml = '<div class="post-prof-title">' + esc(post.user.professional_titles.trim()) + '</div>';
       }
@@ -527,11 +523,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var spVerifiedBadge = '';
       var spProfTitleHtml = '';
       if (sp.user && sp.user.doctor_status === 'approved' && (!sp.user.role || sp.user.role === 'doctor')) {
-        spVerifiedBadge =
-          '<span class="verified-doctor-badge" title="Verified Doctor">'
-          + '<i data-lucide="badge-check"></i>'
-          + ' Verified Doctor'
-          + '</span>';
+        spVerifiedBadge = '<i data-lucide="badge-check" class="doctor-badge" title="Verified Doctor"></i>';
         if (sp.user.professional_titles && sp.user.professional_titles.trim()) {
           spProfTitleHtml = '<div class="post-prof-title">' + esc(sp.user.professional_titles.trim()) + '</div>';
         }

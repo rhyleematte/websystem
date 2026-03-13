@@ -24,6 +24,16 @@
 <body>
 
 @auth
+  @php
+    $layout_user = Auth::user();
+    $layout_avatarUrl = $layout_user->avatar_url;
+    $layout_fullName  = $layout_user->full_name ?: ($layout_user->name ?? 'User');
+  @endphp
+  <script>
+    window.MY_ID = {{ Auth::id() }};
+    window.MY_AVATAR = "{{ $layout_avatarUrl }}";
+    window.MY_NAME = "{{ addslashes($layout_fullName) }}";
+  </script>
   @include('partials.header')
   @include('partials.messenger')
 @endauth

@@ -9,6 +9,7 @@
 @section('content')
 @php
   $me_shortName = $me ? ($me->short_name ?: $me->full_name) : 'User';
+  $avatarUrl = $me ? $me->avatar_url : asset('assets/img/default.png');
 @endphp
 
 {{-- Inject JS routes for the Composer --}}
@@ -22,9 +23,6 @@ window.DASH_ROUTES = {
   destroyPost:   function(id){ return "/profile/posts/" + id; },
   updatePost:    function(id){ return "/profile/posts/" + id; },
 };
-window.MY_AVATAR      = "{{ $me ? $me->avatar_url : asset('assets/img/default.png') }}";
-window.MY_NAME        = "{{ addslashes($me_shortName) }}";
-window.MY_ID          = {{ $me->id ?? 'null' }};
 window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
 </script>
 
@@ -164,9 +162,8 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
             <div id="mediaPreviewArea" class="media-preview-grid" style="display:none;"></div>
             <div class="hashtag-row" id="hashtagRow" style="display:none;">
               <i data-lucide="hash"></i>
-              <input type="text" id="hashtagInput" placeholder="anxiety, hope, recovery  (comma-separated)" />
+              <input type="text" id="hashtagInput" placeholder="anxiety, hope, recovery (comma-separated)" />
             </div>
-            
 
             <div class="mood-bar" id="moodBar" style="display:none;">
               <span class="mood-label">How are you feeling?</span>
@@ -174,6 +171,11 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
                 <button class="mood-btn" type="button" data-mood="😊 Happy">😊 Happy</button>
                 <button class="mood-btn" type="button" data-mood="😔 Sad">😔 Sad</button>
                 <button class="mood-btn" type="button" data-mood="😰 Anxious">😰 Anxious</button>
+                <button class="mood-btn" type="button" data-mood="😤 Stressed">😤 Stressed</button>
+                <button class="mood-btn" type="button" data-mood="🥰 Grateful">🥰 Grateful</button>
+                <button class="mood-btn" type="button" data-mood="😴 Tired">😴 Tired</button>
+                <button class="mood-btn" type="button" data-mood="💪 Motivated">💪 Motivated</button>
+                <button class="mood-btn" type="button" data-mood="😌 Calm">😌 Calm</button>
               </div>
               <div id="selectedMoodDisplay" class="selected-mood" style="display:none;"></div>
             </div>
@@ -205,7 +207,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
               </div>
               <div id="composerFeedback" class="composer-feedback"></div>
               <button class="share-btn" type="button" id="dashShareBtn">
-                Post <i data-lucide="send"></i>
+                Share <i data-lucide="send"></i>
               </button>
             </div>
           </div>
@@ -230,14 +232,12 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
           </div>
           @endif
         </div>
-
-        {{-- Right: Guidelines (Moved to Left Sidebar) --}}
       </div>
     </main>
   </div>
 </div>
 
-@if($me->id === $group->creator_id)
+@if($me && $me->id === $group->creator_id)
 <div class="modal-backdrop" id="editGroupModal">
   <div class="modal-box">
     <div class="modal-header">
@@ -440,10 +440,10 @@ async function uploadGroupCover(input, groupId) {
                 } else {
                      const dropdownMenu = document.getElementById('coverDropdownMenu');
                      if(dropdownMenu) {
-                         const btnHTML = `
-                         <button id="removeCoverBtn" onclick="deleteGroupCover(${groupId})" style="width:100%; text-align:left; padding:10px 12px; border-radius:8px; background:none; border:none; color:var(--danger); display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background='none'">
+                         const btnHTML = \`
+                         <button id="removeCoverBtn" onclick="deleteGroupCover(\${groupId})" style="width:100%; text-align:left; padding:10px 12px; border-radius:8px; background:none; border:none; color:var(--danger); display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background='none'">
                            <i data-lucide="trash-2" style="width:16px; height:16px;"></i> Remove Cover
-                         </button>`;
+                         </button>\`;
                          dropdownMenu.insertAdjacentHTML('beforeend', btnHTML);
                          if(window.lucide) lucide.createIcons();
                      }
@@ -472,7 +472,7 @@ async function deleteGroupCover(groupId) {
 
     if (result.isConfirmed) {
         try {
-            let res = await fetch(`/groups/${groupId}/delete-cover`, {
+            let res = await fetch(\`/groups/\${groupId}/delete-cover\`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',

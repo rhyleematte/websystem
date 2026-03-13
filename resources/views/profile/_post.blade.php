@@ -13,11 +13,20 @@
     <div class="avatar md">
       <img src="{{ $post->user->avatar_url }}" alt="{{ $post->user->full_name }}">
     </div>
+    @php
+      $isDoctor = $post->user && $post->user->role === 'doctor' && $post->user->doctor_status === 'approved';
+      $verifiedBadge = $isDoctor ? '<i data-lucide="badge-check" class="doctor-badge" title="Verified Doctor"></i>' : '';
+      $profTitleHtml = ($isDoctor && $post->user->professional_titles && trim($post->user->professional_titles)) 
+        ? '<div class="prof-title">' . e(trim($post->user->professional_titles)) . '</div>' 
+        : '';
+    @endphp
     <div class="post-meta">
       <div class="post-name-row">
         <span class="post-name">{{ $post->user->full_name }}</span>
         <span class="post-handle">{{ '@' . $post->user->username }}</span>
+        {!! $verifiedBadge !!}
       </div>
+      {!! $profTitleHtml !!}
       <div class="post-sub">{{ $post->created_at->diffForHumans() }}</div>
     </div>
     @if($canManage)
@@ -81,10 +90,19 @@
           $sharedUser = $post->sharedPost->user;
         @endphp
         <div class="shared-post-meta">
+          @php
+            $isSharedDoctor = $sharedUser && $sharedUser->doctor_status === 'approved' && (!$sharedUser->role || $sharedUser->role === 'doctor');
+            $spVerifiedBadge = $isSharedDoctor ? '<i data-lucide="badge-check" class="doctor-badge" title="Verified Doctor"></i>' : '';
+            $spProfTitleHtml = ($isSharedDoctor && $sharedUser->professional_titles && trim($sharedUser->professional_titles))
+              ? '<div class="prof-title">' . e(trim($sharedUser->professional_titles)) . '</div>'
+              : '';
+          @endphp
           <div class="post-name-row">
             <span class="post-name">{{ $sharedUser->full_name }}</span>
             <span class="post-handle">{{ '@' . $sharedUser->username }}</span>
+            {!! $spVerifiedBadge !!}
           </div>
+          {!! $spProfTitleHtml !!}
         </div>
       </div>
       @if($post->sharedPost->text_content)

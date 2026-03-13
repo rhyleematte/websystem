@@ -254,10 +254,10 @@ html.theme-dark .verified-badge {
     height: 13px;
 }
 
-.verified-title {
+.prof-title {
     font-size: 13px;
     font-weight: 700;
-    color: var(--text);
+    color: var(--brand); /* Professional blue/brand color */
 }
 
 .prof-bio {

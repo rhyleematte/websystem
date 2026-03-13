@@ -19,7 +19,9 @@
         <a class="nav-item" href="{{ route('user.dashboard') }}"><i data-lucide="home"></i><span>Feed</span></a>
         <a class="nav-item" href="{{ route('groups.index') }}"><i data-lucide="users"></i><span>Support Groups</span></a>
         <a class="nav-item active" href="{{ route('resources.index') }}"><i data-lucide="book-open"></i><span>Resources</span></a>
+        @auth
         <a class="nav-item" href="{{ route('profile.show', $me->id) }}"><i data-lucide="user"></i><span>My Profile</span></a>
+        @endauth
       </div>
       
       <div class="panel mini-panel">
@@ -34,13 +36,13 @@
           <h1>Mental Health Resources</h1>
           <p>Find professional tools, articles, and media to support your wellness journey.</p>
         </div>
-        @can('create', App\Models\Resource::class)
+        @if(Auth::check() && Auth::user()->can('create', 'App\Models\Resource'))
         <div class="res-header-right">
           <a href="{{ route('resources.create') }}" class="create-res-btn">
             <i data-lucide="plus"></i> Create Resource
           </a>
         </div>
-        @endcan
+        @endif
       </div>
 
       {{-- Search + Filters --}}
@@ -59,7 +61,8 @@
       </div>
 
       <div class="res-grid">
-        @forelse($resources as $res)
+        @if($resources->count() > 0)
+        @foreach($resources as $res)
         <div class="res-card"
              data-type="{{ $res->type }}"
              data-title="{{ strtolower($res->title ?? '') }}"
@@ -102,12 +105,13 @@
             </div>
           </div>
         </div>
-        @empty
+        @endforeach
+        @else
         <div class="res-empty" style="grid-column: 1 / -1;">
           <i data-lucide="book-copy"></i>
           <p>No resources found yet. Check back soon!</p>
         </div>
-        @endforelse
+        @endif
       </div>
 
       <div class="res-empty hidden" id="resNoResults" style="grid-column: 1 / -1; margin-top: 16px;">
