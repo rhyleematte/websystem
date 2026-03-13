@@ -228,13 +228,45 @@
             <textarea id="postText" placeholder="Share your thoughts, feelings, or progress…" rows="3"></textarea>
           </div>
 
-          <div class="composer-preview" id="mediaPreviewArea"></div>
+          {{-- Media preview --}}
+          <div class="composer-preview" id="mediaPreviewArea" style="display:none;"></div>
+
+          {{-- Hashtag input --}}
+          <div class="hashtag-row" id="hashtagRow" style="display:none;">
+            <i data-lucide="hash"></i>
+            <input type="text" id="hashtagInput" placeholder="anxiety, hope, recovery  (comma-separated)" />
+          </div>
+
+          {{-- Mood bar --}}
+          <div class="mood-bar" id="moodBar" style="display:none;">
+            <span class="mood-label">How are you feeling?</span>
+            <div class="mood-options">
+              <button class="mood-btn" type="button" data-mood="😊 Happy">😊 Happy</button>
+              <button class="mood-btn" type="button" data-mood="😔 Sad">😔 Sad</button>
+              <button class="mood-btn" type="button" data-mood="😰 Anxious">😰 Anxious</button>
+              <button class="mood-btn" type="button" data-mood="😤 Stressed">😤 Stressed</button>
+              <button class="mood-btn" type="button" data-mood="🥰 Grateful">🥰 Grateful</button>
+              <button class="mood-btn" type="button" data-mood="😴 Tired">😴 Tired</button>
+              <button class="mood-btn" type="button" data-mood="💪 Motivated">💪 Motivated</button>
+              <button class="mood-btn" type="button" data-mood="😌 Calm">😌 Calm</button>
+            </div>
+            <div id="selectedMoodDisplay" class="selected-mood" style="display:none;"></div>
+          </div>
+
           <div class="composer-bottom">
             <label for="postMedia" class="chip-btn" style="cursor:pointer;">
-              <i data-lucide="image"></i> Photo / Video
+              <i data-lucide="image"></i> Photo
             </label>
             <input type="file" id="postMedia" accept="image/*,video/*" multiple class="hidden-input">
             
+            <button class="chip-btn" type="button" id="moodToggleBtn" title="Add mood">
+              <i data-lucide="smile"></i> Mood
+            </button>
+
+            <button class="chip-btn" type="button" id="hashtagToggleBtn" title="Add hashtags">
+              <i data-lucide="hash"></i> Tags
+            </button>
+
             <div class="link-popup-wrap" id="linkWrap">
               <button class="chip-btn" type="button" id="linkToggleBtn" title="Add link">
                 <i data-lucide="link"></i> Link
@@ -253,8 +285,9 @@
                 <button type="button" class="link-popup-apply" id="applyLinkBtn">Apply</button>
               </div>
             </div>
+
             <button class="share-btn" type="button" id="submitPostBtn">
-              Post <i data-lucide="send"></i>
+              Share <i data-lucide="send"></i>
             </button>
           </div>
           <div class="composer-feedback" id="postFeedback"></div>

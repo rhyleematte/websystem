@@ -526,6 +526,55 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    /* ── Mood toggle ────────────────────────────────────────── */
+    const moodBar = document.getElementById('moodBar');
+    const moodToggleBtn = document.getElementById('moodToggleBtn');
+    const selectedMoodDisplay = document.getElementById('selectedMoodDisplay');
+    let selectedMood = '';
+
+    if (moodToggleBtn && moodBar) {
+        moodToggleBtn.addEventListener('click', () => {
+            const isOpen = moodBar.style.display !== 'none';
+            moodBar.style.display = isOpen ? 'none' : 'flex';
+            if (hashtagRow) hashtagRow.style.display = 'none';
+            if (linkRow) {
+                linkRow.style.display = 'none';
+                linkRow.classList.remove('open');
+            }
+        });
+
+        moodBar.addEventListener('click', (e) => {
+            const btn = e.target.closest('.mood-btn');
+            if (!btn) return;
+            selectedMood = btn.dataset.mood;
+            moodBar.querySelectorAll('.mood-btn').forEach(b => {
+                b.classList.toggle('active', b === btn);
+            });
+            if (selectedMoodDisplay) {
+                selectedMoodDisplay.textContent = 'Feeling: ' + selectedMood;
+                selectedMoodDisplay.style.display = 'inline-block';
+            }
+        });
+    }
+
+    /* ── Hashtag toggle ─────────────────────────────────────── */
+    const hashtagRow = document.getElementById('hashtagRow');
+    const hashtagInput = document.getElementById('hashtagInput');
+    const hashtagToggleBtn = document.getElementById('hashtagToggleBtn');
+
+    if (hashtagToggleBtn && hashtagRow) {
+        hashtagToggleBtn.addEventListener('click', () => {
+            const isOpen = hashtagRow.style.display !== 'none';
+            hashtagRow.style.display = isOpen ? 'none' : 'flex';
+            if (!isOpen && hashtagInput) hashtagInput.focus();
+            if (moodBar) moodBar.style.display = 'none';
+            if (linkRow) {
+                linkRow.style.display = 'none';
+                linkRow.classList.remove('open');
+            }
+        });
+    }
+
     /* ── Link toggle & apply ────────────────────────────────── */
     const linkRow = document.getElementById('linkRow');
     const linkToggleBtn = document.getElementById('linkToggleBtn');
@@ -603,6 +652,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const fd = new FormData();
         if (text) fd.append('text_content', text);
+        if (selectedMood) fd.append('mood', selectedMood);
+        if (hashtagInput && hashtagInput.value.trim()) fd.append('hashtags', hashtagInput.value.trim());
         selectedFiles.forEach(f => fd.append('media[]', f));
 
         try {
@@ -614,6 +665,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (linkUrlInput) linkUrlInput.value = '';
                 if (linkRow) linkRow.style.display = 'none';
                 
+                if (hashtagInput) hashtagInput.value = '';
+                if (hashtagRow) hashtagRow.style.display = 'none';
+                if (moodBar) moodBar.style.display = 'none';
+                if (selectedMoodDisplay) selectedMoodDisplay.style.display = 'none';
+                selectedMood = '';
+                if (moodBar) moodBar.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+
                 selectedFiles = [];
                 renderPreviews();
 
