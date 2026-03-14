@@ -191,19 +191,6 @@
                     </div>
 
                     <div class="res-body-content" style="display: flex; flex-direction: column; gap: 32px;">
-                        {{-- PDF: Simple link to open in browser --}}
-                        @if(in_array($resource->file_type, ['pdf']))
-                            <div style="display: flex; gap: 12px; align-items: center;">
-                                <a href="{{ $resource->file_url }}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; color: var(--primary); text-decoration: none; font-weight: 500; padding: 8px 0;">
-                                    <i data-lucide="file"></i>
-                                    <span>View PDF: {{ $resource->title }}.pdf</span>
-                                </a>
-                                <a href="{{ $resource->file_url }}?download=true" download style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--hover); border-radius: 8px; color: var(--primary); text-decoration: none; font-size: 13px;">
-                                    <i data-lucide="download"></i>
-                                </a>
-                            </div>
-                        @endif
-
                         {{-- Audio: HTML5 Audio Player --}}
                         @if(in_array($resource->file_type, ['mp3', 'wav', 'ogg']))
                             <div style="padding: 24px; background: var(--hover); border-radius: 16px; border: 1px solid var(--border);">
@@ -261,6 +248,44 @@
                             // Multi-pass cleanup for any persistent blob URLs
                             $safeContent = preg_replace('/<(video|audio|source|img)\s+[^>]*src="blob:[^"]+"[^>]*>.*?<\/\1>/is', '', $safeContent);
                             $safeContent = preg_replace('/<(video|audio|source|img)\s+[^>]*src="blob:[^"]+"[^>]*>/is', '', $safeContent);
+
+                            // Convert placeholder links (about:blank / javascript:void(0)) into real URLs.
+                            // If a placeholder already has a `data-href`, prefer it (e.g. attached docs uploaded via editor).
+                            if ($resource->file_url) {
+                                $safeContent = preg_replace_callback(
+                                    '/<a([^>]*?)href="(?:about:blank|javascript:void\(0\)|#)"([^>]*?)>(.*?)<\/a>/is',
+                                    function ($matches) use ($resource) {
+                                        $attrs = $matches[1] . $matches[2];
+                                        $href = $resource->file_url;
+                                        if (preg_match('/data-href="([^"]+)"/i', $attrs, $m)) {
+                                            $href = $m[1];
+                                        }
+                                        return '<a' . $matches[1] . 'href="' . $href . '"' . $matches[2] . '>' . $matches[3] . '</a>';
+                                    },
+                                    $safeContent
+                                );
+
+                                // Also handle explicitly marked placeholders (class-based) if present.
+                                libxml_use_internal_errors(true);
+                                $dom = new \DOMDocument();
+                                $dom->loadHTML('<?xml encoding="utf-8" ?><div>' . $safeContent . '</div>');
+                                $xpath = new \DOMXPath($dom);
+                                $links = $xpath->query('//a[contains(concat(" ", normalize-space(@class), " "), " file-link-placeholder ")]');
+                                foreach ($links as $link) {
+                                    $href = $link->getAttribute('data-href') ?: $resource->file_url;
+                                    $link->setAttribute('href', $href);
+                                    $link->setAttribute('target', '_blank');
+                                    $link->setAttribute('rel', 'noopener noreferrer');
+                                }
+                                $container = $dom->getElementsByTagName('div')->item(0);
+                                $safeContent = '';
+                                if ($container) {
+                                    foreach ($container->childNodes as $child) {
+                                        $safeContent .= $dom->saveHTML($child);
+                                    }
+                                }
+                            }
+
                             // Cleanup empty paragraphs left behind
                             $safeContent = preg_replace('/<p>\s*<\/p>/i', '', $safeContent);
                         @endphp
@@ -304,14 +329,16 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Activate inline PDF placeholders with the actual resource file URL
+    // Activate placeholders that were saved with a placeholder href
     const fileUrl = "{{ $resource->file_url }}";
-    if (fileUrl) {
-        document.querySelectorAll('.pdf-link-placeholder').forEach(link => {
-            link.href = fileUrl;
-            link.target = "_blank";
-        });
-    }
+    if (!fileUrl) return;
+
+    document.querySelectorAll('.file-link-placeholder').forEach(link => {
+        const href = link.dataset.href || fileUrl;
+        link.href = href;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+    });
 });
 </script>
 

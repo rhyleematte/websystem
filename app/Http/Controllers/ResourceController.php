@@ -30,6 +30,8 @@ class ResourceController extends Controller
 
     public function show(Resource $resource)
     {
+        $resource->loadMissing(['user', 'body']);
+
         $isJoined = false;
         if (Auth::check()) {
             $isJoined = Auth::user()
@@ -85,22 +87,28 @@ class ResourceController extends Controller
             'hashtags' => 'nullable|string',
         ]);
 
-        $data = $request->except(['thumbnail', 'file']);
-        $data['user_id'] = Auth::id();
+        $tileData = $request->except(['thumbnail', 'file', 'content']);
+        $tileData['user_id'] = Auth::id();
 
         // Truncate title to 50 chars as requested
-        $data['title'] = mb_substr($request->title, 0, 50);
+        $tileData['title'] = mb_substr($request->title, 0, 50);
 
         if ($request->hasFile('thumbnail')) {
-            $data['thumbnail'] = $request->file('thumbnail')->store('resources/thumbnails', 'public');
+            $tileData['thumbnail'] = $request->file('thumbnail')->store('resources/thumbnails', 'public');
         }
+
+        $resource = Resource::create($tileData);
+
+        $bodyData = [
+            'content' => $request->input('content'),
+        ];
 
         if ($request->hasFile('file')) {
-            $data['file_path'] = $request->file('file')->store('resources/files', 'public');
-            $data['file_type'] = $request->file('file')->getClientOriginalExtension();
+            $bodyData['file_path'] = $request->file('file')->store('resources/files', 'public');
+            $bodyData['file_type'] = $request->file('file')->getClientOriginalExtension();
         }
 
-        $resource = Resource::create($data);
+        $resource->body()->create($bodyData);
 
         return redirect()->route('resources.show', $resource->id)->with('success', 'Resource created successfully.');
     }
@@ -108,6 +116,7 @@ class ResourceController extends Controller
     public function edit(Resource $resource)
     {
         $this->authorize('update', $resource);
+        $resource->loadMissing('body');
         return view('resources.edit', compact('resource'));
     }
 
@@ -124,29 +133,46 @@ class ResourceController extends Controller
             'thumbnail' => 'nullable|image|max:5120',
             'duration_meta' => 'nullable|string|max:50',
             'hashtags' => 'nullable|string',
+            'remove_file' => 'nullable|boolean',
         ]);
 
-        $data = $request->except(['thumbnail', 'file']);
+        $tileData = $request->except(['thumbnail', 'file', 'content', 'remove_file']);
 
         // Truncate title to 50 chars
-        $data['title'] = mb_substr($request->title, 0, 50);
+        $tileData['title'] = mb_substr($request->title, 0, 50);
 
         if ($request->hasFile('thumbnail')) {
             if ($resource->thumbnail) {
                 Storage::disk('public')->delete($resource->thumbnail);
             }
-            $data['thumbnail'] = $request->file('thumbnail')->store('resources/thumbnails', 'public');
+            $tileData['thumbnail'] = $request->file('thumbnail')->store('resources/thumbnails', 'public');
+        }
+
+        $resource->update($tileData);
+
+        $bodyData = [];
+        if ($request->has('content')) {
+            $bodyData['content'] = $request->input('content');
+        }
+
+        // If user requested to remove existing attached file (e.g. remove audio)
+        if ($request->boolean('remove_file') && $resource->file_path) {
+            Storage::disk('public')->delete($resource->file_path);
+            $bodyData['file_path'] = null;
+            $bodyData['file_type'] = null;
         }
 
         if ($request->hasFile('file')) {
             if ($resource->file_path) {
                 Storage::disk('public')->delete($resource->file_path);
             }
-            $data['file_path'] = $request->file('file')->store('resources/files', 'public');
-            $data['file_type'] = $request->file('file')->getClientOriginalExtension();
+            $bodyData['file_path'] = $request->file('file')->store('resources/files', 'public');
+            $bodyData['file_type'] = $request->file('file')->getClientOriginalExtension();
         }
 
-        $resource->update($data);
+        if ($bodyData) {
+            $resource->body()->updateOrCreate([], $bodyData);
+        }
 
         return redirect()->route('resources.show', $resource->id)->with('success', 'Resource updated successfully.');
     }
@@ -191,6 +217,8 @@ class ResourceController extends Controller
     public function destroy(Resource $resource)
     {
         $this->authorize('delete', $resource);
+
+        $resource->loadMissing('body');
 
         if ($resource->thumbnail) {
             Storage::disk('public')->delete($resource->thumbnail);
@@ -241,7 +269,7 @@ class ResourceController extends Controller
         $this->authorize('create', Resource::class);
 
         $request->validate([
-            'media' => 'required|file|mimes:mp3,wav,ogg,mp4,webm,mov|max:51200',
+            'media' => 'required|file|mimes:pdf,doc,docx,mp3,wav,ogg,mp4,webm,mov|max:51200',
         ]);
 
         $file = $request->file('media');

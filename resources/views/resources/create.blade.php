@@ -475,6 +475,22 @@
     }
     .mrb-align-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
     .mrb-align-btn.active { background: var(--res-primary); color: #fff; }
+    .mrb-delete {
+      background: none;
+      border: none;
+      color: #fca5a5;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-left: 4px;
+    }
+    .mrb-delete:hover { background: rgba(239,68,68,0.18); color: #fecaca; }
+    .mrb-delete svg { width: 16px; height: 16px; }
     .mrb-close {
       background: none;
       border: none;
@@ -499,6 +515,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       transition: transform 0.1s ease;
       pointer-events: auto;
+      touch-action: none;
     }
     .media-handle:hover { transform: scale(1.2); }
     .media-handle.tr { cursor: nesw-resize; }
@@ -618,7 +635,7 @@
             </select>
 
             <select id="sizeSelect" class="tool-select" onchange="setSize(this.value)" data-tip="Font size">
-              <option value="">16px</option>
+              <option value="">Size</option>
               <option value="12px">12px</option>
               <option value="14px">14px</option>
               <option value="16px">16px</option>
@@ -771,6 +788,7 @@
   display: none;
   cursor: nwse-resize;
   box-shadow: 0 0 5px rgba(0,0,0,0.3);
+  touch-action: none;
 }
 .media-handle.tr, .media-handle.bl { cursor: nesw-resize; }
 </style>
@@ -785,15 +803,24 @@
   {{-- Row 1: Size --}}
   <div class="mrb-section">
     <span class="mrb-label">Size</span>
-    <button class="mrb-preset" onclick="setMediaWidth(25)">25%</button>
-    <button class="mrb-preset" onclick="setMediaWidth(50)">50%</button>
-    <button class="mrb-preset" onclick="setMediaWidth(75)">75%</button>
-    <button class="mrb-preset" onclick="setMediaWidth(100)">100%</button>
+    <button type="button" class="mrb-preset" onclick="setMediaWidth(25)">25%</button>
+    <button type="button" class="mrb-preset" onclick="setMediaWidth(50)">50%</button>
+    <button type="button" class="mrb-preset" onclick="setMediaWidth(75)">75%</button>
+    <button type="button" class="mrb-preset" onclick="setMediaWidth(100)">100%</button>
     <div class="mrb-slider-wrap">
       <input type="range" id="mediaWidthSlider" min="10" max="100" value="100" oninput="setMediaWidth(this.value)">
       <span id="mediaWidthLabel">100%</span>
     </div>
-    <button class="mrb-close" onclick="closeResizeBar()" title="Close">&times;</button>
+    <button type="button" class="mrb-delete" onclick="deleteSelectedMedia()" title="Delete">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6"/>
+        <path d="M14 11v6"/>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+      </svg>
+    </button>
+    <button type="button" class="mrb-close" onclick="closeResizeBar()" title="Close">&times;</button>
   </div>
 
   {{-- Row 2: Align --}}
@@ -802,36 +829,31 @@
     <div class="mrb-align-group">
 
       {{-- Align Left --}}
-      <button class="mrb-align-btn" id="alignLeft" onclick="setMediaAlign('left')" title="Align Left">
+      <button type="button" class="mrb-align-btn" id="alignLeft" onclick="setMediaAlign('left')" title="Align Left">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/>
         </svg>
       </button>
 
       {{-- Align Center --}}
-      <button class="mrb-align-btn" id="alignCenter" onclick="setMediaAlign('center')" title="Align Center">
+      <button type="button" class="mrb-align-btn" id="alignCenter" onclick="setMediaAlign('center')" title="Align Center">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
         </svg>
       </button>
 
       {{-- Align Right --}}
-      <button class="mrb-align-btn" id="alignRight" onclick="setMediaAlign('right')" title="Align Right">
+      <button type="button" class="mrb-align-btn" id="alignRight" onclick="setMediaAlign('right')" title="Align Right">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/>
         </svg>
       </button>
 
     </div>
-    <span style="font-size:11px;color:#475569;margin-left:auto;">Click image/video to resize</span>
+    <span style="font-size:11px;color:#475569;margin-left:auto;">Click image/video/audio to resize</span>
   </div>
 
 </div>
-
-<div id="handleNW" class="media-handle tl"></div>
-<div id="handleNE" class="media-handle tr"></div>
-<div id="handleSW" class="media-handle bl"></div>
-<div id="handleSE" class="media-handle br"></div>
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
@@ -877,6 +899,14 @@ AudioBlot.blotName = 'htmlAudio'; AudioBlot.tagName = 'audio';
 Quill.register(AudioBlot);
 
 // ── Quill init ───────────────────────────────────────────────
+const FontAttributor = Quill.import('formats/font');
+FontAttributor.whitelist = ['open-sans','roboto','playfair-display','lato','poppins','inter','merriweather','quicksand'];
+Quill.register(FontAttributor, true);
+
+const SizeStyle = Quill.import('attributors/style/size');
+SizeStyle.whitelist = ['12px','14px','16px','18px','20px','24px','32px'];
+Quill.register(SizeStyle, true);
+
 const quill = new Quill('#quill-editor', {
   theme: 'snow',
   placeholder: 'Write your resource content here… or upload a PDF/Doc to auto-fill.',
@@ -892,18 +922,281 @@ let selectedMedia = null;
 const resizeBar = document.getElementById('mediaResizeBar');
 const widthSlider = document.getElementById('mediaWidthSlider');
 const widthLabel  = document.getElementById('mediaWidthLabel');
+const supportsPointer = typeof window !== 'undefined' && 'PointerEvent' in window;
+const editorDownEvent = supportsPointer ? 'pointerdown' : 'mousedown';
+const handleDownEvent = supportsPointer ? 'pointerdown' : 'mousedown';
+const moveEvent = supportsPointer ? 'pointermove' : 'mousemove';
+const upEvent = supportsPointer ? 'pointerup' : 'mouseup';
+const cancelEvent = supportsPointer ? 'pointercancel' : null;
 
-quill.root.addEventListener('click', function(e) {
-  const target = e.target.closest('img, video, audio');
-  // Deselect previous
-  if (selectedMedia) selectedMedia.classList.remove('selected-media');
-  if (!target) { closeResizeBar(); return; }
+function blurQuillEditor() {
+  try {
+    if (quill && typeof quill.setSelection === 'function') quill.setSelection(null);
+  } catch (_) {}
+  try {
+    if (typeof quill.blur === 'function') { quill.blur(); }
+  } catch (_) {}
+  try {
+    if (quill && quill.root && typeof quill.root.blur === 'function') quill.root.blur();
+  } catch (_) {}
+  try {
+    const active = document.activeElement;
+    if (active && active.nodeType === 1 && active.isContentEditable && typeof active.blur === 'function') active.blur();
+  } catch (_) {}
+  try {
+    const sel = (typeof window !== 'undefined' && typeof window.getSelection === 'function') ? window.getSelection() : null;
+    if (sel && typeof sel.removeAllRanges === 'function') sel.removeAllRanges();
+  } catch (_) {}
+}
+
+// Some browsers (notably mobile Safari) can keep the contenteditable focused and
+// prevent typing in regular inputs after interacting with the editor. Blurring
+// Quill on outside interactions avoids that.
+document.addEventListener(editorDownEvent, function(e) {
+  const t = e.target;
+  if (!t || t.nodeType !== 1) return;
+  if (t.closest('.ql-editor') || t.closest('#composerToolbar') || t.closest('.composer-popup') || t.closest('#mediaResizeBar') || t.closest('.media-handle')) return;
+  blurQuillEditor();
+}, true);
+
+// Extra safeguard: after typing in the contenteditable editor, some browsers can
+// fail to move focus to regular form fields (meta "tiles"). We blur Quill and
+// (re)focus the intended control on click/tap so typing works reliably.
+const resourceForm = document.getElementById('resourceForm');
+if (resourceForm) {
+  const focusableFormControlSelector = 'input:not([type="hidden"]):not([type="file"]):not([disabled]), textarea:not([disabled]), select:not([disabled])';
+  const metaArea = resourceForm.querySelector('.composer-meta');
+  let pendingFocusEl = null;
+  let focusLockEl = null;
+
+  function isInEditorUi(el) {
+    if (!el || el.nodeType !== 1 || typeof el.closest !== 'function') return false;
+    return !!(el.closest('.ql-editor') || el.closest('#composerToolbar') || el.closest('.composer-popup') || el.closest('#mediaResizeBar') || el.closest('.media-handle'));
+  }
+
+  function findFocusableControl(el) {
+    if (!el || el.nodeType !== 1 || typeof el.closest !== 'function') return null;
+
+    // If user taps anywhere inside a meta "tile" row, focus the row's control.
+    if (metaArea) {
+      const metaField = el.closest('.composer-field');
+      if (metaField && metaArea.contains(metaField)) {
+        const rowControl = metaField.querySelector(focusableFormControlSelector);
+        if (rowControl) return rowControl;
+      }
+    }
+
+    // Otherwise, if a control itself (or its child) was targeted, use it.
+    return el.closest(focusableFormControlSelector);
+  }
+
+  function lockFocus(control) {
+    if (!control) return;
+    focusLockEl = control;
+  }
+
+  function clearFocusLock() {
+    focusLockEl = null;
+  }
+
+  function hasFocusLock() {
+    if (!focusLockEl) return false;
+    if (!document.contains(focusLockEl)) { focusLockEl = null; return false; }
+    return true;
+  }
+
+  function safeFocus(control) {
+    if (!control) return;
+
+    try { control.focus({ preventScroll: true }); }
+    catch (_) { try { control.focus(); } catch (_) {} }
+
+    try {
+      if (control.tagName === 'INPUT' || control.tagName === 'TEXTAREA') {
+        const len = (control.value || '').length;
+        control.setSelectionRange(len, len);
+      }
+    } catch (_) {}
+  }
+
+  function ensureFocus(control) {
+    if (!control) return;
+    safeFocus(control);
+    setTimeout(() => {
+      if (!document.contains(control)) return;
+      if (document.activeElement !== control) safeFocus(control);
+    }, 0);
+  }
+
+  // If Quill tries to steal focus while a tile control is locked, force it back.
+  if (quill && quill.root) {
+    ['pointerdown', 'touchstart', 'mousedown'].forEach(evtName => {
+      quill.root.addEventListener(evtName, function() { clearFocusLock(); }, true);
+    });
+
+    quill.root.addEventListener('focusin', function(e) {
+      if (!hasFocusLock()) return;
+      blurQuillEditor();
+      ensureFocus(focusLockEl);
+      try { e.stopImmediatePropagation(); } catch (_) { e.stopPropagation(); }
+    }, true);
+  }
+
+  function primeTileFocus(e) {
+    const t = e.target;
+    if (!t || t.nodeType !== 1) return;
+    if (isInEditorUi(t)) return;
+
+    const control = findFocusableControl(t);
+    if (!control) return;
+
+    pendingFocusEl = control;
+    lockFocus(control);
+    blurQuillEditor();
+  }
+
+  function applyTileFocus(e) {
+    const t = e.target;
+    if (!t || t.nodeType !== 1) return;
+    if (isInEditorUi(t)) return;
+
+    const control = pendingFocusEl || findFocusableControl(t);
+    pendingFocusEl = null;
+    if (!control) return;
+
+    lockFocus(control);
+    blurQuillEditor();
+    ensureFocus(control);
+  }
+
+  // Blur early on touch/pointer/mouse down, then force-focus on release/click (mobile + desktop).
+  ['pointerdown', 'touchstart', 'mousedown'].forEach(evtName => {
+    resourceForm.addEventListener(evtName, primeTileFocus, true);
+  });
+  ['pointerup', 'touchend', 'mouseup', 'click'].forEach(evtName => {
+    resourceForm.addEventListener(evtName, applyTileFocus, true);
+  });
+
+  // If a control does get focused, ensure Quill is blurred as well.
+  resourceForm.addEventListener('focusin', function(e) {
+    const t = e.target;
+    if (!t || t.nodeType !== 1 || typeof t.matches !== 'function') return;
+    if (!t.matches(focusableFormControlSelector)) return;
+    if (isInEditorUi(t)) return;
+    lockFocus(t);
+    blurQuillEditor();
+  }, true);
+}
+
+function eventPathHasSelector(e, selector) {
+  if (!e) return false;
+
+  const target = e.target;
+  if (target && target.nodeType === 1 && typeof target.closest === 'function') {
+    if (target.closest(selector)) return true;
+  }
+
+  if (typeof e.composedPath !== 'function') return false;
+  const path = e.composedPath();
+  for (const node of path) {
+    if (node && node.nodeType === 1 && typeof node.matches === 'function' && node.matches(selector)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function getClosestMediaFromEvent(e) {
+  const target = e && e.target;
+  if (target && target.nodeType === 1 && typeof target.closest === 'function') {
+    const el = target.closest('img, video, audio');
+    if (el) return el;
+  }
+
+  if (!e || typeof e.composedPath !== 'function') return null;
+  const path = e.composedPath();
+  for (const node of path) {
+    if (node && node.nodeType === 1 && typeof node.matches === 'function' && node.matches('img, video, audio')) {
+      return node;
+    }
+  }
+  return null;
+}
+
+function selectMedia(target) {
+  if (!target) { closeResizeBar(); return false; }
+  if (selectedMedia && selectedMedia !== target) selectedMedia.classList.remove('selected-media');
   selectedMedia = target;
   selectedMedia.classList.add('selected-media');
-  
+  attachHandleListeners();
   updateResizeUi();
-  e.stopPropagation();
+  return true;
+}
+
+function selectMediaFromEvent(e) {
+  const target = getClosestMediaFromEvent(e);
+  if (!target) return false;
+  selectMedia(target);
+  return true;
+}
+
+// Use capture-phase pointer events so native <audio controls> clicks (shadow DOM)
+// still select the <audio> element and show the resize UI.
+quill.root.addEventListener(editorDownEvent, function(e) {
+  selectMediaFromEvent(e);
+}, true);
+
+// Some browsers only fire touch events for audio controls.
+quill.root.addEventListener('touchstart', function(e) {
+  selectMediaFromEvent(e);
+}, true);
+
+// Capture click early to catch shadow DOM targets from audio controls.
+quill.root.addEventListener('click', function(e) {
+  selectMediaFromEvent(e);
+}, true);
+
+quill.root.addEventListener('click', function(e) {
+  const target = getClosestMediaFromEvent(e);
+  if (!target) {
+    const t = e.target;
+    if (t && t.nodeType === 1 && typeof t.closest === 'function' && t.closest('.ql-editor')) {
+      closeResizeBar();
+    }
+    return;
+  }
+  const didSelect = selectMedia(target);
+  if (didSelect) e.stopPropagation();
 });
+
+function attachHandleListeners() {
+  ['handleNW', 'handleNE', 'handleSW', 'handleSE'].forEach(id => {
+    const handle = document.getElementById(id);
+    if (!handle) return;
+    // Remove old listeners by cloning
+    const newHandle = handle.cloneNode(true);
+    handle.parentNode.replaceChild(newHandle, handle);
+
+    document.getElementById(id).addEventListener(handleDownEvent, function(e) {
+      if (!selectedMedia) return;
+      isResizing = true;
+      document.body.classList.add('is-resizing');
+      activeHandle = id;
+      startX = e.clientX;
+      startWidth = selectedMedia.offsetWidth;
+      const parentW = selectedMedia.parentElement.offsetWidth;
+      startWidthPct = (startWidth / parentW) * 100;
+
+      document.addEventListener(moveEvent, handleResizeMove);
+      document.addEventListener(upEvent, handleResizeUp);
+      if (cancelEvent) document.addEventListener(cancelEvent, handleResizeUp);
+      if (supportsPointer && typeof e.pointerId === 'number' && typeof this.setPointerCapture === 'function') {
+        try { this.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+      e.preventDefault();
+    }, { passive: false });
+  });
+}
 
 function updateResizeUi() {
   if (!selectedMedia) return;
@@ -955,35 +1248,18 @@ window.addEventListener('resize', updateResizeUi);
 let isResizing = false;
 let startX, startWidth, startWidthPct, activeHandle;
 
-['handleNW', 'handleNE', 'handleSW', 'handleSE'].forEach(id => {
-  document.getElementById(id).addEventListener('mousedown', function(e) {
-    if (!selectedMedia) return;
-    isResizing = true;
-    document.body.classList.add('is-resizing');
-    activeHandle = id;
-    startX = e.clientX;
-    startWidth = selectedMedia.offsetWidth;
-    const parentW = selectedMedia.parentElement.offsetWidth;
-    startWidthPct = (startWidth / parentW) * 100;
-    
-    document.addEventListener('mousemove', handleResizeMove);
-    document.addEventListener('mouseup', handleResizeUp);
-    e.preventDefault();
-  });
-});
-
 function handleResizeMove(e) {
   if (!isResizing || !selectedMedia) return;
   const delta = e.clientX - startX;
   const parentW = selectedMedia.parentElement.offsetWidth;
-  
+
   let newWidthPct;
   if (activeHandle === 'handleSE' || activeHandle === 'handleNE') {
     newWidthPct = startWidthPct + (delta / parentW) * 100;
   } else {
     newWidthPct = startWidthPct - (delta / parentW) * 100;
   }
-  
+
   newWidthPct = Math.min(100, Math.max(10, newWidthPct));
   setMediaWidth(newWidthPct);
 }
@@ -992,12 +1268,13 @@ function handleResizeUp() {
   isResizing = false;
   activeHandle = null;
   document.body.classList.remove('is-resizing');
-  document.removeEventListener('mousemove', handleResizeMove);
-  document.removeEventListener('mouseup', handleResizeUp);
+  document.removeEventListener(moveEvent, handleResizeMove);
+  document.removeEventListener(upEvent, handleResizeUp);
+  if (cancelEvent) document.removeEventListener(cancelEvent, handleResizeUp);
 }
 
 document.addEventListener('click', e => {
-  if (!e.target.closest('#mediaResizeBar') && !e.target.closest('.ql-editor') && !e.target.closest('.media-handle')) {
+  if (!eventPathHasSelector(e, '#mediaResizeBar') && !eventPathHasSelector(e, '.ql-editor') && !eventPathHasSelector(e, '.media-handle')) {
     closeResizeBar();
   }
 });
@@ -1048,6 +1325,23 @@ function closeResizeBar() {
   const handles = ['handleNW', 'handleNE', 'handleSW', 'handleSE'];
   handles.forEach(h => document.getElementById(h).style.display = 'none');
   if (selectedMedia) { selectedMedia.classList.remove('selected-media'); selectedMedia = null; }
+}
+
+function deleteSelectedMedia() {
+  if (!selectedMedia) return;
+
+  try {
+    const blot = Quill.find(selectedMedia);
+    if (blot) {
+      const index = quill.getIndex(blot);
+      quill.deleteText(index, 1, 'user');
+    } else {
+      selectedMedia.remove();
+      quill.update('user');
+    }
+  } catch (_) {}
+
+  closeResizeBar();
 }
 
 // ── Quill formatting helpers ─────────────────────────────────
@@ -1136,9 +1430,27 @@ function insertLink() {
   }
   const url = prompt('Enter the URL:');
   if (url) {
-    quill.format('link', url);
+    const normalized = normalizeLinkUrl(url);
+    quill.format('link', normalized);
     updateActiveStates();
   }
+}
+
+function normalizeLinkUrl(url) {
+  // Normalize bare domains (e.g. google.com) to open as external URLs instead of relative paths.
+  // Treat paths like "docs/file.pdf" as root-relative so they don't become relative to the current resource URL.
+  const trimmed = url.trim();
+  if (/^(https?:\/\/|mailto:|tel:|ftp:\/\/|\/\/)/i.test(trimmed)) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('/') || trimmed.startsWith('./') || trimmed.startsWith('../')) {
+    return trimmed;
+  }
+  const firstSegment = trimmed.split('/')[0];
+  if (firstSegment.includes('.')) {
+    return 'https://' + trimmed;
+  }
+  return '/' + trimmed;
 }
 
 // ── Active state tracking ─────────────────────────────────────
@@ -1269,6 +1581,39 @@ document.getElementById('photoInput').addEventListener('change', function(e) {
 
 // ── Attach Files (chips) ─────────────────────────────────────
 const attachedFiles = [];
+let pendingUploads = 0;
+const titleInput = document.querySelector('[name="title"]');
+let lastAutoTitle = '';
+
+function setTitleFromFileName(fileName) {
+  if (!titleInput) return;
+  const base = fileName.replace(/\.[^/.]+$/, '');
+  if (!titleInput.value || titleInput.value === lastAutoTitle) {
+    titleInput.value = base;
+    lastAutoTitle = base;
+  }
+}
+
+function makeFileLinkPlaceholder(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  const icon = ext === 'pdf' ? '📄' : ext === 'doc' || ext === 'docx' ? '📝' : ext === 'xml' ? '📄' : '📎';
+  const label = `${icon} ${file.name}`;
+  const style = 'display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid rgba(0,0,0,0.12);border-radius:12px;background:rgba(99,102,241,0.1);color:var(--res-primary);text-decoration:none;font-weight:700;';
+  return `<p><a href="javascript:void(0)" class="file-link-placeholder" data-file-name="${file.name}" data-ext="${ext}" style="${style}">${label}</a></p>`;
+}
+
+function moveCursorAfterLastFileLink() {
+  const editor = document.getElementById('quill-editor');
+  const last = editor.querySelector('.file-link-placeholder:last-of-type');
+  if (!last) return;
+  const range = document.createRange();
+  range.setStartAfter(last);
+  range.collapse(true);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
 document.getElementById('attachInput').addEventListener('change', function(e) {
   Array.from(e.target.files).forEach(file => {
     attachedFiles.push(file);
@@ -1278,15 +1623,52 @@ document.getElementById('attachInput').addEventListener('change', function(e) {
     const idx = range ? range.index : quill.getLength();
     const ext = file.name.split('.').pop().toLowerCase();
     const icon = (ext === 'mp3' || ext === 'wav') ? '🎵 ' : ext === 'mp4' ? '🎬 ' : ext === 'pdf' ? '📄 ' : '📎 ';
-    if (ext === 'pdf') {
-      const pdfLink = `<p><br></p><p><a href="javascript:void(0)" class="pdf-link-placeholder" style="color:var(--res-primary);font-weight:700;text-decoration:underline;">📄 View PDF: ${file.name}</a></p><p><br></p>`;
-      quill.clipboard.dangerouslyPasteHTML(idx, pdfLink);
+    if (['pdf','doc','docx','xml'].includes(ext)) {
+      setTitleFromFileName(file.name);
+      const link = makeFileLinkPlaceholder(file);
+      quill.clipboard.dangerouslyPasteHTML(idx, link);
+      moveCursorAfterLastFileLink();
     } else {
       quill.insertText(idx, '\n' + icon + file.name + '\n', { bold: false });
       quill.setSelection(idx + file.name.length + 3);
     }
   });
   this.value = '';
+});
+
+// Enable previewing attached files from the editor (opens the local file blob in a new tab)
+document.getElementById('quill-editor').addEventListener('click', function(e) {
+  const link = e.target.closest('.file-link-placeholder');
+  if (!link) return;
+  e.preventDefault();
+  const fileName = link.dataset.fileName;
+  if (!fileName) return;
+  const file = attachedFiles.find(f => f.name === fileName);
+  if (!file) return;
+
+  // Prefer the uploaded URL if available, otherwise fall back to a local blob URL.
+  let url = link.dataset.href;
+  if (!url) {
+    url = link.dataset.objectUrl;
+    if (!url) {
+      url = URL.createObjectURL(file);
+      link.dataset.objectUrl = url;
+    }
+  }
+
+  const ext = (link.dataset.ext || '').toLowerCase();
+  const previewable = ['pdf','png','jpg','jpeg','gif','mp4','webm','wav','mp3','ogg'];
+  if (previewable.includes(ext)) {
+    window.open(url, '_blank');
+  } else {
+    // Force download for file types the browser won’t display
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
 });
 
 function addAttachmentChip(file) {
@@ -1302,6 +1684,38 @@ function removeChip(btn, name) {
   btn.closest('.attachment-chip').remove();
   const idx = attachedFiles.findIndex(f => f.name === name);
   if (idx > -1) attachedFiles.splice(idx, 1);
+
+  // If the removed chip corresponds to the primary file input, clear it too.
+  const fileInputEl = document.getElementById('fileInput');
+  if (fileInputEl && fileInputEl.files && fileInputEl.files[0] && fileInputEl.files[0].name === name) {
+    fileInputEl.value = '';
+  }
+}
+
+function uploadAttachedFile(file, callback) {
+  pendingUploads += 1;
+  const formData = new FormData();
+  formData.append('media', file);
+  formData.append('_token', '{{ csrf_token() }}');
+
+  fetch('{{ route("resources.upload-media") }}', {
+    method: 'POST',
+    body: formData,
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.success && data.url) {
+        callback(data.url);
+      } else {
+        toast('❌ Failed to upload file.');
+      }
+    })
+    .catch(() => {
+      toast('❌ Upload error.');
+    })
+    .finally(() => {
+      pendingUploads = Math.max(0, pendingUploads - 1);
+    });
 }
 
 // ── Add Video (inline at cursor via VideoBlot) ──────────────
@@ -1409,10 +1823,16 @@ if (typeof pdfjsLib !== 'undefined') {
 
 fileInput.addEventListener('change', function(e) {
   const file = e.target.files[0]; if (!file) return;
+  if (!attachedFiles.some(f => f.name === file.name)) {
+    attachedFiles.push(file);
+  }
   addAttachmentChip(file);
+
   const ext = file.name.split('.').pop().toLowerCase();
   const reader = new FileReader();
+
   if (ext === 'pdf') {
+    setTitleFromFileName(file.name);
     if (typeof pdfjsLib === 'undefined') { toast('⚠️ PDF reader not loaded.'); return; }
     reader.onload = async function() {
       try {
@@ -1423,31 +1843,60 @@ fileInput.addEventListener('change', function(e) {
           const tc = await page.getTextContent();
           text += tc.items.map(s => s.str).join(' ') + '\n\n';
         }
+
+        const range = quill.getSelection(true);
+        const idx = range ? range.index : 0;
+
+        // Insert link placeholder for the PDF
+        const fileLink = makeFileLinkPlaceholder(file);
+        quill.clipboard.dangerouslyPasteHTML(idx, fileLink);
+        moveCursorAfterLastFileLink();
+
+        // Upload the file so it can be opened later (instead of relying on blob URLs)
+        uploadAttachedFile(file, (url) => {
+          const link = document.querySelector(`.file-link-placeholder[data-file-name="${file.name}"]`);
+          if (link) link.dataset.href = url;
+        });
+
+        // Optionally insert extracted text after the link
         if (text.trim()) {
-          const range = quill.getSelection(true);
-          const idx = range ? range.index : 0;
-          
-          // Instead of plain extraction, provide a clickable link if extraction worked
-          const pdfLink = `<p><br></p><p><a href="javascript:void(0)" class="pdf-link-placeholder" style="color:var(--res-primary);font-weight:700;text-decoration:underline;">📄 View PDF: ${file.name}</a></p><p><br></p>`;
-          quill.clipboard.dangerouslyPasteHTML(idx, pdfLink + text.trim().replace(/\n\n/g, '<p><br></p>').replace(/\n/g, '<br>'));
-          toast('📄 PDF inserted with link!');
+          const range2 = quill.getSelection(true);
+          quill.clipboard.dangerouslyPasteHTML(range2 ? range2.index : 0, text.trim().replace(/\n\n/g, '<p><br></p>').replace(/\n/g, '<br>'));
         }
+
+        toast('📄 PDF inserted with link!');
       } catch(err) { console.error(err); }
     };
     reader.readAsArrayBuffer(file);
-  } else if (ext === 'docx') {
-    if (typeof mammoth === 'undefined') { toast('⚠️ Document reader not loaded.'); return; }
-    reader.onload = ev => {
-      mammoth.convertToHtml({ arrayBuffer: ev.target.result })
-        .then(r => {
-          if (r.value.trim()) {
-            const range = quill.getSelection(true);
-            quill.clipboard.dangerouslyPasteHTML(range ? range.index : 0, r.value);
-            toast('📝 Document extracted at cursor!');
-          }
-        });
-    };
-    reader.readAsArrayBuffer(file);
+  } else if (ext === 'docx' || ext === 'doc') {
+    setTitleFromFileName(file.name);
+    const range = quill.getSelection(true);
+    const idx = range ? range.index : 0;
+    const fileLink = makeFileLinkPlaceholder(file);
+    quill.clipboard.dangerouslyPasteHTML(idx, fileLink);
+    moveCursorAfterLastFileLink();
+
+    // Upload so the file is accessible later (and so docs open properly, not as blank)
+    uploadAttachedFile(file, (url) => {
+      const link = document.querySelector(`.file-link-placeholder[data-file-name="${file.name}"]`);
+      if (link) link.dataset.href = url;
+    });
+
+    if (typeof mammoth !== 'undefined') {
+      reader.onload = ev => {
+        mammoth.convertToHtml({ arrayBuffer: ev.target.result })
+          .then(r => {
+            if (r.value.trim()) {
+              const range2 = quill.getSelection(true);
+              quill.clipboard.dangerouslyPasteHTML(range2 ? range2.index : 0, r.value);
+              toast('📝 Document extracted at cursor!');
+            }
+          });
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      toast('📝 Document inserted. Preview not available (mammoth missing).');
+    }
   } else if (['mp3','wav','ogg','m4a'].includes(ext)) {
     toast('🎵 Audio attached! (Will be available after publishing)');
   } else if (['mp4','webm','mov'].includes(ext)) {
@@ -1459,6 +1908,10 @@ fileInput.addEventListener('change', function(e) {
 
 // ── Form submit ───────────────────────────────────────────────
 document.getElementById('resourceForm').onsubmit = function() {
+  if (pendingUploads > 0) {
+    toast('⏳ Still uploading attached files. Please wait a moment.');
+    return false;
+  }
   document.getElementById('contentInput').value = quill.root.innerHTML;
 };
 

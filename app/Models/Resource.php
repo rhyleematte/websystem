@@ -14,13 +14,15 @@ class Resource extends Model
         'title',
         'description',
         'type',
-        'content',
-        'file_path',
-        'file_type',
         'thumbnail',
         'duration_meta',
         'hashtags',
     ];
+
+    public function body()
+    {
+        return $this->hasOne(ResourceBody::class);
+    }
 
     public function user()
     {
@@ -37,6 +39,33 @@ class Resource extends Model
     public function posts()
     {
         return $this->hasMany(Post::class);
+    }
+
+    public function getContentAttribute($value)
+    {
+        if (array_key_exists('content', $this->attributes)) {
+            return $value;
+        }
+
+        return $this->body ? $this->body->content : null;
+    }
+
+    public function getFilePathAttribute($value)
+    {
+        if (array_key_exists('file_path', $this->attributes)) {
+            return $value;
+        }
+
+        return $this->body ? $this->body->file_path : null;
+    }
+
+    public function getFileTypeAttribute($value)
+    {
+        if (array_key_exists('file_type', $this->attributes)) {
+            return $value;
+        }
+
+        return $this->body ? $this->body->file_type : null;
     }
 
     /** Return hashtags as clean array */
