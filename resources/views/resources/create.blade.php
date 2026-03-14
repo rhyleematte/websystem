@@ -5,7 +5,27 @@
 @push('styles')
   <link rel="stylesheet" href="{{ asset('assets/css/resources.css') }}?v={{ time() }}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Roboto:wght@400;500;700&family=Playfair+Display:wght@700&family=Lato:wght@400;700&family=Poppins:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    /* Font Face Classes for Quill */
+    .ql-font-open-sans { font-family: 'Open Sans', sans-serif; }
+    .ql-font-roboto { font-family: 'Roboto', sans-serif; }
+    .ql-font-playfair-display { font-family: 'Playfair Display', serif; }
+    .ql-font-lato { font-family: 'Lato', sans-serif; }
+    .ql-font-poppins { font-family: 'Poppins', sans-serif; }
+    .ql-font-inter { font-family: 'Inter', sans-serif; }
+    .ql-font-merriweather { font-family: 'Merriweather', serif; }
+    .ql-font-quicksand { font-family: 'Quicksand', sans-serif; }
+
+    /* Size Classes */
+    .ql-size-12px { font-size: 12px; }
+    .ql-size-14px { font-size: 14px; }
+    .ql-size-16px { font-size: 16px; }
+    .ql-size-18px { font-size: 18px; }
+    .ql-size-20px { font-size: 20px; }
+    .ql-size-24px { font-size: 24px; }
+    .ql-size-32px { font-size: 32px; }
+
     /* Hide Quill's native toolbar — we use our own */
     .ql-toolbar { display: none !important; }
     .ql-container.ql-snow { border: none !important; background: var(--panel-bg); min-height: 360px; font-size: 16px; font-family: 'Inter', sans-serif; }
@@ -267,6 +287,32 @@
       margin: 0 4px;
       flex-shrink: 0;
     }
+    .tool-select {
+      background: none;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text);
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.15s, border-color 0.15s;
+      max-width: 120px;
+      flex-shrink: 0;
+    }
+    .tool-select:hover { background: var(--hover); border-color: var(--res-primary); }
+    .tool-select:focus { outline: none; background: var(--hover); border-color: var(--res-primary); }
+    .tool-color-input {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 2px;
+      flex-shrink: 0;
+    }
+    .tool-color-input:hover { border-color: var(--res-primary); }
     .publish-btn {
       background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
       color: #fff;
@@ -555,21 +601,55 @@
         <div class="composer-toolbar" id="composerToolbar">
           <div class="toolbar-left">
 
-            {{-- Format group --}}
+            {{-- ROW 1: Font Family & Size --}}
+            <select id="fontSelect" class="tool-select" onchange="setFont(this.value)" data-tip="Font family">
+              <option value="">Default</option>
+              <option value="open-sans">Open Sans</option>
+              <option value="roboto">Roboto</option>
+              <option value="playfair-display">Playfair Display</option>
+              <option value="lato">Lato</option>
+              <option value="poppins">Poppins</option>
+              <option value="inter">Inter</option>
+              <option value="merriweather">Merriweather</option>
+              <option value="quicksand">Quicksand</option>
+            </select>
+
+            <select id="sizeSelect" class="tool-select" onchange="setSize(this.value)" data-tip="Font size">
+              <option value="">16px</option>
+              <option value="12px">12px</option>
+              <option value="14px">14px</option>
+              <option value="16px">16px</option>
+              <option value="18px">18px</option>
+              <option value="20px">20px</option>
+              <option value="24px">24px</option>
+              <option value="32px">32px</option>
+            </select>
+
+            <div class="tool-divider"></div>
+
+            {{-- Text Styles --}}
             <button type="button" class="tool-btn" id="btnBold"   data-tip="Bold (Ctrl+B)"       onclick="quillFormat('bold')"><b>B</b></button>
             <button type="button" class="tool-btn" id="btnItalic" data-tip="Italic (Ctrl+I)"     onclick="quillFormat('italic')"><i style="font-style:italic;">I</i></button>
             <button type="button" class="tool-btn" id="btnUnder"  data-tip="Underline (Ctrl+U)"  onclick="quillFormat('underline')"><u>U</u></button>
             <button type="button" class="tool-btn" id="btnStrike" data-tip="Strikethrough"        onclick="quillFormat('strike')"><s>S</s></button>
 
+            <button type="button" class="tool-btn" id="btnClearFormat" data-tip="Clear formatting" onclick="quill.removeFormat(quill.getSelection().index, quill.getSelection().length); updateActiveStates();">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6v12M16 6v12M5.5 20h13"/></svg>
+            </button>
+
             <div class="tool-divider"></div>
 
-            {{-- Heading --}}
+            {{-- ROW 2: Colors --}}
+            <input type="color" id="textColorPicker" class="tool-color-input" title="Text color" value="#000000" onchange="setTextColor(this.value)">
+            <input type="color" id="bgColorPicker" class="tool-color-input" title="Background color" value="#ffffff" onchange="setBackgroundColor(this.value)">
+
+            <div class="tool-divider"></div>
+
+            {{-- ROW 3: Structure --}}
             <button type="button" class="tool-btn" id="btnH1" data-tip="Heading 1" onclick="quillHeader(1)">H1</button>
             <button type="button" class="tool-btn" id="btnH2" data-tip="Heading 2" onclick="quillHeader(2)">H2</button>
+            <button type="button" class="tool-btn" id="btnH3" data-tip="Heading 3" onclick="quillHeader(3)">H3</button>
 
-            <div class="tool-divider"></div>
-
-            {{-- Lists --}}
             <button type="button" class="tool-btn" id="btnBullet"   data-tip="Bullet list"    onclick="quillList('bullet')">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
             </button>
@@ -580,18 +660,25 @@
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/></svg>
             </button>
 
+            <button type="button" class="tool-btn" id="btnAlignLeft" data-tip="Align left" onclick="setAlign('left')">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+            </button>
+            <button type="button" class="tool-btn" id="btnAlignCenter" data-tip="Align center" onclick="setAlign('center')">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="10" x2="5" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="19" y1="18" x2="5" y2="18"/></svg>
+            </button>
+            <button type="button" class="tool-btn" id="btnAlignRight" data-tip="Align right" onclick="setAlign('right')">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="10" x2="21" y2="10"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="7" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <button type="button" class="tool-btn" id="btnAlignJustify" data-tip="Align justify" onclick="setAlign('justify')">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/></svg>
+            </button>
+
             <div class="tool-divider"></div>
 
-            {{-- Insert Emoji --}}
-            <div style="position: relative;">
-              <button type="button" class="tool-btn" data-tip="Insert emoji" onclick="togglePopup('emojiPopup')">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-              </button>
-              <div class="composer-popup emoji-popup" id="emojiPopup" onmousedown="event.stopPropagation()">
-                <input class="emoji-search" type="text" placeholder="Search emoji..." id="emojiSearch" oninput="filterEmojis(this.value)">
-                <div class="emoji-grid" id="emojiGrid"></div>
-              </div>
-            </div>
+            {{-- ROW 4: Insert Link --}}
+            <button type="button" class="tool-btn" id="btnLink" data-tip="Insert link" onclick="insertLink()">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </button>
 
             {{-- Insert Photo (inline) --}}
             <button type="button" class="tool-btn" data-tip="Insert photo" onclick="document.getElementById('photoInput').click()">
@@ -617,6 +704,17 @@
             <button type="button" class="tool-btn" data-tip="Add Video" onclick="document.getElementById('videoInput').click()">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
             </button>
+
+            {{-- Insert Emoji --}}
+            <div style="position: relative;">
+              <button type="button" class="tool-btn" data-tip="Insert emoji" onclick="togglePopup('emojiPopup')">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              </button>
+              <div class="composer-popup emoji-popup" id="emojiPopup" onmousedown="event.stopPropagation()">
+                <input class="emoji-search" type="text" placeholder="Search emoji..." id="emojiSearch" oninput="filterEmojis(this.value)">
+                <div class="emoji-grid" id="emojiGrid"></div>
+              </div>
+            </div>
 
             {{-- Set Thumbnail (card image) --}}
             <button type="button" class="tool-btn" data-tip="Set Cover photo" onclick="document.getElementById('thumbnailInput').click()">
@@ -776,7 +874,11 @@ Quill.register(AudioBlot);
 const quill = new Quill('#quill-editor', {
   theme: 'snow',
   placeholder: 'Write your resource content here… or upload a PDF/Doc to auto-fill.',
-  modules: { toolbar: false, history: { delay: 400, maxStack: 200 } }
+  modules: {
+    toolbar: false,
+    history: { delay: 400, maxStack: 200 }
+  },
+  formats: ['font', 'size', 'bold', 'italic', 'underline', 'strike', 'header', 'list', 'blockquote', 'link', 'image', 'video', 'audio', 'color', 'background', 'align']
 });
 
 // ── Media resize overlay ──────────────────────────────────────
@@ -967,6 +1069,72 @@ function quillBlockquote() {
   updateActiveStates();
 }
 
+// ── Font & Size formatting ────────────────────────────────────
+function setFont(font) {
+  if (font) {
+    quill.format('font', font);
+  } else {
+    quill.removeFormat(quill.getSelection().index, quill.getSelection().length, 'font');
+  }
+  updateActiveStates();
+}
+
+function setSize(size) {
+  if (size) {
+    quill.format('size', size);
+  } else {
+    quill.removeFormat(quill.getSelection().index, quill.getSelection().length, 'size');
+  }
+  updateActiveStates();
+}
+
+// ── Color formatting ──────────────────────────────────────────
+function setTextColor(color) {
+  quill.format('color', color);
+  updateActiveStates();
+}
+
+function setBackgroundColor(color) {
+  quill.format('background', color);
+  updateActiveStates();
+}
+
+// ── Text alignment ────────────────────────────────────────────
+function setAlign(align) {
+  const fmt = quill.getFormat();
+  if (fmt.align === align) {
+    quill.format('align', false);
+  } else {
+    quill.format('align', align);
+  }
+  updateActiveStates();
+  // Update active state for alignment buttons
+  ['btnAlignLeft', 'btnAlignCenter', 'btnAlignRight', 'btnAlignJustify'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.remove('active');
+    }
+  });
+  if (align === 'left') document.getElementById('btnAlignLeft').classList.add('active');
+  else if (align === 'center') document.getElementById('btnAlignCenter').classList.add('active');
+  else if (align === 'right') document.getElementById('btnAlignRight').classList.add('active');
+  else if (align === 'justify') document.getElementById('btnAlignJustify').classList.add('active');
+}
+
+// ── Link insertion ────────────────────────────────────────────
+function insertLink() {
+  const selection = quill.getSelection();
+  if (!selection || selection.length === 0) {
+    alert('Please select some text to create a link');
+    return;
+  }
+  const url = prompt('Enter the URL:');
+  if (url) {
+    quill.format('link', url);
+    updateActiveStates();
+  }
+}
+
 // ── Active state tracking ─────────────────────────────────────
 quill.on('selection-change', updateActiveStates);
 quill.on('text-change', updateActiveStates);
@@ -980,6 +1148,7 @@ function updateActiveStates() {
     ['btnStrike',  !!fmt.strike],
     ['btnH1',      fmt.header === 1],
     ['btnH2',      fmt.header === 2],
+    ['btnH3',      fmt.header === 3],
     ['btnBullet',  fmt.list === 'bullet'],
     ['btnOrdered', fmt.list === 'ordered'],
     ['btnQuote',   !!fmt.blockquote],
@@ -988,6 +1157,41 @@ function updateActiveStates() {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('active', on);
   });
+
+  // Update font selector
+  const fontSelect = document.getElementById('fontSelect');
+  if (fontSelect && fmt.font) {
+    fontSelect.value = fmt.font;
+  } else if (fontSelect) {
+    fontSelect.value = '';
+  }
+
+  // Update size selector
+  const sizeSelect = document.getElementById('sizeSelect');
+  if (sizeSelect && fmt.size) {
+    sizeSelect.value = fmt.size;
+  } else if (sizeSelect) {
+    sizeSelect.value = '';
+  }
+
+  // Update alignment buttons
+  ['btnAlignLeft', 'btnAlignCenter', 'btnAlignRight', 'btnAlignJustify'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  if (fmt.align === 'left') {
+    const el = document.getElementById('btnAlignLeft');
+    if (el) el.classList.add('active');
+  } else if (fmt.align === 'center') {
+    const el = document.getElementById('btnAlignCenter');
+    if (el) el.classList.add('active');
+  } else if (fmt.align === 'right') {
+    const el = document.getElementById('btnAlignRight');
+    if (el) el.classList.add('active');
+  } else if (fmt.align === 'justify') {
+    const el = document.getElementById('btnAlignJustify');
+    if (el) el.classList.add('active');
+  }
 }
 
 
