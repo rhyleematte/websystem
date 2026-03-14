@@ -191,21 +191,75 @@
                     </div>
 
                     <div class="res-body-content" style="display: flex; flex-direction: column; gap: 32px;">
+                        {{-- PDF: Download button with option to open --}}
                         @if(in_array($resource->file_type, ['pdf']))
-                            <div class="res-inline-viewer" style="height: 600px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                                <iframe src="{{ $resource->file_url }}" width="100%" height="100%" style="border: none;"></iframe>
+                            <div style="display: flex; align-items: center; gap: 16px; padding: 24px; background: var(--hover); border-radius: 16px; border: 1px solid var(--border);">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">PDF Document</div>
+                                    <div style="font-size: 14px; color: var(--muted);">{{ $resource->title }}.pdf</div>
+                                </div>
+                                <div style="display: flex; gap: 12px;">
+                                    <a href="{{ $resource->file_url }}" download class="chip-btn" style="background: var(--primary); color: #fff; border: none;">
+                                        <i data-lucide="download"></i> Download
+                                    </a>
+                                    <a href="{{ $resource->file_url }}" target="_blank" class="chip-btn" style="background: transparent; border-color: var(--border);">
+                                        <i data-lucide="external-link"></i> Open
+                                    </a>
+                                </div>
                             </div>
                         @endif
 
-                            {{-- Legacy: Inline viewer for docs only --}}
-                            @if(in_array($resource->file_type, ['doc', 'docx']))
-                                <div class="res-inline-viewer" style="height: 600px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                                    <iframe src="https://docs.google.com/gview?url={{ urlencode($resource->file_url) }}&embedded=true" width="100%" height="100%" style="border: none;"></iframe>
+                        {{-- Audio: HTML5 Audio Player --}}
+                        @if(in_array($resource->file_type, ['mp3', 'wav', 'ogg']))
+                            <div style="padding: 24px; background: var(--hover); border-radius: 16px; border: 1px solid var(--border);">
+                                <div style="font-weight: 600; color: var(--text); margin-bottom: 16px;">Audio Resource</div>
+                                <audio controls style="width: 100%; border-radius: 8px;">
+                                    <source src="{{ $resource->file_url }}" type="audio/{{ $resource->file_type === 'mp3' ? 'mpeg' : $resource->file_type }}">
+                                    Your browser does not support the audio element.
+                                </audio>
+                                <div style="margin-top: 16px;">
+                                    <a href="{{ $resource->file_url }}" download class="chip-btn" style="background: var(--primary); color: #fff; border: none;">
+                                        <i data-lucide="download"></i> Download Audio
+                                    </a>
                                 </div>
-                            @elseif(in_array($resource->file_type, ['jpg', 'jpeg', 'png', 'gif', 'webp']))
-                                <img src="{{ $resource->file_url }}" style="width: 100%; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                            @endif
-                        </div>
+                            </div>
+                        @endif
+
+                        {{-- Video: HTML5 Video Player --}}
+                        @if(in_array($resource->file_type, ['mp4', 'webm', 'mov']))
+                            <div style="padding: 24px; background: var(--hover); border-radius: 16px; border: 1px solid var(--border);">
+                                <div style="font-weight: 600; color: var(--text); margin-bottom: 16px;">Video Resource</div>
+                                <video controls style="width: 100%; border-radius: 8px; background: #000;">
+                                    <source src="{{ $resource->file_url }}" type="video/{{ $resource->file_type === 'mov' ? 'quicktime' : $resource->file_type }}">
+                                    Your browser does not support the video element.
+                                </video>
+                                <div style="margin-top: 16px;">
+                                    <a href="{{ $resource->file_url }}" download class="chip-btn" style="background: var(--primary); color: #fff; border: none;">
+                                        <i data-lucide="download"></i> Download Video
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Documents: Google Docs Viewer --}}
+                        @if(in_array($resource->file_type, ['doc', 'docx']))
+                            <div style="display: flex; align-items: center; gap: 16px; padding: 24px; background: var(--hover); border-radius: 16px; border: 1px solid var(--border);">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">Document</div>
+                                    <div style="font-size: 14px; color: var(--muted);">{{ $resource->title }}.{{ $resource->file_type }}</div>
+                                </div>
+                                <div style="display: flex; gap: 12px;">
+                                    <a href="{{ $resource->file_url }}" download class="chip-btn" style="background: var(--primary); color: #fff; border: none;">
+                                        <i data-lucide="download"></i> Download
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Images --}}
+                        @if(in_array($resource->file_type, ['jpg', 'jpeg', 'png', 'gif', 'webp']))
+                            <img src="{{ $resource->file_url }}" style="width: 100%; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                        @endif
 
                         @php
                             $safeContent = $resource->content ?: $resource->description;
