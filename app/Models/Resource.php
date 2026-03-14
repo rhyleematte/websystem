@@ -68,6 +68,8 @@ class Resource extends Model
     public function getFileUrlAttribute(): ?string
     {
         if (!$this->file_path) return null;
-        return asset('storage/' . $this->file_path);
+        // Extract just the filename and use the resource.file route with proper headers
+        $filename = basename($this->file_path);
+        return route('resource.file', $filename);
     }
 }

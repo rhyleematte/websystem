@@ -71,6 +71,9 @@ Route::middleware('auth')->group(function () {
     Route::post('resources/{resource}/share', [\App\Http\Controllers\ResourceController::class, 'share'])->name('resources.share');
     Route::post('resources/{resource}/join', [\App\Http\Controllers\ResourceController::class, 'join'])->name('resources.join');
     Route::delete('resources/{resource}/join', [\App\Http\Controllers\ResourceController::class, 'unjoin'])->name('resources.unjoin');
+    Route::get('/resource-file/{path}', [\App\Http\Controllers\ResourceController::class, 'serveFile'])
+        ->where('path', '.+')
+        ->name('resource.file');
 
     // Messenger API
     Route::get('/api/messenger/conversations', [\App\Http\Controllers\ChatController::class, 'getConversations']);

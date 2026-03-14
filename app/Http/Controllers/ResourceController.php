@@ -204,4 +204,35 @@ class ResourceController extends Controller
 
         return redirect()->route('resources.index')->with('success', 'Resource deleted successfully.');
     }
+
+    public function serveFile($path)
+    {
+        $fullPath = 'resources/files/' . $path;
+        $storagePath = storage_path('app/public/' . $fullPath);
+
+        if (!file_exists($storagePath)) {
+            abort(404);
+        }
+
+        $extension = strtolower(pathinfo($storagePath, PATHINFO_EXTENSION));
+
+        $mimeTypes = [
+            'pdf' => 'application/pdf',
+            'mp3' => 'audio/mpeg',
+            'wav' => 'audio/wav',
+            'ogg' => 'audio/ogg',
+            'mp4' => 'video/mp4',
+            'webm' => 'video/webm',
+            'mov' => 'video/quicktime',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
+
+        $mimeType = $mimeTypes[$extension] ?? 'application/octet-stream';
+
+        return response()->file($storagePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($storagePath) . '"',
+        ]);
+    }
 }
