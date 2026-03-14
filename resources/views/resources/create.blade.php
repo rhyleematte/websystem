@@ -1301,28 +1301,70 @@ function removeChip(btn, name) {
 // ── Add Video (inline at cursor via VideoBlot) ──────────────
 document.getElementById('videoInput').addEventListener('change', function(e) {
   const file = e.target.files[0]; if (!file) return;
-  const url = URL.createObjectURL(file);
-  const range = quill.getSelection(true);
-  const idx = range ? range.index : quill.getLength();
-  quill.insertEmbed(idx, 'htmlVideo', url);   // uses VideoBlot → renders <video controls>
-  quill.insertText(idx + 1, '\n');        // newline after
-  quill.setSelection(idx + 2);
-  addAttachmentChip(file);
-  toast('🎬 Video inserted at cursor! Click it to resize.');
+  toast('🎬 Uploading video...');
+
+  const formData = new FormData();
+  formData.append('media', file);
+  formData.append('_token', '{{ csrf_token() }}');
+
+  fetch('{{ route("resources.upload-media") }}', {
+    method: 'POST',
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      const range = quill.getSelection(true);
+      const idx = range ? range.index : quill.getLength();
+      quill.insertEmbed(idx, 'htmlVideo', data.url);
+      quill.insertText(idx + 1, '\n');
+      quill.setSelection(idx + 2);
+      addAttachmentChip(file);
+      toast('🎬 Video inserted at cursor! Click it to resize.');
+    } else {
+      toast('❌ Failed to upload video');
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    toast('❌ Upload error');
+  });
+
   this.value = '';
 });
 
 // ── Add Audio (inline at cursor via AudioBlot) ──────────────
 document.getElementById('audioInput').addEventListener('change', function(e) {
   const file = e.target.files[0]; if (!file) return;
-  const url = URL.createObjectURL(file);
-  const range = quill.getSelection(true);
-  const idx = range ? range.index : quill.getLength();
-  quill.insertEmbed(idx, 'htmlAudio', url);
-  quill.insertText(idx + 1, '\n');
-  quill.setSelection(idx + 2);
-  addAttachmentChip(file);
-  toast('🎵 Audio inserted at cursor! Click it to resize.');
+  toast('🎵 Uploading audio...');
+
+  const formData = new FormData();
+  formData.append('media', file);
+  formData.append('_token', '{{ csrf_token() }}');
+
+  fetch('{{ route("resources.upload-media") }}', {
+    method: 'POST',
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      const range = quill.getSelection(true);
+      const idx = range ? range.index : quill.getLength();
+      quill.insertEmbed(idx, 'htmlAudio', data.url);
+      quill.insertText(idx + 1, '\n');
+      quill.setSelection(idx + 2);
+      addAttachmentChip(file);
+      toast('🎵 Audio inserted at cursor! Click it to resize.');
+    } else {
+      toast('❌ Failed to upload audio');
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    toast('❌ Upload error');
+  });
+
   this.value = '';
 });
 

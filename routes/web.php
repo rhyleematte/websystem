@@ -74,6 +74,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/resource-file/{path}', [\App\Http\Controllers\ResourceController::class, 'serveFile'])
         ->where('path', '.+')
         ->name('resource.file');
+    Route::post('/resources/upload-media', [\App\Http\Controllers\ResourceController::class, 'uploadMedia'])->name('resources.upload-media');
 
     // Messenger API
     Route::get('/api/messenger/conversations', [\App\Http\Controllers\ChatController::class, 'getConversations']);

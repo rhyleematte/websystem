@@ -235,4 +235,24 @@ class ResourceController extends Controller
             'Content-Disposition' => 'inline; filename="' . basename($storagePath) . '"',
         ]);
     }
+
+    public function uploadMedia(Request $request)
+    {
+        $this->authorize('create', Resource::class);
+
+        $request->validate([
+            'media' => 'required|file|mimes:mp3,wav,ogg,mp4,webm,mov|max:51200',
+        ]);
+
+        $file = $request->file('media');
+        $path = $file->store('resources/files', 'public');
+        $filename = basename($path);
+        $url = route('resource.file', $filename);
+
+        return response()->json([
+            'success' => true,
+            'url' => $url,
+            'filename' => $filename,
+        ]);
+    }
 }
