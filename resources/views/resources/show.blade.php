@@ -194,7 +194,7 @@
                         {{-- PDF: Simple link to open in browser --}}
                         @if(in_array($resource->file_type, ['pdf']))
                             <a href="{{ $resource->file_url }}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; color: var(--primary); text-decoration: none; font-weight: 500; padding: 8px 0;">
-                                <i data-lucide="file-pdf"></i>
+                                <i data-lucide="file"></i>
                                 <span>View PDF: {{ $resource->title }}.pdf</span>
                             </a>
                         @endif
