@@ -193,10 +193,15 @@
                     <div class="res-body-content" style="display: flex; flex-direction: column; gap: 32px;">
                         {{-- PDF: Simple link to open in browser --}}
                         @if(in_array($resource->file_type, ['pdf']))
-                            <a href="{{ $resource->file_url }}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; color: var(--primary); text-decoration: none; font-weight: 500; padding: 8px 0;">
-                                <i data-lucide="file"></i>
-                                <span>View PDF: {{ $resource->title }}.pdf</span>
-                            </a>
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                <a href="{{ $resource->file_url }}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; color: var(--primary); text-decoration: none; font-weight: 500; padding: 8px 0;">
+                                    <i data-lucide="file"></i>
+                                    <span>View PDF: {{ $resource->title }}.pdf</span>
+                                </a>
+                                <a href="{{ $resource->file_url }}?download=true" download style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--hover); border-radius: 8px; color: var(--primary); text-decoration: none; font-size: 13px;">
+                                    <i data-lucide="download"></i>
+                                </a>
+                            </div>
                         @endif
 
                         {{-- Audio: HTML5 Audio Player --}}
