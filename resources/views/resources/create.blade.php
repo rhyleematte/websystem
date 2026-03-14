@@ -35,7 +35,9 @@
     .ql-editor h1 { font-size: 28px; font-weight: 800; }
     .ql-editor h2 { font-size: 22px; font-weight: 700; }
     .ql-editor blockquote { border-left: 4px solid var(--res-primary); padding: 8px 16px; background: var(--hover); border-radius: 0 8px 8px 0; margin: 0; }
-    .ql-editor img { max-width: 100%; border-radius: 8px; margin: 8px 0; }
+    .ql-editor img { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; }
+    .ql-editor video { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; }
+    .ql-editor audio { max-width: 100%; margin: 8px 0; display: block; width: 100%; }
     /* ── Composer Shell ─────────────────────────────────────── */
     .composer-shell {
       display: flex;
@@ -178,7 +180,8 @@
     }
     #quill-editor a { color: var(--res-primary); text-decoration: underline; }
     #quill-editor img { max-width: 100%; border-radius: 8px; margin: 8px 0; }
-    #quill-editor video { max-width: 100%; border-radius: 8px; margin: 8px 0; }
+    #quill-editor video { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; }
+    #quill-editor audio { max-width: 100%; margin: 8px 0; display: block; width: 100%; }
     #quill-editor blockquote {
       border-left: 4px solid var(--res-primary);
       margin: 0;
@@ -841,12 +844,14 @@ class VideoBlot extends BlockEmbed {
   static create(value) {
     const node = super.create();
     node.setAttribute('src', typeof value === 'string' ? value : value.src);
-    node.setAttribute('controls', 'true');
+    node.setAttribute('controls', 'controls');
+    node.setAttribute('preload', 'metadata');
     node.style.maxWidth = (typeof value === 'object' && value.width) ? value.width : '100%';
-    node.style.width    = node.style.maxWidth;
+    node.style.width = '100%';
     node.style.borderRadius = '12px';
     node.style.margin = '8px 0';
     node.style.display = 'block';
+    node.style.backgroundColor = '#000';
     return node;
   }
   static value(node) { return { src: node.getAttribute('src'), width: node.style.width }; }
@@ -858,9 +863,10 @@ class AudioBlot extends BlockEmbed {
   static create(value) {
     const node = super.create();
     node.setAttribute('src', typeof value === 'string' ? value : value.src);
-    node.setAttribute('controls', 'true');
-    node.style.width = (typeof value === 'object' && value.width) ? value.width : '100%';
-    node.style.maxWidth = node.style.width;
+    node.setAttribute('controls', 'controls');
+    node.setAttribute('preload', 'metadata');
+    node.style.width = '100%';
+    node.style.maxWidth = '100%';
     node.style.margin = '8px 0';
     node.style.display = 'block';
     return node;
@@ -878,7 +884,7 @@ const quill = new Quill('#quill-editor', {
     toolbar: false,
     history: { delay: 400, maxStack: 200 }
   },
-  formats: ['font', 'size', 'bold', 'italic', 'underline', 'strike', 'header', 'list', 'blockquote', 'link', 'image', 'video', 'audio', 'color', 'background', 'align']
+  formats: ['font', 'size', 'bold', 'italic', 'underline', 'strike', 'header', 'list', 'blockquote', 'link', 'image', 'htmlVideo', 'htmlAudio', 'color', 'background', 'align']
 });
 
 // ── Media resize overlay ──────────────────────────────────────
