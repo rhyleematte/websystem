@@ -191,22 +191,12 @@
                     </div>
 
                     <div class="res-body-content" style="display: flex; flex-direction: column; gap: 32px;">
-                        {{-- PDF: Download button with option to open --}}
+                        {{-- PDF: Simple link to open in browser --}}
                         @if(in_array($resource->file_type, ['pdf']))
-                            <div style="display: flex; align-items: center; gap: 16px; padding: 24px; background: var(--hover); border-radius: 16px; border: 1px solid var(--border);">
-                                <div style="flex: 1;">
-                                    <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">PDF Document</div>
-                                    <div style="font-size: 14px; color: var(--muted);">{{ $resource->title }}.pdf</div>
-                                </div>
-                                <div style="display: flex; gap: 12px;">
-                                    <a href="{{ $resource->file_url }}" download class="chip-btn" style="background: var(--primary); color: #fff; border: none;">
-                                        <i data-lucide="download"></i> Download
-                                    </a>
-                                    <a href="{{ $resource->file_url }}" target="_blank" class="chip-btn" style="background: transparent; border-color: var(--border);">
-                                        <i data-lucide="external-link"></i> Open
-                                    </a>
-                                </div>
-                            </div>
+                            <a href="{{ $resource->file_url }}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; color: var(--primary); text-decoration: none; font-weight: 500; padding: 8px 0;">
+                                <i data-lucide="file-pdf"></i>
+                                <span>View PDF: {{ $resource->title }}.pdf</span>
+                            </a>
                         @endif
 
                         {{-- Audio: HTML5 Audio Player --}}
