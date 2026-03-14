@@ -179,9 +179,9 @@
       pointer-events: none;
     }
     #quill-editor a { color: var(--res-primary); text-decoration: underline; }
-    #quill-editor img { max-width: 100%; border-radius: 8px; margin: 8px 0; }
-    #quill-editor video { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; }
-    #quill-editor audio { max-width: 100%; margin: 8px 0; display: block; width: 100%; }
+    #quill-editor img { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; cursor: pointer; }
+    #quill-editor video { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; cursor: pointer; }
+    #quill-editor audio { max-width: 100%; margin: 8px 0; display: block; width: 100%; cursor: pointer; }
     #quill-editor blockquote {
       border-left: 4px solid var(--res-primary);
       margin: 0;
