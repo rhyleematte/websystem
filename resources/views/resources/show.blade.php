@@ -136,8 +136,7 @@
             @endif
             
             <div class="panel mini-panel" style="margin-top: 24px;">
-                <div class="mini-title"><i data-lucide="sparkles"></i><span>Curated Resource</span></div>
-                <p class="mini-text">This expert-led content is part of our verified professional library.</p>
+                    <div class="mini-title"><span class="icon-emoji" aria-hidden="true">✨</span><span>Curated Resource</span></div>
             </div>
             
             @if(Auth::check() && Auth::user()->can('update', $resource))
@@ -223,15 +222,36 @@
                             </div>
                         @endif
 
-                        {{-- Documents: Google Docs Viewer --}}
-                        @if(in_array($resource->file_type, ['doc', 'docx']))
+                        {{-- File Preview / Download (PDF, DOCX, XLSX, XML) --}}
+                        @php
+                            $fileType = $resource->file_type;
+                            $fileUrl = $resource->file_url;
+                        @endphp
+
+                        {{-- Download (DOC/DOCX/XLS/XLSX) --}}
+                        @if($fileUrl && in_array($fileType, ['doc', 'docx', 'xls', 'xlsx']))
+                            <div style="padding: 24px; background: var(--hover); border-radius: 16px; border: 1px solid var(--border);">
+                                <div style="font-weight: 600; color: var(--text); margin-bottom: 12px;">Download Document</div>
+                                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <a href="{{ $fileUrl }}" download class="chip-btn" style="background: var(--primary); color: #fff; border: none;">
+                                        <i data-lucide="download"></i> Download {{ strtoupper($fileType) }}
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- XML (raw view) --}}
+                        @if($fileUrl && $fileType === 'xml')
                             <div style="display: flex; align-items: center; gap: 16px; padding: 24px; background: var(--hover); border-radius: 16px; border: 1px solid var(--border);">
                                 <div style="flex: 1;">
-                                    <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">Document</div>
-                                    <div style="font-size: 14px; color: var(--muted);">{{ $resource->title }}.{{ $resource->file_type }}</div>
+                                    <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">XML File</div>
+                                    <div style="font-size: 14px; color: var(--muted);">{{ $resource->title }}.xml</div>
                                 </div>
                                 <div style="display: flex; gap: 12px;">
-                                    <a href="{{ $resource->file_url }}" download class="chip-btn" style="background: var(--primary); color: #fff; border: none;">
+                                    <a href="{{ $fileUrl }}" target="_blank" rel="noopener noreferrer" class="chip-btn" style="background: var(--primary); color: #fff; border: none;">
+                                        <i data-lucide="external-link"></i> View XML
+                                    </a>
+                                    <a href="{{ $fileUrl }}" download class="chip-btn" style="background: var(--hover); color: var(--text); border: 1px solid var(--border);">
                                         <i data-lucide="download"></i> Download
                                     </a>
                                 </div>
@@ -256,26 +276,63 @@
                                     '/<a([^>]*?)href="(?:about:blank|javascript:void\(0\)|#)"([^>]*?)>(.*?)<\/a>/is',
                                     function ($matches) use ($resource) {
                                         $attrs = $matches[1] . $matches[2];
-                                        $href = $resource->file_url;
+                                        $href = null;
+
                                         if (preg_match('/data-href="([^"]+)"/i', $attrs, $m)) {
                                             $href = $m[1];
+                                            if (preg_match('/^(?:about:blank|javascript:void\\(0\\)|#)$/i', $href)) {
+                                                $href = null;
+                                            }
+                                        } elseif (preg_match('/data-ext="([^"]+)"/i', $attrs, $m)) {
+                                            $ext = strtolower($m[1]);
+                                            if ($ext === $resource->file_type) {
+                                                $href = $resource->file_url;
+                                            }
                                         }
-                                        return '<a' . $matches[1] . 'href="' . $href . '"' . $matches[2] . '>' . $matches[3] . '</a>';
+
+                                        if (!$href && $resource->file_url) {
+                                            $text = $matches[3] ?? '';
+                                            if (preg_match('/\.pdf\b/i', $text) && $resource->file_type === 'pdf') {
+                                                $href = $resource->file_url;
+                                            } elseif (preg_match('/\.docx?\b/i', $text) && in_array($resource->file_type, ['doc', 'docx'])) {
+                                                $href = $resource->file_url;
+                                            } elseif (preg_match('/\.xlsx?\b/i', $text) && in_array($resource->file_type, ['xls', 'xlsx'])) {
+                                                $href = $resource->file_url;
+                                            } elseif (preg_match('/\.xml\b/i', $text) && $resource->file_type === 'xml') {
+                                                $href = $resource->file_url;
+                                            }
+                                        }
+
+                                        if ($href) {
+                                            return '<a' . $matches[1] . 'href="' . $href . '"' . $matches[2] . '>' . $matches[3] . '</a>';
+                                        }
+
+                                        return $matches[0];
                                     },
                                     $safeContent
                                 );
 
                                 // Also handle explicitly marked placeholders (class-based) if present.
                                 libxml_use_internal_errors(true);
-                                $dom = new \DOMDocument();
-                                $dom->loadHTML('<?xml encoding="utf-8" ?><div>' . $safeContent . '</div>');
+                                $dom = new \DOMDocument('1.0', 'UTF-8');
+                                $dom->loadHTML('<?xml version="1.0" encoding="UTF-8" ?><div>' . $safeContent . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
                                 $xpath = new \DOMXPath($dom);
                                 $links = $xpath->query('//a[contains(concat(" ", normalize-space(@class), " "), " file-link-placeholder ")]');
                                 foreach ($links as $link) {
-                                    $href = $link->getAttribute('data-href') ?: $resource->file_url;
-                                    $link->setAttribute('href', $href);
-                                    $link->setAttribute('target', '_blank');
-                                    $link->setAttribute('rel', 'noopener noreferrer');
+                                    $href = $link->getAttribute('data-href');
+                                    if ($href && preg_match('/^(?:about:blank|javascript:void\\(0\\)|#)$/i', $href)) {
+                                        $href = '';
+                                    }
+                                    $ext = strtolower($link->getAttribute('data-ext') ?? '');
+                                    // If the placeholder matches the resource's primary file and no data-href exists, fall back to the primary file URL.
+                                    if (!$href && $resource->file_url && $resource->file_type === $ext) {
+                                        $href = $resource->file_url;
+                                    }
+                                    if ($href) {
+                                        $link->setAttribute('href', $href);
+                                        $link->setAttribute('target', '_blank');
+                                        $link->setAttribute('rel', 'noopener noreferrer');
+                                    }
                                 }
                                 $container = $dom->getElementsByTagName('div')->item(0);
                                 $safeContent = '';
@@ -329,15 +386,82 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Activate placeholders that were saved with a placeholder href
     const fileUrl = "{{ $resource->file_url }}";
-    if (!fileUrl) return;
 
     document.querySelectorAll('.file-link-placeholder').forEach(link => {
-        const href = link.dataset.href || fileUrl;
-        link.href = href;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
+        const href = link.dataset.href || link.getAttribute('href') || '';
+        const ext = (link.dataset.ext || '').toLowerCase();
+        const officeExts = ['doc','docx','xls','xlsx'];
+
+        // Prefer `data-href` if present; else keep whatever href is set.
+        let finalHref = href;
+        if (!href && fileUrl && ext === "{{ $resource->file_type }}") {
+            finalHref = fileUrl;
+        }
+
+        // Office files can be previewed in Office Web Viewer, but we will still force-download on click.
+        if (officeExts.includes(ext) && finalHref && !finalHref.startsWith('blob:')) {
+            finalHref = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(finalHref)}`;
+        }
+
+        if (finalHref) {
+            // For non-PDF downloads, embed the download params in the URL so right-click/save works.
+            if (!['pdf'].includes(ext) && finalHref) {
+                const safeFileName = (link.dataset.fileName || (link.textContent || '').trim()).replace(/[\\/\\0\n\r]/g, '_');
+                try {
+                    const url = new URL(finalHref, window.location.href);
+                    url.searchParams.set('dl', '1');
+                    url.searchParams.set('fn', safeFileName);
+                    finalHref = url.toString();
+                } catch (err) {
+                    // If URL parsing fails, keep the original finalHref.
+                }
+            }
+
+            link.href = finalHref;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+        }
+
+        // Force download for non-PDF types.
+        link.addEventListener('click', function(e) {
+            const clickExt = (link.dataset.ext || '').toLowerCase();
+            if (clickExt === 'pdf') {
+                return; // allow normal open
+            }
+
+            let downloadUrl = link.dataset.href || link.href;
+            if (!downloadUrl || /^(javascript:void\(0\)|#)$/.test(downloadUrl)) {
+                return;
+            }
+
+            // If this is an Office viewer URL, try to extract the underlying file URL.
+            const officeViewerPrefix = 'https://view.officeapps.live.com/op/view.aspx?src=';
+            if (downloadUrl.startsWith(officeViewerPrefix)) {
+                try {
+                    const url = new URL(downloadUrl);
+                    const src = url.searchParams.get('src');
+                    if (src) downloadUrl = decodeURIComponent(src);
+                } catch (err) {
+                    // ignore
+                }
+            }
+
+            const fileName = link.dataset.fileName || (link.textContent || '').trim();
+
+            e.preventDefault();
+            const safeFileName = fileName.replace(/[\\/\\0\n\r]/g, '_');
+            const url = new URL(downloadUrl, window.location.href);
+            url.searchParams.set('dl', '1');
+            url.searchParams.set('fn', safeFileName);
+
+            const a = document.createElement('a');
+            a.href = url.toString();
+            a.download = safeFileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        });
     });
 });
 </script>

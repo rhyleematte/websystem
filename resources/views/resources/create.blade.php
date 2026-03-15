@@ -543,7 +543,7 @@
       </div>
 
       {{-- Form --}}
-      <form action="{{ route('resources.store') }}" method="POST" enctype="multipart/form-data" id="resourceForm">
+      <form action="{{ route('resources.store') }}" method="POST" enctype="multipart/form-data" id="resourceForm" accept-charset="utf-8">
         @csrf
 
         {{-- Meta fields --}}
@@ -773,6 +773,15 @@
   opacity: 0; pointer-events: none; transition: opacity 0.2s;
   white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 "></div>
+
+<div id="uploadModal" style="display:none;position:fixed;inset:0;z-index:10010;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);">
+  <div style="width:min(420px,90%);background:var(--panel-bg);border-radius:18px;padding:22px;box-shadow:0 18px 50px rgba(0,0,0,0.35);text-align:center;">
+    <div id="uploadModalMessage" style="font-weight:700;margin-bottom:14px;letter-spacing:0.02em;">Uploading file…</div>
+    <div style="width:40px;height:40px;margin:0 auto;border:4px solid rgba(0,0,0,0.12);border-top-color:var(--res-primary);border-radius:50%;animation:spin 0.9s linear infinite;"></div>
+  </div>
+</div>
+
+<style>@keyframes spin{to{transform:rotate(360deg);}}</style>
 
 <style>
 
@@ -1594,12 +1603,51 @@ function setTitleFromFileName(fileName) {
   }
 }
 
-function makeFileLinkPlaceholder(file) {
+function makeFileLinkPlaceholder(file, href = 'about:blank') {
   const ext = file.name.split('.').pop().toLowerCase();
-  const icon = ext === 'pdf' ? '📄' : ext === 'doc' || ext === 'docx' ? '📝' : ext === 'xml' ? '📄' : '📎';
+  const iconName = ext === 'pdf' ? 'file-text' : (ext === 'doc' || ext === 'docx') ? 'file-text' : ext === 'xml' ? 'file-text' : 'file';
+  const icon = `<i data-lucide="${iconName}" style="width:16px;height:16px;" aria-hidden="true"></i>`;
   const label = `${icon} ${file.name}`;
   const style = 'display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid rgba(0,0,0,0.12);border-radius:12px;background:rgba(99,102,241,0.1);color:var(--res-primary);text-decoration:none;font-weight:700;';
-  return `<p><a href="javascript:void(0)" class="file-link-placeholder" data-file-name="${file.name}" data-ext="${ext}" style="${style}">${label}</a></p>`;
+  return `<p><a href="${href}" class="file-link-placeholder" data-file-name="${file.name}" data-ext="${ext}" data-href="${href}" style="${style}">${label}</a>&#8203;</p>`;
+}
+
+function showUploadModal(message) {
+  const modal = document.getElementById('uploadModal');
+  const msg = document.getElementById('uploadModalMessage');
+  if (!modal || !msg) return;
+  msg.textContent = message;
+  modal.style.display = 'flex';
+}
+
+function hideUploadModal() {
+  const modal = document.getElementById('uploadModal');
+  if (!modal) return;
+  modal.style.display = 'none';
+}
+
+function insertUploadedFile(file, url) {
+  const range = quill.getSelection(true);
+  const idx = range ? range.index : quill.getLength();
+  const link = makeFileLinkPlaceholder(file, url);
+  quill.clipboard.dangerouslyPasteHTML(idx, link);
+  moveCursorAfterLastFileLink();
+
+  // Render any Lucide icons that may be inside the pasted HTML.
+  if (window.lucide) lucide.createIcons({ root: document.getElementById('quill-editor') });
+
+  // Also touch Quill's internal model so it serializes properly.
+  try {
+    const placeholder = document.querySelector(`.file-link-placeholder[data-file-name="${CSS.escape(file.name)}"]`);
+    if (placeholder) {
+      const blot = Quill.find(placeholder);
+      if (blot) {
+        const index = quill.getIndex(blot);
+        const length = typeof blot.length === 'function' ? blot.length() : (placeholder.textContent || '').length;
+        quill.formatText(index, length, 'link', url, 'user');
+      }
+    }
+  } catch (_) {}
 }
 
 function moveCursorAfterLastFileLink() {
@@ -1614,60 +1662,107 @@ function moveCursorAfterLastFileLink() {
   sel.addRange(range);
 }
 
-document.getElementById('attachInput').addEventListener('change', function(e) {
-  Array.from(e.target.files).forEach(file => {
+document.getElementById('attachInput').addEventListener('change', async function(e) {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  for (const file of files) {
     attachedFiles.push(file);
     addAttachmentChip(file);
-    // Also insert a file reference at cursor in the editor
-    const range = quill.getSelection(true);
-    const idx = range ? range.index : quill.getLength();
+
     const ext = file.name.split('.').pop().toLowerCase();
     const icon = (ext === 'mp3' || ext === 'wav') ? '🎵 ' : ext === 'mp4' ? '🎬 ' : ext === 'pdf' ? '📄 ' : '📎 ';
-    if (['pdf','doc','docx','xml'].includes(ext)) {
+
+    if (['pdf','doc','docx','xml','xls','xlsx'].includes(ext)) {
       setTitleFromFileName(file.name);
-      const link = makeFileLinkPlaceholder(file);
-      quill.clipboard.dangerouslyPasteHTML(idx, link);
-      moveCursorAfterLastFileLink();
+      showUploadModal(`Uploading ${file.name}...`);
+
+      try {
+        const url = await new Promise((resolve, reject) => {
+          uploadAttachedFile(file, (uploadedUrl) => {
+            if (uploadedUrl) resolve(uploadedUrl);
+            else reject(new Error('Upload returned no URL'));
+          });
+        });
+
+        insertUploadedFile(file, url);
+        toast('✅ File uploaded — click the link to open/download it.');
+      } catch (err) {
+        console.error('Upload failed', err);
+        toast('❌ Upload failed. Please try again.');
+      } finally {
+        hideUploadModal();
+      }
     } else {
+      const range = quill.getSelection(true);
+      const idx = range ? range.index : quill.getLength();
       quill.insertText(idx, '\n' + icon + file.name + '\n', { bold: false });
       quill.setSelection(idx + file.name.length + 3);
     }
-  });
+  }
+
   this.value = '';
 });
 
-// Enable previewing attached files from the editor (opens the local file blob in a new tab)
-document.getElementById('quill-editor').addEventListener('click', function(e) {
+// Enable previewing attached files from the editor (opens PDFs in-browser, forces download for other types)
+document.getElementById('quill-editor').addEventListener('click', async function(e) {
   const link = e.target.closest('.file-link-placeholder');
   if (!link) return;
   e.preventDefault();
-  const fileName = link.dataset.fileName;
-  if (!fileName) return;
-  const file = attachedFiles.find(f => f.name === fileName);
-  if (!file) return;
 
-  // Prefer the uploaded URL if available, otherwise fall back to a local blob URL.
-  let url = link.dataset.href;
-  if (!url) {
-    url = link.dataset.objectUrl;
-    if (!url) {
-      url = URL.createObjectURL(file);
+  const fileName = link.dataset.fileName || '';
+  const ext = (link.dataset.ext || fileName.split('.').pop() || '').toLowerCase();
+
+  // Determine URL (support placeholders that may have already been saved to the server)
+  let url = link.dataset.href || '';
+  const href = link.getAttribute('href') || '';
+  const isPlaceholderHref = href && /^(javascript:void\(0\)|about:blank|#)$/i.test(href);
+  if (!url && href && !isPlaceholderHref) {
+    url = href;
+  }
+
+  // Fallback: if the file was attached in this editor session, use a blob URL.
+  if (!url && fileName) {
+    const file = attachedFiles.find(f => f.name === fileName);
+    if (file) {
+      url = link.dataset.objectUrl || URL.createObjectURL(file);
       link.dataset.objectUrl = url;
     }
   }
 
-  const ext = (link.dataset.ext || '').toLowerCase();
-  const previewable = ['pdf','png','jpg','jpeg','gif','mp4','webm','wav','mp3','ogg'];
-  if (previewable.includes(ext)) {
+  if (!url) return;
+
+  // PDFs should be opened in a new tab (viewer)
+  if (ext === 'pdf') {
     window.open(url, '_blank');
-  } else {
-    // Force download for file types the browser won’t display
+    return;
+  }
+
+  // Force download for non-PDF file types
+  const download = async (downloadUrl) => {
     const a = document.createElement('a');
-    a.href = url;
-    a.download = file.name;
+    a.href = downloadUrl;
+    a.download = fileName || '';
     document.body.appendChild(a);
     a.click();
     a.remove();
+  };
+
+  const sameOriginOrBlob = url.startsWith('blob:') || url.startsWith(window.location.origin) || url.startsWith('/');
+  if (sameOriginOrBlob) {
+    download(url);
+    return;
+  }
+
+  // Fallback: try fetching and forcing a download (CORS may prevent this)
+  try {
+    const resp = await fetch(url);
+    const blob = await resp.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    download(blobUrl);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+  } catch (err) {
+    window.open(url, '_blank');
   }
 });
 
@@ -1676,9 +1771,10 @@ function addAttachmentChip(file) {
   chip.className = 'attachment-chip';
   chip.dataset.name = file.name;
   const ext = file.name.split('.').pop().toLowerCase();
-  const icon = ext === 'pdf' ? '📄' : (ext === 'mp3' || ext === 'wav') ? '🎵' : ext === 'mp4' ? '🎬' : '📎';
-  chip.innerHTML = `<span class="chip-icon">${icon}</span><span class="chip-name" title="${file.name}">${file.name}</span><button type="button" class="chip-remove" onclick="removeChip(this,'${file.name}')"><svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg></button>`;
+  const iconName = ext === 'pdf' ? 'file-text' : (ext === 'mp3' || ext === 'wav') ? 'music' : ext === 'mp4' ? 'video' : 'paperclip';
+  chip.innerHTML = `<span class="chip-icon"><i data-lucide="${iconName}" style="width:16px;height:16px;" aria-hidden="true"></i></span><span class="chip-name" title="${file.name}">${file.name}</span><button type="button" class="chip-remove" onclick="removeChip(this,'${file.name}')"><svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg></button>`;
   document.getElementById('attachmentChips').appendChild(chip);
+  if (window.lucide) lucide.createIcons({ root: chip });
 }
 function removeChip(btn, name) {
   btn.closest('.attachment-chip').remove();
@@ -1702,16 +1798,23 @@ function uploadAttachedFile(file, callback) {
     method: 'POST',
     body: formData,
   })
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      return res.json();
+    })
     .then(data => {
       if (data && data.success && data.url) {
         callback(data.url);
+        toast('✅ File uploaded — click the link to open/download it.');
       } else {
+        callback(null);
         toast('❌ Failed to upload file.');
       }
     })
-    .catch(() => {
-      toast('❌ Upload error.');
+    .catch(err => {
+      console.error('Upload failed', err);
+      callback(null);
+      toast('❌ Upload error. ' + (err.message || '')); 
     })
     .finally(() => {
       pendingUploads = Math.max(0, pendingUploads - 1);
@@ -1810,10 +1913,10 @@ const btnPrimaryMedia = document.getElementById('btnPrimaryMedia');
 
 typeSelect.addEventListener('change', function() {
   const type = this.value;
-  fileInput.accept = type === 'Audio' ? 'audio/*' : type === 'Video' ? 'video/*' : '.pdf,.doc,.docx';
+  fileInput.accept = type === 'Audio' ? 'audio/*' : type === 'Video' ? 'video/*' : '.pdf,.doc,.docx,.xml,.xls,.xlsx';
   btnPrimaryMedia.setAttribute('data-tip',
     type === 'Audio' ? 'Upload Audio (MP3, WAV)' :
-    type === 'Video' ? 'Upload Video (MP4)' : 'Upload Document (PDF/Docs)');
+    type === 'Video' ? 'Upload Video (MP4)' : 'Upload Document (PDF/DOCX/XML/XLSX)');
 });
 typeSelect.dispatchEvent(new Event('change'));
 
@@ -1854,8 +1957,11 @@ fileInput.addEventListener('change', function(e) {
 
         // Upload the file so it can be opened later (instead of relying on blob URLs)
         uploadAttachedFile(file, (url) => {
-          const link = document.querySelector(`.file-link-placeholder[data-file-name="${file.name}"]`);
-          if (link) link.dataset.href = url;
+          const link = Array.from(document.querySelectorAll('.file-link-placeholder')).find(el => el.dataset.fileName === file.name);
+          if (link) {
+            link.dataset.href = url;
+            link.href = url;
+          }
         });
 
         // Optionally insert extracted text after the link
@@ -1878,8 +1984,11 @@ fileInput.addEventListener('change', function(e) {
 
     // Upload so the file is accessible later (and so docs open properly, not as blank)
     uploadAttachedFile(file, (url) => {
-      const link = document.querySelector(`.file-link-placeholder[data-file-name="${file.name}"]`);
-      if (link) link.dataset.href = url;
+      const link = Array.from(document.querySelectorAll('.file-link-placeholder')).find(el => el.dataset.fileName === file.name);
+      if (link) {
+        link.dataset.href = url;
+        link.href = url;
+      }
     });
 
     if (typeof mammoth !== 'undefined') {
@@ -1907,12 +2016,22 @@ fileInput.addEventListener('change', function(e) {
 });
 
 // ── Form submit ───────────────────────────────────────────────
+let lastNonEmptyContent = quill.root.innerHTML;
+quill.on('text-change', () => {
+  const current = quill.root.innerHTML;
+  if (current && current.trim() && current.trim() !== '<p><br></p>') {
+    lastNonEmptyContent = current;
+  }
+});
+
 document.getElementById('resourceForm').onsubmit = function() {
   if (pendingUploads > 0) {
     toast('⏳ Still uploading attached files. Please wait a moment.');
     return false;
   }
-  document.getElementById('contentInput').value = quill.root.innerHTML;
+
+  const current = quill.root.innerHTML;
+  document.getElementById('contentInput').value = (current && current.trim() && current.trim() !== '<p><br></p>') ? current : lastNonEmptyContent;
 };
 
 // ── Toast ─────────────────────────────────────────────────────

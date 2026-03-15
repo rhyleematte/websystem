@@ -7,6 +7,7 @@ use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ResourceController extends Controller
 {
@@ -81,7 +82,7 @@ class ResourceController extends Controller
             'type' => 'required|in:Article,Audio,Workbook,Media,Video',
             'description' => 'required|string',
             'content' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx,mp3,wav,ogg,mp4,webm,mov|max:51200', // 50MB max
+            'file' => 'nullable|file|mimes:pdf,doc,docx,xml,xls,xlsx,mp3,wav,ogg,mp4,webm,mov|max:51200', // 50MB max
             'thumbnail' => 'nullable|image|max:5120',
             'duration_meta' => 'nullable|string|max:50',
             'hashtags' => 'nullable|string',
@@ -91,7 +92,7 @@ class ResourceController extends Controller
         $tileData['user_id'] = Auth::id();
 
         // Truncate title to 50 chars as requested
-        $tileData['title'] = mb_substr($request->title, 0, 50);
+        $tileData['title'] = $this->limitGraphemes($request->title, 50);
 
         if ($request->hasFile('thumbnail')) {
             $tileData['thumbnail'] = $request->file('thumbnail')->store('resources/thumbnails', 'public');
@@ -104,7 +105,7 @@ class ResourceController extends Controller
         ];
 
         if ($request->hasFile('file')) {
-            $bodyData['file_path'] = $request->file('file')->store('resources/files', 'public');
+            $bodyData['file_path'] = $this->storeResourceFile($request->file('file'));
             $bodyData['file_type'] = $request->file('file')->getClientOriginalExtension();
         }
 
@@ -129,7 +130,7 @@ class ResourceController extends Controller
             'type' => 'required|in:Article,Audio,Workbook,Media,Video',
             'description' => 'required|string',
             'content' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx,mp3,wav,ogg,mp4,webm,mov|max:51200', // 50MB max
+            'file' => 'nullable|file|mimes:pdf,doc,docx,xml,xls,xlsx,mp3,wav,ogg,mp4,webm,mov|max:51200', // 50MB max
             'thumbnail' => 'nullable|image|max:5120',
             'duration_meta' => 'nullable|string|max:50',
             'hashtags' => 'nullable|string',
@@ -139,7 +140,7 @@ class ResourceController extends Controller
         $tileData = $request->except(['thumbnail', 'file', 'content', 'remove_file']);
 
         // Truncate title to 50 chars
-        $tileData['title'] = mb_substr($request->title, 0, 50);
+        $tileData['title'] = $this->limitGraphemes($request->title, 50);
 
         if ($request->hasFile('thumbnail')) {
             if ($resource->thumbnail) {
@@ -166,7 +167,7 @@ class ResourceController extends Controller
             if ($resource->file_path) {
                 Storage::disk('public')->delete($resource->file_path);
             }
-            $bodyData['file_path'] = $request->file('file')->store('resources/files', 'public');
+            $bodyData['file_path'] = $this->storeResourceFile($request->file('file'));
             $bodyData['file_type'] = $request->file('file')->getClientOriginalExtension();
         }
 
@@ -233,6 +234,54 @@ class ResourceController extends Controller
         return redirect()->route('resources.index')->with('success', 'Resource deleted successfully.');
     }
 
+    protected function storeResourceFile($file)
+    {
+        $originalName = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $baseName = pathinfo($originalName, PATHINFO_FILENAME);
+
+        // Keep original file name where possible, but sanitize invalid filesystem chars.
+        $safeBase = preg_replace('/[\\\\\/\?%\*:\|"<>]/', '_', $baseName);
+        $safeBase = trim($safeBase);
+        if ($safeBase === '') {
+            $safeBase = 'file';
+        }
+
+        $folder = 'resources/files';
+        $disk = Storage::disk('public');
+
+        // Ensure unique filename by appending a counter when collisions occur.
+        $filename = $safeBase . '.' . $extension;
+        $fullPath = $folder . '/' . $filename;
+        $counter = 1;
+        while ($disk->exists($fullPath)) {
+            $filename = $safeBase . '-' . $counter++ . '.' . $extension;
+            $fullPath = $folder . '/' . $filename;
+        }
+
+        $disk->putFileAs($folder, $file, $filename);
+        return $fullPath;
+    }
+
+    protected function limitGraphemes(string $text, int $limit): string
+    {
+        if ($limit <= 0 || $text === '') {
+            return '';
+        }
+
+        $matches = [];
+        $ok = preg_match_all('/\\X/u', $text, $matches);
+        if ($ok === false || empty($matches[0])) {
+            return mb_substr($text, 0, $limit);
+        }
+
+        if (count($matches[0]) <= $limit) {
+            return $text;
+        }
+
+        return implode('', array_slice($matches[0], 0, $limit));
+    }
+
     public function serveFile($path)
     {
         $fullPath = 'resources/files/' . $path;
@@ -254,26 +303,54 @@ class ResourceController extends Controller
             'mov' => 'video/quicktime',
             'doc' => 'application/msword',
             'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls' => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'xml' => 'application/xml',
         ];
 
         $mimeType = $mimeTypes[$extension] ?? 'application/octet-stream';
 
+        $downloadFilename = basename($storagePath);
+
+        // Allow forcing a download with a user-provided filename (for correct download naming).
+        // Example: /resource-file/.../?dl=1&fn=My%20File.docx
+        if (request()->query('dl')) {
+            $fn = request()->query('fn');
+            if ($fn) {
+                $downloadFilename = basename($fn);
+            }
+
+            return response()->download($storagePath, $downloadFilename, [
+                'Content-Type' => $mimeType,
+            ]);
+        }
+
         return response()->file($storagePath, [
             'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . basename($storagePath) . '"',
         ]);
     }
 
     public function uploadMedia(Request $request)
     {
-        $this->authorize('create', Resource::class);
+        // Uploads are used both when creating a new resource and when editing an existing one.
+        // In edit mode we allow uploads for users who can update the resource (owner),
+        // while in create mode we keep the same "create" authorization rule.
+        if ($request->filled('resource_id')) {
+            $resource = Resource::find($request->input('resource_id'));
+            if (! $resource) {
+                abort(404);
+            }
+            $this->authorize('update', $resource);
+        } else {
+            $this->authorize('create', Resource::class);
+        }
 
         $request->validate([
-            'media' => 'required|file|mimes:pdf,doc,docx,mp3,wav,ogg,mp4,webm,mov|max:51200',
+            'media' => 'required|file|mimes:pdf,doc,docx,xml,xls,xlsx,mp3,wav,ogg,mp4,webm,mov|max:51200',
         ]);
 
         $file = $request->file('media');
-        $path = $file->store('resources/files', 'public');
+        $path = $this->storeResourceFile($file);
         $filename = basename($path);
         $url = route('resource.file', $filename);
 
