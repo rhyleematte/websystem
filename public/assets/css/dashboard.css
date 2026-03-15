@@ -8,6 +8,7 @@
   --bg: #ffffff;
   /* full whitespace background */
   --panel: #ffffff;
+  --panel-bg: var(--panel);
 
   --text: #0f172a;
   --muted: #64748b;
@@ -34,6 +35,7 @@
 html.theme-dark {
   --bg: #0a0f1d; /* Deep premium slate */
   --panel: #151e2d; /* Solid dark panel */
+  --panel-bg: var(--panel);
 
   --text: #cbd5e1; /* Soft blue-grey text */
   --muted: #94a3b8;

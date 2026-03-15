@@ -250,6 +250,17 @@
       position: sticky;
       bottom: 0;
     }
+    .composer-toolbar.is-floating {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      width: min(860px, calc(100% - 32px));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.22);
+      z-index: 1000;
+    }
     .toolbar-left {
       display: flex;
       align-items: center;
@@ -2035,6 +2046,47 @@ document.getElementById('resourceForm').onsubmit = function() {
 };
 
 // ── Toast ─────────────────────────────────────────────────────
+// Keep toolbar visible while scrolling (floats when its original slot is off-screen)
+(function() {
+  const toolbar = document.getElementById('composerToolbar') || document.querySelector('.composer-toolbar');
+  if (!toolbar || !toolbar.parentNode) return;
+
+  const sentinel = document.createElement('div');
+  sentinel.className = 'composer-toolbar-sentinel';
+  sentinel.setAttribute('aria-hidden', 'true');
+  sentinel.style.height = '1px';
+  sentinel.style.width = '100%';
+  sentinel.style.pointerEvents = 'none';
+  toolbar.parentNode.insertBefore(sentinel, toolbar);
+
+  function isInViewport(el) {
+    const r = el.getBoundingClientRect();
+    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+    return r.bottom > 0 && r.top < vh;
+  }
+
+  function setFloating(shouldFloat) {
+    toolbar.classList.toggle('is-floating', !!shouldFloat);
+  }
+
+  // Set initial state to avoid a flash of the toolbar in the wrong position
+  setFloating(!isInViewport(sentinel));
+
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      const entry = entries && entries[0];
+      if (!entry) return;
+      setFloating(!entry.isIntersecting);
+    }, { root: null, threshold: 0 });
+    io.observe(sentinel);
+  } else {
+    const onScroll = () => setFloating(!isInViewport(sentinel));
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+  }
+})();
+
 function toast(msg) {
   const t = document.getElementById('dash-toast');
   t.textContent = msg; t.style.opacity = '1';
