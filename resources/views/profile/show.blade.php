@@ -41,9 +41,15 @@
         <a class="nav-item" href="{{ route('resources.index') }}">
           <i data-lucide="book-open"></i><span>Resources</span>
         </a>
-        <a class="nav-item active" href="{{ route('profile.show', $profileUser->id) }}">
+        @if($me)
+        <a class="nav-item {{ $isOwn ? 'active' : '' }}" href="{{ route('profile.show', $me->id) }}">
           <i data-lucide="user"></i><span>My Profile</span>
         </a>
+        @else
+        <a class="nav-item active" href="{{ route('profile.show', $profileUser->id) }}">
+          <i data-lucide="user"></i><span>Profile</span>
+        </a>
+        @endif
       </div>
     </aside>
 

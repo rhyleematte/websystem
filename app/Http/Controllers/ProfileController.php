@@ -53,31 +53,6 @@ class ProfileController extends Controller
             ->latest()
             ->get();
 
-        // #region agent log: profile doctor filter context
-        try {
-            $payload = [
-                'sessionId' => 'b31335',
-                'runId' => 'profile-filter',
-                'hypothesisId' => 'H-doc-filter',
-                'location' => 'app/Http/Controllers/ProfileController.php:show',
-                'message' => 'profile_doctor_filter_context',
-                'data' => [
-                    'profile_user_id' => $profileUser->id,
-                    'role' => $profileUser->role,
-                    'doctor_status' => $profileUser->doctor_status,
-                    'joined_groups_count' => $joinedGroups->count(),
-                    'created_groups_count' => $createdGroups->count(),
-                    'joined_resources_count' => $joinedResources->count(),
-                    'created_resources_count' => $createdResources->count(),
-                ],
-                'timestamp' => (int) round(microtime(true) * 1000),
-            ];
-            file_put_contents(base_path('debug-b31335.log'), json_encode($payload) . PHP_EOL, FILE_APPEND);
-        } catch (\Throwable $e) {
-            // ignore logging failures
-        }
-        // #endregion agent log: profile doctor filter context
-
         $application = null;
         $requirements = null;
         $savedPosts = collect();
@@ -683,29 +658,6 @@ class ProfileController extends Controller
                 break;
             }
         }
-
-        // #region agent log: share origin resolution
-        try {
-            $payload = [
-                'sessionId' => 'b31335',
-                'runId' => 'post-fix',
-                'hypothesisId' => 'S1',
-                'location' => 'app/Http/Controllers/ProfileController.php:sharePost',
-                'message' => 'sharePost_origin_resolved',
-                'data' => [
-                    'input_post_id' => $post->id,
-                    'input_shared_post_id' => $post->shared_post_id,
-                    'origin_post_id' => $origin->id,
-                    'origin_shared_post_id' => $origin->shared_post_id,
-                    'guard' => $guard,
-                ],
-                'timestamp' => (int) round(microtime(true) * 1000),
-            ];
-            file_put_contents(base_path('debug-b31335.log'), json_encode($payload) . PHP_EOL, FILE_APPEND);
-        } catch (\Throwable $e) {
-            // ignore logging failures
-        }
-        // #endregion agent log: share origin resolution
 
         $shared = Post::create([
             'user_id' => Auth::id(),

@@ -202,6 +202,29 @@
   word-break: break-word;
 }
 
+.res-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -6px 0 14px;
+}
+
+.res-card-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--hover);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--res-primary);
+  line-height: 1;
+}
+
+.res-card-tag-more {
+  color: var(--muted);
+  font-weight: 600;
+}
+
 .res-card-footer {
   margin-top: auto;
   display: flex;

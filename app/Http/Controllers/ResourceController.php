@@ -41,28 +41,6 @@ class ResourceController extends Controller
                 ->exists();
         }
 
-        // #region agent log: resource show navigation context
-        try {
-            $user = Auth::user();
-            $payload = [
-                'sessionId' => 'b31335',
-                'runId' => 'resource-nav',
-                'hypothesisId' => 'H-back-profile',
-                'location' => 'app/Http/Controllers/ResourceController.php:show',
-                'message' => 'resource_show_context',
-                'data' => [
-                    'resource_id' => $resource->id,
-                    'auth_user_id' => $user ? $user->id : null,
-                    'is_joined' => $isJoined,
-                ],
-                'timestamp' => (int) round(microtime(true) * 1000),
-            ];
-            file_put_contents(base_path('debug-b31335.log'), json_encode($payload) . PHP_EOL, FILE_APPEND);
-        } catch (\Throwable $e) {
-            // ignore logging failures
-        }
-        // #endregion agent log: resource show navigation context
-
         // For Article vs others, logic might differ but we'll use same show page for now
         return view('resources.show', compact('resource', 'isJoined'));
     }

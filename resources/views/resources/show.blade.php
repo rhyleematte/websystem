@@ -76,6 +76,22 @@
         font-size: 12px;
         color: var(--muted);
     }
+    .res-show-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: -16px 0 32px;
+    }
+    .res-show-tag {
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--hover);
+        border: 1px solid var(--border);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--res-primary);
+        line-height: 1;
+    }
     .res-body-text {
         font-size: 18px;
         line-height: 1.8;
@@ -188,6 +204,18 @@
                         </div>
                         @endif
                     </div>
+
+                    @if(count($resource->hashtags_array ?? []))
+                      <div class="res-show-tags" aria-label="Hashtags">
+                        @foreach($resource->hashtags_array as $tag)
+                          @php
+                            $cleanTag = ltrim(trim((string) $tag), '#');
+                          @endphp
+                          @continue($cleanTag === '')
+                          <span class="res-show-tag">#{{ $cleanTag }}</span>
+                        @endforeach
+                      </div>
+                    @endif
 
                     <div class="res-body-content" style="display: flex; flex-direction: column; gap: 32px;">
                         {{-- Audio: HTML5 Audio Player --}}

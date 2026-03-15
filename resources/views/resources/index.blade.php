@@ -66,7 +66,8 @@
         <div class="res-card"
              data-type="{{ $res->type }}"
              data-title="{{ strtolower($res->title ?? '') }}"
-             data-desc="{{ strtolower($res->description ?? '') }}">
+             data-desc="{{ strtolower($res->description ?? '') }}"
+             data-tags="{{ strtolower($res->hashtags ?? '') }}">
           <div class="res-card-thumb">
             <img src="{{ $res->thumbnail_url }}" alt="{{ $res->title }}">
             <span class="res-card-type">{{ $res->type }}</span>
@@ -74,6 +75,24 @@
           <div class="res-card-content">
             <h3 class="res-card-title">{{ \Illuminate\Support\Str::limit($res->title, 50) }}</h3>
             <p class="res-card-desc">{{ \Illuminate\Support\Str::limit($res->description, 100) }}</p>
+
+            @php
+              $tags = $res->hashtags_array ?? [];
+              $tags = array_values(array_filter(array_map(function ($t) {
+                $t = ltrim(trim((string) $t), '#');
+                return $t === '' ? null : $t;
+              }, $tags)));
+            @endphp
+            @if(count($tags))
+              <div class="res-card-tags" aria-label="Hashtags">
+                @foreach(array_slice($tags, 0, 4) as $tag)
+                  <span class="res-card-tag">#{{ $tag }}</span>
+                @endforeach
+                @if(count($tags) > 4)
+                  <span class="res-card-tag res-card-tag-more">+{{ count($tags) - 4 }}</span>
+                @endif
+              </div>
+            @endif
             
             <div class="res-card-footer">
               <div class="res-card-meta">
@@ -130,41 +149,6 @@ document.addEventListener('DOMContentLoaded', function () {
   var filters = document.getElementById('resFilters');
   var cards = Array.from(document.querySelectorAll('.res-grid .res-card'));
   var noResults = document.getElementById('resNoResults');
-  var buttons = Array.from(document.querySelectorAll('.res-card-btn')).slice(0, 5);
-
-  // #region agent log: resource card button layout probe (H1: button clipped)
-  try {
-    if (buttons.length) {
-      var payload = {
-        sessionId: 'b31335',
-        runId: 'res-btn-fit',
-        hypothesisId: 'H1',
-        location: 'resources/index.blade.php:res-card-btn-probe',
-        message: 'res_card_btn_metrics',
-        data: buttons.map(function (btn, idx) {
-          return {
-            idx: idx,
-            text: btn.textContent.trim(),
-            clientWidth: btn.clientWidth,
-            scrollWidth: btn.scrollWidth,
-            parentWidth: btn.parentElement ? btn.parentElement.clientWidth : null
-          };
-        }),
-        timestamp: Date.now()
-      };
-      fetch('http://127.0.0.1:7658/ingest/8b61fa6d-3718-4953-90ff-348851f37aa5', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Debug-Session-Id': 'b31335'
-        },
-        body: JSON.stringify(payload)
-      }).catch(function () {});
-    }
-  } catch (e) {
-    // ignore debug failures
-  }
-  // #endregion agent log: resource card button layout probe
 
   function norm(s){ return (s || '').toString().trim().toLowerCase(); }
   var state = { q: '', type: 'all' };
@@ -173,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var shown = 0;
     cards.forEach(function (card) {
       var type = card.dataset.type || '';
-      var hay = (card.dataset.title || '') + ' ' + (card.dataset.desc || '') + ' ' + norm(type);
+      var hay = (card.dataset.title || '') + ' ' + (card.dataset.desc || '') + ' ' + (card.dataset.tags || '') + ' ' + norm(type);
       var okType = (state.type === 'all') || (type === state.type);
       var okQ = !state.q || hay.indexOf(state.q) !== -1;
       var show = okType && okQ;
