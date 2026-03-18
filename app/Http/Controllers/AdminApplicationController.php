@@ -75,7 +75,14 @@ class AdminApplicationController extends Controller
 
         $applications = $query->get();
 
-        return view('admin.applications.index', compact('applications', 'tab', 'search', 'fromDate', 'toDate'));
+        $counts = [
+            'all' => \App\Models\DoctorApplication::count(),
+            'pending' => \App\Models\DoctorApplication::where('status', 'pending')->count(),
+            'approved' => \App\Models\DoctorApplication::where('status', 'approved')->count(),
+            'rejected' => \App\Models\DoctorApplication::where('status', 'rejected')->count(),
+        ];
+
+        return view('admin.applications.index', compact('applications', 'tab', 'search', 'fromDate', 'toDate', 'counts'));
     }
 
     public function show(Request $request, $id)

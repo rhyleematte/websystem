@@ -11,6 +11,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatTray = document.querySelector('#chat-tray');
     const chatBoxTemplate = document.querySelector('#chat-box-template');
 
+    // If messenger isn't on this page (like for Admins), exit safely.
+    if (!messengerDrawer || !conversationList || !chatBoxTemplate) {
+        return;
+    }
+
     let openChats = new Map(); // conversationId -> { element, lastMsgId, pollInterval, typingInterval, isTyping }
     let convPollInterval = null;
 

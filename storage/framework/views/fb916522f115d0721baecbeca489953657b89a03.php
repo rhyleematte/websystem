@@ -1,4 +1,4 @@
-@php
+<?php
   $header_user = Auth::user() ?? Auth::guard('admin')->user();
   if ($header_user) {
       $header_avatarUrl = $header_user->avatar_url;
@@ -16,12 +16,12 @@
       $header_username  = 'guest';
       $isDoctor         = false;
   }
-@endphp
+?>
 
 <header class="dash-topbar">
   <div class="brand">
-    <a href="{{ route('user.dashboard') }}">
-      <img src="{{ asset('assets/img/AskDocPH.png') }}" class="logo" alt="AskDocPH">
+    <a href="<?php echo e(route('user.dashboard')); ?>">
+      <img src="<?php echo e(asset('assets/img/AskDocPH.png')); ?>" class="logo" alt="AskDocPH">
     </a>
   </div>
 
@@ -40,37 +40,40 @@
       <span class="dot" id="headerNotifDot" style="display:none;"></span>
     </button>
 
-    {{-- Profile dropdown --}}
+    
     <div class="avatar-dropdown">
       <button class="avatar-btn" type="button" id="profileToggle"
               aria-label="Profile" aria-haspopup="true" aria-expanded="false">
-        <img src="{{ $header_avatarUrl }}" alt="User" />
+        <img src="<?php echo e($header_avatarUrl); ?>" alt="User" />
         <div class="avatar-meta">
           <div class="avatar-name">
-            {{ $header_shortName }}
-            @if($isDoctor)
+            <?php echo e($header_shortName); ?>
+
+            <?php if($isDoctor): ?>
               <i data-lucide="badge-check" class="doctor-badge" title="Approved Doctor"></i>
-            @endif
+            <?php endif; ?>
           </div>
           <div class="avatar-username">
-            {{ '@'.$header_username }}
+            <?php echo e('@'.$header_username); ?>
+
           </div>
         </div>
         <i data-lucide="chevron-down" class="dropdown-icon"></i>
       </button>
 
       <div class="dropdown-menu" id="profileDropdown" aria-labelledby="profileToggle">
-        <a href="{{ route('profile.show', Auth::id()) }}" class="dropdown-profile-link">
+        <a href="<?php echo e(route('profile.show', Auth::id())); ?>" class="dropdown-profile-link">
           <div class="dropdown-profile">
-            <div class="dropdown-avatar"><img src="{{ $header_avatarUrl }}" alt="User" /></div>
+            <div class="dropdown-avatar"><img src="<?php echo e($header_avatarUrl); ?>" alt="User" /></div>
             <div class="dropdown-info">
               <div class="profile-fullname">
-                {{ $header_fullName }}
-                @if($isDoctor)
+                <?php echo e($header_fullName); ?>
+
+                <?php if($isDoctor): ?>
                   <i data-lucide="badge-check" class="doctor-badge" title="Approved Doctor"></i>
-                @endif
+                <?php endif; ?>
               </div>
-              <div class="profile-username">{{ '@'.$header_username }}</div>
+              <div class="profile-username"><?php echo e('@'.$header_username); ?></div>
             </div>
           </div>
         </a>
@@ -78,19 +81,19 @@
         <button type="button" class="dropdown-item" id="themeToggleBtn">
           <i data-lucide="moon"></i><span>Dark mode</span>
         </button>
-        @if(Auth::guard('admin')->check())
+        <?php if(Auth::guard('admin')->check()): ?>
         <hr class="dropdown-divider">
-        <a href="{{ route('admin.applications.index') }}" class="dropdown-item" style="text-decoration: none; color: inherit;">
+        <a href="<?php echo e(route('admin.applications.index')); ?>" class="dropdown-item" style="text-decoration: none; color: inherit;">
           <i data-lucide="users"></i><span>Applications</span>
         </a>
 
-        <a href="{{ route('admin.professional-titles.index') }}" class="dropdown-item" style="text-decoration: none; color: inherit;">
+        <a href="<?php echo e(route('admin.professional-titles.index')); ?>" class="dropdown-item" style="text-decoration: none; color: inherit;">
           <i data-lucide="briefcase"></i><span>Professional Titles</span>
         </a>
-        @endif
+        <?php endif; ?>
         <hr class="dropdown-divider">
-        <form method="POST" action="{{ route('logout') }}" class="logout-form">
-          @csrf
+        <form method="POST" action="<?php echo e(route('logout')); ?>" class="logout-form">
+          <?php echo csrf_field(); ?>
           <button type="submit" class="dropdown-logout">
             <i data-lucide="log-out"></i><span>Logout</span>
           </button>
@@ -99,3 +102,4 @@
     </div>
   </div>
 </header>
+<?php /**PATH C:\websystem\resources\views/partials/header.blade.php ENDPATH**/ ?>

@@ -171,7 +171,9 @@ html.theme-dark .dash-topbar {
 }
 
 /* Explicitly Solid Dark color for Dark Mode so it is never transparent */
-html.theme-dark .search-dropdown {
+html.theme-dark .search-dropdown,
+html.theme-dark .dropdown-menu,
+html.theme-dark .admin-dropdown-menu {
   background: #141d2f;
   /* Solid Midnight Blue */
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -1242,6 +1244,11 @@ html.theme-dark .post-menu {
 
 .shared-post-media-mini video {
   object-fit: cover;
+}
+
+.shared-post-card .shared-post-media-grid {
+  margin-top: 10px;
+  margin-bottom: 0;
 }
 
 /* ── Share modal ─────────────────────────────────────────────── */

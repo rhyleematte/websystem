@@ -1,4 +1,4 @@
-@extends('layouts.dashboard')
+@extends('layouts.admin')
 
 @section('title', 'Admin - Doctor Applications')
 
@@ -174,14 +174,16 @@
     text-decoration: none;
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--primary);
-    background: transparent;
-    border: 1px solid rgba(59, 130, 246, 0.4);
+    color: #ffffff;
+    background: var(--primary, #3b82f6);
+    border: none;
     transition: all 0.2s ease;
+    box-shadow: 0 2px 4px -1px rgba(59, 130, 246, 0.1);
 }
 .btn-sm:hover {
-    background: rgba(59, 130, 246, 0.05);
-    border-color: var(--primary);
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
 }
 .btn-sm i {
     width: 16px;
@@ -241,10 +243,18 @@
 
         {{-- Categories Navigation --}}
         <div class="admin-tabs">
-            <a href="{{ route('admin.applications.index', ['tab' => 'all', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'all' ? 'active' : '' }}">All</a>
-            <a href="{{ route('admin.applications.index', ['tab' => 'pending', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'pending' ? 'active' : '' }}">Pending</a>
-            <a href="{{ route('admin.applications.index', ['tab' => 'approved', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'approved' ? 'active' : '' }}">Approved</a>
-            <a href="{{ route('admin.applications.index', ['tab' => 'rejected', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'rejected' ? 'active' : '' }}">Rejected</a>
+            <a href="{{ route('admin.applications.index', ['tab' => 'all', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'all' ? 'active' : '' }}">
+                All {{ $counts['all'] > 0 ? '('.$counts['all'].')' : '' }}
+            </a>
+            <a href="{{ route('admin.applications.index', ['tab' => 'pending', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'pending' ? 'active' : '' }}">
+                Pending {{ $counts['pending'] > 0 ? '('.$counts['pending'].')' : '' }}
+            </a>
+            <a href="{{ route('admin.applications.index', ['tab' => 'approved', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'approved' ? 'active' : '' }}">
+                Approved {{ $counts['approved'] > 0 ? '('.$counts['approved'].')' : '' }}
+            </a>
+            <a href="{{ route('admin.applications.index', ['tab' => 'rejected', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate]) }}" class="{{ $tab === 'rejected' ? 'active' : '' }}">
+                Rejected {{ $counts['rejected'] > 0 ? '('.$counts['rejected'].')' : '' }}
+            </a>
         </div>
 
         @if(session('success'))

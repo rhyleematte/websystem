@@ -34,7 +34,9 @@ class HelpRequestController extends Controller
                 if (str_contains($userText, $keyword)) {
                     return response()->json([
                         'role' => 'assistant',
-                        'content' => "It seems you may be experiencing distress. Please know that help is available. If you feel unsafe or overwhelmed, consider calling emergency services immediately. For ongoing support, here are some mental health helpline numbers: [Provide relevant Indian mental health helpline numbers]. We strongly encourage you to seek professional help."
+                        'content' => $this->crisisSupportMessage(),
+                        'emotion' => 'High distress',
+                        'topics' => ['crisis support', 'suicidal thoughts']
                     ]);
                 }
             }
@@ -44,6 +46,10 @@ class HelpRequestController extends Controller
         $knowledgePath = storage_path('app/ai_knowledge.json');
         if (file_exists($knowledgePath)) {
             $docs = json_decode(file_get_contents($knowledgePath), true) ?? [];
+            $docs = array_values(array_filter($docs, function ($doc) {
+                $haystack = strtolower(($doc['source'] ?? '') . ' ' . ($doc['content'] ?? ''));
+                return !str_contains($haystack, 'india') && !str_contains($haystack, 'indian');
+            }));
             if (!empty($docs)) {
                 shuffle($docs);
                 $selected = array_slice($docs, 0, 3);
@@ -60,13 +66,16 @@ class HelpRequestController extends Controller
         "2. Do NOT sound robotic or clinical. Use natural, warm, and conversational language.\n" .
         "3. Ask thoughtful follow-up questions to understand how they are doing, but only one question at a time.\n" .
         "4. Base any factual information loosely on the provided context guidelines, but do not sound like you are just reading from a textbook.\n" .
-        "5. IMPORTANT DOCTOR MATCHING RULE: First, listen and converse. DO NOT immediately suggest a professional in the first few messages. ONLY when they explicitly ask for professional help, or when it becomes very clear through the conversation that they need a doctor's attention, should you suggest one.\n" .
-        "6. Make use of a single relevant emoji occasionally to feel engaging.\n\n" .
+        "5. The user is in the Philippines. When giving location-specific guidance, use Philippines-based context and resources, never India-specific agencies or hotlines.\n" .
+        "6. If the user mentions self-harm, suicide, or immediate danger, urgently encourage them to call 911 in the Philippines or contact the NCMH Crisis Hotline: 1553, 0917-899-8727, 0966-351-4518, or 1800-1888-1553.\n" .
+        "7. IMPORTANT DOCTOR MATCHING RULE: First, listen and converse. DO NOT immediately suggest a professional in the first few messages. ONLY when they explicitly ask for professional help, or when it becomes very clear through the conversation that they need a doctor's attention, should you suggest one.\n" .
+        "8. Make use of a single relevant emoji occasionally to feel engaging.\n\n" .
         "Negative Prompts (DO NOT DO THESE):\n" .
         "- Do not provide medical diagnoses or prescribe medications.\n" .
         "- Do not write long, multi-paragraph essays or dump large lists of information.\n" .
         "- Do not claim to be a licensed therapist or medical professional.\n" .
-        "- Do not share personal AI opinions or make assumptions about the user's condition.\n\n" .
+        "- Do not share personal AI opinions or make assumptions about the user's condition.\n" .
+        "- Do not mention Indian hotlines, Indian ministries, or India-specific services unless the user explicitly asks about India.\n\n" .
         "Context (from mental health database):\n" . $knowledgeText . "\n\n" .
         "Doctor Matching Execution: As instructed, only when you have conversed enough and it is evident they need professional help (e.g. Psychologist, Psychiatrist, Therapist, Counselor), you MUST provide a suggested title.\n\n" .
         "IMPORTANT - JSON OUTPUT ONLY:\n" .
@@ -277,5 +286,12 @@ class HelpRequestController extends Controller
             'is_online' => $user->is_online,
             'is_free_to_talk' => $user->is_free_to_talk
         ]);
+    }
+
+    private function crisisSupportMessage(): string
+    {
+        return "It sounds like you may be in immediate distress. If you feel you might act on these thoughts or you are not safe right now, please call 911 in the Philippines now, go to the nearest emergency room, or ask a trusted person nearby to stay with you.\n\n" .
+            "You can also contact the National Center for Mental Health (NCMH) 24/7 Crisis Hotline: 1553, 0917-899-8727, 0966-351-4518, or 1800-1888-1553.\n\n" .
+            "You do not have to go through this alone, and reaching out right now is important.";
     }
 }

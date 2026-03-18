@@ -9,6 +9,10 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        if (Auth::guard('admin')->check()) {
+            return redirect()->route('admin.applications.index');
+        }
+
         $user = Auth::user();
         $rejectedApplication = null;
 

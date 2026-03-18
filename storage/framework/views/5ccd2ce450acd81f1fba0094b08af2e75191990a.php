@@ -1,21 +1,19 @@
-@extends('layouts.dashboard')
+<?php $__env->startSection('title', 'Dashboard - AskDocPH'); ?>
 
-@section('title', 'Dashboard - AskDocPH')
-
-@section('content')
-@php
+<?php $__env->startSection('content'); ?>
+<?php
   $user      = Auth::user();
   $avatarUrl = $user->avatar_url;
   $fullName  = $user->full_name ?: ($user->name ?? 'User');
   $shortName = $user->short_name ?: $fullName;
   $username  = $user->username ?? 'username';
-@endphp
+?>
 
-{{-- Inject JS routes --}}
+
 <script>
 window.DASH_ROUTES = {
-  feed:          "{{ route('dashboard.feed') }}",
-  storePost:     "{{ route('profile.posts.store') }}",
+  feed:          "<?php echo e(route('dashboard.feed')); ?>",
+  storePost:     "<?php echo e(route('profile.posts.store')); ?>",
   toggleLike:    function(id){ return "/profile/posts/" + id + "/like"; },
   toggleSave:    function(id){ return "/profile/posts/" + id + "/save"; },
   storeComment:  function(id){ return "/profile/posts/" + id + "/comments"; },
@@ -23,31 +21,31 @@ window.DASH_ROUTES = {
   destroyPost:   function(id){ return "/profile/posts/" + id; },
   updatePost:    function(id){ return "/profile/posts/" + id; },
 };
-window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
+window.MY_PROFILE_URL = "<?php echo e(route('profile.show', Auth::id())); ?>";
 </script>
 
 <main class="dash">
 
-  {{-- Body --}}
+  
   <div class="dash-body">
 
-    {{-- Left sidebar --}}
+    
     <aside class="dash-left">
       <div class="panel nav-panel">
         <a class="nav-item active" href="#"><i data-lucide="home"></i><span>Feed</span></a>
-        <a class="nav-item" href="{{ route('groups.index') }}"><i data-lucide="users"></i><span>Support Groups</span></a>
-        <a class="nav-item" href="{{ route('resources.index') }}"><i data-lucide="book-open"></i><span>Resources</span></a>
-        <a class="nav-item" href="{{ route('profile.show', Auth::id()) }}">
+        <a class="nav-item" href="<?php echo e(route('groups.index')); ?>"><i data-lucide="users"></i><span>Support Groups</span></a>
+        <a class="nav-item" href="<?php echo e(route('resources.index')); ?>"><i data-lucide="book-open"></i><span>Resources</span></a>
+        <a class="nav-item" href="<?php echo e(route('profile.show', Auth::id())); ?>">
           <i data-lucide="user"></i><span>My Profile</span>
         </a>
-        @if(Auth::user()->role !== 'doctor' && Auth::user()->doctor_status !== 'approved' && Auth::user()->doctor_status !== 'none' && Auth::user()->doctor_status !== null)
-        <a class="nav-item" href="{{ route('profile.show', Auth::id()) }}?tab=application">
+        <?php if(Auth::user()->role !== 'doctor' && Auth::user()->doctor_status !== 'approved' && Auth::user()->doctor_status !== 'none' && Auth::user()->doctor_status !== null): ?>
+        <a class="nav-item" href="<?php echo e(route('profile.show', Auth::id())); ?>?tab=application">
           <i data-lucide="stethoscope"></i><span>Apply as Doctor</span>
         </a>
-        @endif
+        <?php endif; ?>
       </div>
 
-      @include('partials.daily_affirmation_panel')
+      <?php echo $__env->make('partials.daily_affirmation_panel', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
       <div class="panel mini-panel danger">
         <div class="mini-title"><i data-lucide="life-buoy"></i><span>Crisis Support</span></div>
@@ -55,38 +53,38 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
         <button class="danger-btn" type="button" id="getHelpBtn">Get Help Now</button>
       </div>
 
-      @if(Auth::user()->isApprovedDoctor())
-        @include('partials.doctor_status_panel')
-      @endif
+      <?php if(Auth::user()->isApprovedDoctor()): ?>
+        <?php echo $__env->make('partials.doctor_status_panel', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+      <?php endif; ?>
     </aside>
 
-    @if(Auth::user()->isApprovedDoctor())
-        @include('partials.doctor_pending_requests')
-    @endif
+    <?php if(Auth::user()->isApprovedDoctor()): ?>
+        <?php echo $__env->make('partials.doctor_pending_requests', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+    <?php endif; ?>
 
-    {{-- Main feed --}}
+    
     <section class="dash-main">
 
-      {{-- ── Post Composer ── --}}
+      
       <div class="panel composer" id="composerPanel">
         <div class="composer-top">
           <div class="avatar sm">
-            <img src="{{ $avatarUrl }}" alt="You" />
+            <img src="<?php echo e($avatarUrl); ?>" alt="You" />
           </div>
           <textarea id="dashPostText" placeholder="Share your thoughts, feelings, or progress..."></textarea>
         </div>
 
-        {{-- Media preview --}}
+        
         <div id="mediaPreviewArea" class="media-preview-grid" style="display:none;"></div>
 
-        {{-- Hashtag input --}}
+        
         <div class="hashtag-row" id="hashtagRow" style="display:none;">
           <i data-lucide="hash"></i>
           <input type="text" id="hashtagInput" placeholder="anxiety, hope, recovery  (comma-separated)" />
         </div>
 
 
-        {{-- Mood bar --}}
+        
         <div class="mood-bar" id="moodBar" style="display:none;">
           <span class="mood-label">How are you feeling?</span>
           <div class="mood-options">
@@ -103,23 +101,23 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
         </div>
 
         <div class="composer-bottom">
-          {{-- Photo button --}}
+          
           <label class="chip-btn" for="mediaUpload" title="Attach photo/video" style="cursor:pointer;">
             <i data-lucide="image"></i> Photo
           </label>
           <input type="file" id="mediaUpload" accept="image/*,video/*" multiple style="display:none;" />
 
-          {{-- Mood button --}}
+          
           <button class="chip-btn" type="button" id="moodToggleBtn" title="Add mood">
             <i data-lucide="smile"></i> Mood
           </button>
 
-          {{-- Hashtag button --}}
+          
           <button class="chip-btn" type="button" id="hashtagToggleBtn" title="Add hashtags">
             <i data-lucide="hash"></i> Tags
           </button>
 
-          {{-- Link button & popup --}}
+          
           <div class="link-popup-wrap" id="linkWrap">
             <button class="chip-btn" type="button" id="linkToggleBtn" title="Add link">
               <i data-lucide="link"></i> Link
@@ -147,7 +145,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
         </div>
       </div>
 
-      {{-- Feed --}}
+      
       <div id="dashFeed">
         <div class="feed-loading panel" id="feedLoading">
           <i data-lucide="loader"></i>
@@ -164,9 +162,11 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
   </div>
 </main>
 
-{{-- Toast --}}
+
 <div id="dash-toast" class="dash-toast" aria-live="polite"></div>
 
-@include('partials.ai_chat_modal')
+<?php echo $__env->make('partials.ai_chat_modal', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.dashboard', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\websystem\resources\views/userdashboard.blade.php ENDPATH**/ ?>

@@ -3,42 +3,42 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>@yield('title', 'AskDocPH')</title>
+  <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+  <title><?php echo $__env->yieldContent('title', 'AskDocPH'); ?></title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
 
   <!-- Base + Dashboard CSS -->
-  <link rel="stylesheet" href="{{ asset('assets/css/dashboard.css') }}">
-  <link rel="stylesheet" href="{{ asset('assets/css/messenger.css') }}">
+  <link rel="stylesheet" href="<?php echo e(asset('assets/css/dashboard.css')); ?>">
+  <link rel="stylesheet" href="<?php echo e(asset('assets/css/messenger.css')); ?>">
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- Page-specific styles -->
-  @stack('styles')
+  <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 
 <body>
 
-@auth
-  @php
+<?php if(auth()->guard()->check()): ?>
+  <?php
     $layout_user = Auth::user();
     $layout_avatarUrl = $layout_user->avatar_url;
     $layout_fullName  = $layout_user->full_name ?: ($layout_user->name ?? 'User');
-  @endphp
+  ?>
   <script>
-    window.MY_ID = {{ Auth::id() }};
-    window.MY_AVATAR = "{{ $layout_avatarUrl }}";
-    window.MY_NAME = "{{ addslashes($layout_fullName) }}";
+    window.MY_ID = <?php echo e(Auth::id()); ?>;
+    window.MY_AVATAR = "<?php echo e($layout_avatarUrl); ?>";
+    window.MY_NAME = "<?php echo e(addslashes($layout_fullName)); ?>";
   </script>
-  @include('partials.header')
-  @include('partials.messenger')
-@endauth
+  <?php echo $__env->make('partials.header', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+  <?php echo $__env->make('partials.messenger', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+<?php endif; ?>
 
-@yield('content')
+<?php echo $__env->yieldContent('content'); ?>
 
 
 <!-- Share modal (used by Dashboard/Profile/Resources) -->
@@ -66,12 +66,13 @@
 </div>
 
 <!-- Dashboard JS -->
-<script src="{{ asset('assets/js/mentions.js') }}?v={{ filemtime(public_path('assets/js/mentions.js')) }}" defer></script>
-<script src="{{ asset('assets/js/notifications.js') }}?v={{ filemtime(public_path('assets/js/notifications.js')) }}" defer></script>
-<script src="{{ asset('assets/js/dashboard.js') }}?v={{ filemtime(public_path('assets/js/dashboard.js')) }}" defer></script>
-<script src="{{ asset('assets/js/post-ui.js') }}?v={{ filemtime(public_path('assets/js/post-ui.js')) }}" defer></script>
-<script src="{{ asset('assets/js/messenger.js') }}" defer></script>
+<script src="<?php echo e(asset('assets/js/mentions.js')); ?>?v=<?php echo e(filemtime(public_path('assets/js/mentions.js'))); ?>" defer></script>
+<script src="<?php echo e(asset('assets/js/notifications.js')); ?>?v=<?php echo e(filemtime(public_path('assets/js/notifications.js'))); ?>" defer></script>
+<script src="<?php echo e(asset('assets/js/dashboard.js')); ?>?v=<?php echo e(filemtime(public_path('assets/js/dashboard.js'))); ?>" defer></script>
+<script src="<?php echo e(asset('assets/js/post-ui.js')); ?>?v=<?php echo e(filemtime(public_path('assets/js/post-ui.js'))); ?>" defer></script>
+<script src="<?php echo e(asset('assets/js/messenger.js')); ?>" defer></script>
 
-@stack('scripts')
+<?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 </html>
+<?php /**PATH C:\websystem\resources\views/layouts/dashboard.blade.php ENDPATH**/ ?>

@@ -151,12 +151,12 @@ document.addEventListener('DOMContentLoaded', () => {
         aiChatBody.scrollTop = aiChatBody.scrollHeight;
         
         try {
-            const res = await fetch('{{ url("/api/help/chat") }}', {
+            const res = await fetch('<?php echo e(url("/api/help/chat")); ?>', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
                 },
                 body: JSON.stringify({ messages: chatHistory })
             });
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function fetchDoctors(title) {
-        const res = await fetch(`{{ url("/api/help/doctors") }}?title=${encodeURIComponent(title)}`, {
+        const res = await fetch(`<?php echo e(url("/api/help/doctors")); ?>?title=${encodeURIComponent(title)}`, {
             headers: {'Accept': 'application/json'}
         });
         const data = await res.json();
@@ -231,11 +231,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.target.innerText = 'Requesting...';
                 
                 try {
-                    const r = await fetch('{{ url("/api/help/request") }}', {
+                    const r = await fetch('<?php echo e(url("/api/help/request")); ?>', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
                         },
                         body: JSON.stringify({ doctor_id: docId, suggested_title: t })
                     });
@@ -266,3 +266,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<?php /**PATH C:\websystem\resources\views/partials/ai_chat_modal.blade.php ENDPATH**/ ?>

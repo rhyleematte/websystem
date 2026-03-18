@@ -157,10 +157,6 @@ Route::group(['prefix' => 'admin'], function () {
             Route::post('/profile/update-photo', [\App\Http\Controllers\AdminProfileController::class , 'updatePhoto'])->name('admin.profile.update.photo');
             Route::post('/profile/delete-photo', [\App\Http\Controllers\AdminProfileController::class , 'deletePhoto'])->name('admin.profile.delete.photo');
 
-            // AI Guidelines
-            Route::get('/guidelines', [\App\Http\Controllers\AdminAiGuidelineController::class , 'index'])->name('admin.guidelines.index');
-            Route::post('/guidelines', [\App\Http\Controllers\AdminAiGuidelineController::class , 'store'])->name('admin.guidelines.store');
-            Route::delete('/guidelines/{id}', [\App\Http\Controllers\AdminAiGuidelineController::class , 'destroy'])->name('admin.guidelines.destroy');
 
             // Professional Titles
             Route::get('/professional-titles', [\App\Http\Controllers\Admin\ProfessionalTitleController::class, 'index'])->name('admin.professional-titles.index');
@@ -168,10 +164,19 @@ Route::group(['prefix' => 'admin'], function () {
             Route::put('/professional-titles/{professional_title}', [\App\Http\Controllers\Admin\ProfessionalTitleController::class, 'update'])->name('admin.professional-titles.update');
             Route::delete('/professional-titles/{professional_title}', [\App\Http\Controllers\Admin\ProfessionalTitleController::class, 'destroy'])->name('admin.professional-titles.destroy');
 
-            // Admin Messaging
-            Route::get('/messages', [\App\Http\Controllers\Admin\AdminMessageController::class, 'index'])->name('admin.messages.index');
-            Route::get('/messages/{adminId}', [\App\Http\Controllers\Admin\AdminMessageController::class, 'show'])->name('admin.messages.show');
-            Route::post('/messages/{adminId}', [\App\Http\Controllers\Admin\AdminMessageController::class, 'store'])->name('admin.messages.store');
+            // Daily Affirmations
+            Route::get('/daily-affirmations', [\App\Http\Controllers\Admin\DailyAffirmationController::class, 'index'])->name('admin.daily-affirmations.index');
+            Route::post('/daily-affirmations', [\App\Http\Controllers\Admin\DailyAffirmationController::class, 'store'])->name('admin.daily-affirmations.store');
+            Route::put('/daily-affirmations/{daily_affirmation}', [\App\Http\Controllers\Admin\DailyAffirmationController::class, 'update'])->name('admin.daily-affirmations.update');
+            Route::delete('/daily-affirmations/{daily_affirmation}', [\App\Http\Controllers\Admin\DailyAffirmationController::class, 'destroy'])->name('admin.daily-affirmations.destroy');
+            Route::post('/daily-affirmations/{daily_affirmation}/publish-now', [\App\Http\Controllers\Admin\DailyAffirmationController::class, 'publishNow'])->name('admin.daily-affirmations.publish-now');
+
+            // Admin Messages (Drawer API)
+            Route::get('/api/messenger/conversations', [\App\Http\Controllers\Admin\AdminMessageController::class, 'apiConversations'])->name('admin.messages.api.conversations');
+            Route::get('/api/messenger/search', [\App\Http\Controllers\Admin\AdminMessageController::class, 'apiSearch'])->name('admin.messages.api.search');
+            Route::get('/api/messenger/messages/{id}', [\App\Http\Controllers\Admin\AdminMessageController::class, 'apiMessages'])->name('admin.messages.api.messages');
+            Route::post('/api/messenger/send', [\App\Http\Controllers\Admin\AdminMessageController::class, 'apiSend'])->name('admin.messages.api.send');
+
 
             // Admin Notifications
             Route::get('/notifications', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'index'])->name('admin.notifications.index');

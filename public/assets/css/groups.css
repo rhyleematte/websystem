@@ -119,6 +119,41 @@
     filter: brightness(0.98);
 }
 
+html.theme-dark .groups-search-wrap {
+    border-color: rgba(99, 102, 241, 0.28);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(17, 24, 39, 0.96));
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.35);
+}
+
+html.theme-dark .groups-search-wrap i {
+    color: #93c5fd;
+}
+
+html.theme-dark .groups-search-wrap input {
+    color: #e5eefc;
+}
+
+html.theme-dark .groups-search-wrap input::placeholder {
+    color: #94a3b8;
+}
+
+html.theme-dark .groups-filter-wrap select {
+    border-color: rgba(99, 102, 241, 0.32);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+    color: #e5eefc;
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.35);
+}
+
+html.theme-dark .groups-filter-wrap select:focus {
+    outline: none;
+    border-color: rgba(129, 140, 248, 0.55);
+}
+
+html.theme-dark .groups-filter-wrap select option {
+    background: #141d2f;
+    color: #e5eefc;
+}
+
 @media (max-width: 900px) {
     .groups-toolbar {
         justify-content: flex-start;

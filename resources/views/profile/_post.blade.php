@@ -82,14 +82,14 @@
   {{-- Shared post card (post_share) --}}
   @if($post->sharedPost)
     <div class="shared-post-card">
-      <div class="shared-post-head">
-        <div class="avatar">
+      <div class="post-head">
+        <div class="avatar md">
           <img src="{{ $post->sharedPost->user->avatar_url }}" alt="{{ $post->sharedPost->user->full_name }}">
         </div>
         @php
           $sharedUser = $post->sharedPost->user;
         @endphp
-        <div class="shared-post-meta">
+        <div class="post-meta">
           @php
             $isSharedDoctor = $sharedUser && $sharedUser->doctor_status === 'approved' && (!$sharedUser->role || $sharedUser->role === 'doctor');
             $spVerifiedBadge = $isSharedDoctor ? '<i data-lucide="badge-check" class="doctor-badge" title="Verified Doctor"></i>' : '';
@@ -103,10 +103,11 @@
             {!! $spVerifiedBadge !!}
           </div>
           {!! $spProfTitleHtml !!}
+          <div class="post-sub">{{ $post->sharedPost->created_at->diffForHumans() }}</div>
         </div>
       </div>
       @if($post->sharedPost->text_content)
-        <div class="shared-post-body js-collapsible">{!! preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" target="_blank" rel="noopener noreferrer" class="post-link" style="color:var(--brand);text-decoration:underline;">$1</a>', htmlspecialchars($post->sharedPost->text_content)) !!}</div>
+        <div class="post-body js-collapsible">{!! preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" target="_blank" rel="noopener noreferrer" class="post-link" style="color:var(--brand);text-decoration:underline;">$1</a>', htmlspecialchars($post->sharedPost->text_content)) !!}</div>
       @endif
       @if($post->sharedPost->resource)
         <a href="{{ route('resources.show', $post->sharedPost->resource->id) }}" class="post-resource-card" style="display:flex; gap:12px; border:1px solid var(--border); border-radius:14px; padding:12px; text-decoration:none; color:inherit; margin-top:10px;">
@@ -121,14 +122,18 @@
         </a>
       @endif
       @if($post->sharedPost->media && $post->sharedPost->media->isNotEmpty())
-        <div class="shared-post-media-mini">
-          @foreach($post->sharedPost->media->take(3) as $m)
+        <div class="post-media-grid shared-post-media-grid media-count-{{ min($post->sharedPost->media->count(), 4) }}"
+             data-media="{{ json_encode($post->sharedPost->media->map(function($m) { return ['id' => $m->id, 'url' => asset('storage/' . $m->path), 'media_type' => $m->media_type]; })->values()) }}">
+          @foreach($post->sharedPost->media->take(4) as $m)
             @if($m->media_type === 'video')
-              <video src="{{ asset('storage/' . $m->path) }}" muted></video>
+              <video src="{{ asset('storage/' . $m->path) }}" controls class="post-media-item"></video>
             @else
-              <img src="{{ asset('storage/' . $m->path) }}" alt="Shared media">
+              <img src="{{ asset('storage/' . $m->path) }}" alt="Shared media" class="post-media-item">
             @endif
           @endforeach
+          @if($post->sharedPost->media->count() > 4)
+            <div class="media-more">+{{ $post->sharedPost->media->count() - 4 }}</div>
+          @endif
         </div>
       @endif
     </div>
@@ -203,4 +208,3 @@
     </div>
   </div>
 </article>
-

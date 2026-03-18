@@ -819,12 +819,13 @@ function renderSharedPostCard(sp) {
         </div>
       </a>` : '';
 
-    const spMediaMini = (sp.media && sp.media.length)
-      ? `<div class="shared-post-media-mini">
-          ${sp.media.slice(0, 3).map(m => m.media_type === 'video'
-            ? `<video src="${m.url}" muted></video>`
-            : `<img src="${m.url}" alt="Shared media">`
+    const spMediaGrid = (sp.media && sp.media.length)
+      ? `<div class="post-media-grid shared-post-media-grid media-count-${Math.min(sp.media.length, 4)}" data-media="${escapeHtml(JSON.stringify(sp.media))}">
+          ${sp.media.slice(0, 4).map(m => m.media_type === 'video'
+            ? `<video src="${m.url}" controls class="post-media-item"></video>`
+            : `<img src="${m.url}" alt="Shared media" class="post-media-item">`
           ).join('')}
+          ${sp.media.length > 4 ? `<div class="media-more">+${sp.media.length - 4}</div>` : ''}
         </div>`
       : '';
 
@@ -838,20 +839,21 @@ function renderSharedPostCard(sp) {
 
     return `
       <div class="shared-post-card">
-        <div class="shared-post-head">
-          <a href="${profileUrl}" class="avatar"><img src="${sp.user.avatar_url}" alt="${escapeHtml(sp.user.name)}"></a>
-          <div class="shared-post-meta">
+        <div class="post-head">
+          <a href="${profileUrl}" class="avatar md"><img src="${sp.user.avatar_url}" alt="${escapeHtml(sp.user.name)}"></a>
+          <div class="post-meta">
             <div class="post-name-row">
               <a href="${profileUrl}" class="post-name" style="color:inherit;text-decoration:none;">${escapeHtml(sp.user.name)}</a>
               <span class="post-handle">@${escapeHtml(sp.user.username)}</span>
               ${verifiedBadge}
             </div>
             ${profTitle}
+            <div class="post-sub">${sp.created_at}</div>
           </div>
         </div>
-        ${sp.text_content ? `<div class="shared-post-body js-collapsible">${parseMarkdownLinks(escapeHtml(sp.text_content))}</div>` : ''}
+        ${sp.text_content ? `<div class="post-body js-collapsible">${parseMarkdownLinks(escapeHtml(sp.text_content))}</div>` : ''}
         ${spResource}
-        ${spMediaMini}
+        ${spMediaGrid}
       </div>`;
 }
 

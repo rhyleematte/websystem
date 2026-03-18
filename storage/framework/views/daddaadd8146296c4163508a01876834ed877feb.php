@@ -1,36 +1,34 @@
-@extends('layouts.dashboard')
+<?php $__env->startSection('title', 'Support Groups – AskDocPH'); ?>
 
-@section('title', 'Support Groups – AskDocPH')
+<?php $__env->startPush('styles'); ?>
+  <link rel="stylesheet" href="<?php echo e(asset('assets/css/groups.css')); ?>">
+<?php $__env->stopPush(); ?>
 
-@push('styles')
-  <link rel="stylesheet" href="{{ asset('assets/css/groups.css') }}">
-@endpush
-
-@section('content')
-@php
+<?php $__env->startSection('content'); ?>
+<?php
   $me        = Auth::user();
-@endphp
+?>
 
 <div class="groups-shell">
   <div class="groups-body">
-    {{-- ══ LEFT – sticky sidebar ══ --}}
+    
     <aside class="groups-sidebar">
       <div class="panel nav-panel">
-        <a class="nav-item" href="{{ route('user.dashboard') }}">
+        <a class="nav-item" href="<?php echo e(route('user.dashboard')); ?>">
           <i data-lucide="home"></i><span>Feed</span>
         </a>
-        <a class="nav-item active" href="{{ route('groups.index') }}">
+        <a class="nav-item active" href="<?php echo e(route('groups.index')); ?>">
           <i data-lucide="users"></i><span>Support Groups</span>
         </a>
-        <a class="nav-item" href="{{ route('resources.index') }}">
+        <a class="nav-item" href="<?php echo e(route('resources.index')); ?>">
           <i data-lucide="book-open"></i><span>Resources</span>
         </a>
-        <a class="nav-item" href="{{ route('profile.show', $me->id) }}">
+        <a class="nav-item" href="<?php echo e(route('profile.show', $me->id)); ?>">
           <i data-lucide="user"></i><span>My Profile</span>
         </a>
       </div>
       
-      @include('partials.daily_affirmation_panel')
+      <?php echo $__env->make('partials.daily_affirmation_panel', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
       <div class="panel mini-panel danger">
         <div class="mini-title"><i data-lucide="life-buoy"></i><span>Crisis Support</span></div>
@@ -39,20 +37,20 @@
       </div>
     </aside>
 
-    {{-- ══ CENTER – main content ══ --}}
+    
     <main class="groups-main">
       <div class="groups-header-panel">
         <div class="groups-header-left">
           <h1>Support Groups</h1>
           <p>Connect with others who understand your journey. Join supportive communities focused on healing and growth.</p>
         </div>
-        @if($me->doctor_status === 'approved')
+        <?php if($me->doctor_status === 'approved'): ?>
         <div class="groups-header-right">
           <button class="create-group-btn" onclick="document.getElementById('createGroupModal').classList.add('open')">
             <i data-lucide="plus"></i> Create Group
           </button>
         </div>
-        @endif
+        <?php endif; ?>
       </div>
 
       <div class="groups-toolbar">
@@ -62,56 +60,57 @@
         </div>
         <div class="groups-filter-wrap">
           <select id="groupSortSelect">
-            <option value="newest" {{ ($sort ?? 'newest') === 'newest' ? 'selected' : '' }}>Newest</option>
-            <option value="oldest" {{ ($sort ?? 'newest') === 'oldest' ? 'selected' : '' }}>Oldest</option>
-            <option value="members_desc" {{ ($sort ?? 'newest') === 'members_desc' ? 'selected' : '' }}>Highest Members</option>
-            <option value="members_asc" {{ ($sort ?? 'newest') === 'members_asc' ? 'selected' : '' }}>Lowest Members</option>
-            <option value="active_desc" {{ ($sort ?? 'newest') === 'active_desc' ? 'selected' : '' }}>Most Active</option>
-            <option value="active_asc" {{ ($sort ?? 'newest') === 'active_asc' ? 'selected' : '' }}>Least Active</option>
+            <option value="newest" <?php echo e(($sort ?? 'newest') === 'newest' ? 'selected' : ''); ?>>Newest</option>
+            <option value="oldest" <?php echo e(($sort ?? 'newest') === 'oldest' ? 'selected' : ''); ?>>Oldest</option>
+            <option value="members_desc" <?php echo e(($sort ?? 'newest') === 'members_desc' ? 'selected' : ''); ?>>Highest Members</option>
+            <option value="members_asc" <?php echo e(($sort ?? 'newest') === 'members_asc' ? 'selected' : ''); ?>>Lowest Members</option>
+            <option value="active_desc" <?php echo e(($sort ?? 'newest') === 'active_desc' ? 'selected' : ''); ?>>Most Active</option>
+            <option value="active_asc" <?php echo e(($sort ?? 'newest') === 'active_asc' ? 'selected' : ''); ?>>Least Active</option>
           </select>
         </div>
       </div>
 
       <div class="groups-grid">
-        @foreach($groups as $group)
-        @php
+        <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <?php
             $isJoined = in_array($group->id, $myGroupIds);
-        @endphp
+        ?>
         <div class="group-card">
-          <div class="group-cover" style="background-image: url('{{ $group->cover_url }}'); background-size: cover; background-position: center;">
+          <div class="group-cover" style="background-image: url('<?php echo e($group->cover_url); ?>'); background-size: cover; background-position: center;">
           </div>
           <div class="group-info">
-            <h2 class="group-title">{{ $group->name }}</h2>
-            <p class="group-desc">{{ Str::limit($group->description, 100) }}</p>
+            <h2 class="group-title"><?php echo e($group->name); ?></h2>
+            <p class="group-desc"><?php echo e(Str::limit($group->description, 100)); ?></p>
             
             <div class="group-stats">
               <div class="group-stats-item">
-                <i data-lucide="users"></i> {{ number_format($group->members_count) }} members
+                <i data-lucide="users"></i> <?php echo e(number_format($group->members_count)); ?> members
               </div>
               <div class="group-stats-item group-active-stat">
-                <i data-lucide="trending-up"></i> {{ $group->activity_level }}
+                <i data-lucide="trending-up"></i> <?php echo e($group->activity_level); ?>
+
               </div>
             </div>
 
-            @if($isJoined)
-              <a href="{{ route('groups.show', $group->id) }}" class="group-btn joined">
+            <?php if($isJoined): ?>
+              <a href="<?php echo e(route('groups.show', $group->id)); ?>" class="group-btn joined">
                 <i data-lucide="eye"></i> View
               </a>
-            @else
-              <button class="group-btn join" onclick="joinGroup({{ $group->id }})">
+            <?php else: ?>
+              <button class="group-btn join" onclick="joinGroup(<?php echo e($group->id); ?>)">
                 Join Group
               </button>
-            @endif
+            <?php endif; ?>
           </div>
         </div>
-        @endforeach
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
       </div>
     </main>
   </div>
 </div>
 
-{{-- Create Group Modal --}}
-@if($me->doctor_status === 'approved')
+
+<?php if($me->doctor_status === 'approved'): ?>
 <div class="modal-backdrop" id="createGroupModal">
   <div class="modal-box" style="max-width: 500px;">
     <div class="modal-header">
@@ -124,7 +123,7 @@
     </div>
 
     <form id="createGroupForm" onsubmit="createGroup(event)" enctype="multipart/form-data" style="padding: 0 24px 24px;">
-      @csrf
+      <?php echo csrf_field(); ?>
 
       <div class="form-group" style="margin-bottom: 20px;">
         <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--text); font-size:14px;">Group Cover Photo <span style="font-weight:400; color:var(--muted); font-size:13px;">(Optional)</span></label>
@@ -158,20 +157,20 @@
     </form>
   </div>
 </div>
-@endif
+<?php endif; ?>
 
-{{-- Toast --}}
+
 <div id="toast" class="toast"></div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 async function joinGroup(id) {
     try {
         let res = await fetch(`/groups/${id}/join`, {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+            headers: { 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>', 'Accept': 'application/json' }
         });
         let data = await res.json();
         if(data.ok) location.reload();
@@ -182,10 +181,10 @@ async function createGroup(e) {
     e.preventDefault();
     let fd = new FormData(e.target);
     try {
-        let res = await fetch(`{{ route('groups.store') }}`, {
+        let res = await fetch(`<?php echo e(route('groups.store')); ?>`, {
             method: 'POST',
             body: fd,
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            headers: { 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>' }
         });
         let data = await res.json();
         if(data.ok) window.location.href = data.redirect;
@@ -252,4 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.dashboard', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\websystem\resources\views/groups/index.blade.php ENDPATH**/ ?>

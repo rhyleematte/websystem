@@ -541,34 +541,38 @@ document.addEventListener('DOMContentLoaded', function () {
           '</div></a>';
       }
 
-      var spMediaMini = '';
+      var spMediaGrid = '';
       if (sp.media && sp.media.length) {
-        spMediaMini = '<div class="shared-post-media-mini">';
-        sp.media.slice(0, 3).forEach(function (m) {
+        spMediaGrid = '<div class="post-media-grid shared-post-media-grid media-count-' + Math.min(sp.media.length, 4) + '" data-media="' + esc(JSON.stringify(sp.media)) + '">';
+        sp.media.slice(0, 4).forEach(function (m) {
           if (m.media_type === 'video') {
-            spMediaMini += '<video src="' + esc(m.url) + '" muted></video>';
+            spMediaGrid += '<video src="' + esc(m.url) + '" controls class="post-media-item"></video>';
           } else {
-            spMediaMini += '<img src="' + esc(m.url) + '" alt="Shared media">';
+            spMediaGrid += '<img src="' + esc(m.url) + '" alt="Shared media" class="post-media-item">';
           }
         });
-        spMediaMini += '</div>';
+        if (sp.media.length > 4) {
+          spMediaGrid += '<div class="media-more">+' + (sp.media.length - 4) + '</div>';
+        }
+        spMediaGrid += '</div>';
       }
 
       sharedHtml =
         '<div class="shared-post-card">' +
-        '<div class="shared-post-head">' +
-        '<a href="' + spProfileUrl + '" class="avatar"><img src="' + esc(sp.user.avatar_url) + '" alt="' + esc(sp.user.name) + '"></a>' +
-        '<div class="shared-post-meta">' +
+        '<div class="post-head">' +
+        '<a href="' + spProfileUrl + '" class="avatar md"><img src="' + esc(sp.user.avatar_url) + '" alt="' + esc(sp.user.name) + '"></a>' +
+        '<div class="post-meta">' +
         '<div class="post-name-row">' +
         '<a href="' + spProfileUrl + '" class="post-name" style="color:inherit;text-decoration:none;">' + esc(sp.user.name) + '</a>' +
         '<span class="post-handle">@' + esc(sp.user.username) + '</span>' +
         spVerifiedBadge +
         '</div>' +
         spProfTitleHtml +
+        '<div class="post-sub">' + esc(sp.created_at) + '</div>' +
         '</div></div>' +
-        (sp.text_content ? '<div class="shared-post-body js-collapsible">' + parseMarkdownLinks(esc(sp.text_content)) + '</div>' : '') +
+        (sp.text_content ? '<div class="post-body js-collapsible">' + parseMarkdownLinks(esc(sp.text_content)) + '</div>' : '') +
         spResourceHtml +
-        spMediaMini +
+        spMediaGrid +
         '</div>';
     }
 
@@ -1243,4 +1247,3 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('post:rendered', tryScroll);
   })();
 });
-
