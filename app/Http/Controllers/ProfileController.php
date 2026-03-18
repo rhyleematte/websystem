@@ -55,10 +55,12 @@ class ProfileController extends Controller
 
         $application = null;
         $requirements = null;
+        $professional_titles = null;
         $savedPosts = collect();
         if (Auth::check() && Auth::id() === $profileUser->id) {
             $application = \App\Models\DoctorApplication::where('user_id', Auth::id())->first();
             $requirements = \App\Models\DoctorRequirement::all();
+            $professional_titles = \App\Models\ProfessionalTitle::orderBy('name')->get();
 
             $savedPosts = $profileUser->savedPosts()
                 ->with(['user', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource', 'sharedPost.user', 'sharedPost.media', 'sharedPost.resource'])
@@ -75,6 +77,7 @@ class ProfileController extends Controller
             'posts'            => $posts,
             'application'      => $application,
             'requirements'     => $requirements,
+            'professional_titles' => $professional_titles,
             'joinedResources'  => $joinedResources,
             'createdResources' => $createdResources,
             'joinedGroups'     => $joinedGroups,
@@ -850,5 +853,15 @@ class ProfileController extends Controller
         }
 
         return $base . '?' . http_build_query($params);
+    }
+
+    public function updateAiRecommendation(Request $request)
+    {
+        $user = Auth::user();
+        $user->update([
+            'allow_ai_recommendation' => $request->has('allow_ai_recommendation')
+        ]);
+        
+        return back()->with('success', 'AI Recommendation settings updated successfully.');
     }
 }

@@ -28,6 +28,7 @@ class User extends Authenticatable
         'bio',
         'is_online',
         'is_free_to_talk',
+        'allow_ai_recommendation',
     ];
 
     protected $hidden = [

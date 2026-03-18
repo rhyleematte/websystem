@@ -24,9 +24,44 @@
     {{-- Professional Titles --}}
     <h3 style="margin: 20px 0 10px; font-size: 1.1em; color: var(--brand); border-bottom: 1px solid var(--border); padding-bottom: 5px;">1. Professional Titles</h3>
     <label style="display: block; font-weight: 600; margin-bottom: 8px;">Titles (e.g., MD, PhD, RN) <span style="color: #ef4444;">*</span></label>
-    <div style="display: flex; align-items: center; border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: var(--input-bg); margin-bottom: 20px;">
-        <i data-lucide="award" style="width: 18px; height: 18px; color: var(--muted); margin-right: 10px;"></i>
-        <input type="text" name="professional_titles" value="{{ old('professional_titles') }}" placeholder="e.g., Cardiologist, MD" required style="border: none; outline: none; width: 100%; font-size: 14px; background: transparent; color: var(--text);" />
+    
+    <style>
+    .choices { width: 100%; margin-bottom: 0; }
+    .choices__inner {
+        border: 1px solid var(--border) !important;
+        border-radius: 10px !important;
+        background-color: var(--input-bg, #ffffff) !important;
+        padding: 4px 12px !important;
+        min-height: 48px !important;
+        display: flex;
+        align-items: center;
+        box-shadow: none !important;
+        font-size: 14px;
+    }
+    .choices[data-type*="select-one"] .choices__inner { padding-bottom: 4px !important; }
+    .choices__list--dropdown {
+        background-color: var(--panel, #ffffff) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+        z-index: 100 !important;
+    }
+    .choices__list--dropdown .choices__item { color: var(--text) !important; }
+    .choices__list--dropdown .choices__item--selectable.is-highlighted {
+        background-color: var(--brand) !important;
+        color: white !important;
+    }
+    </style>
+
+    <div style="margin-bottom: 20px;">
+        <select name="professional_titles" class="choices-select" required>
+            <option value="" disabled {{ old('professional_titles') ? '' : 'selected' }}>Select your professional title...</option>
+            @if(isset($professional_titles))
+                @foreach($professional_titles as $title)
+                    <option value="{{ $title->name }}" {{ old('professional_titles') == $title->name || (isset($application) && $application->professional_titles == $title->name) ? 'selected' : '' }}>{{ $title->name }}</option>
+                @endforeach
+            @endif
+        </select>
     </div>
 
     {{-- Verification Documents --}}
@@ -97,7 +132,28 @@
     </button>
 </form>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if(typeof Choices !== 'undefined') {
+            const titleSelects = document.querySelectorAll('.choices-select');
+            titleSelects.forEach(select => {
+                // To avoid multiple instantiations if loaded twice
+                if(!select.classList.contains('choices__input')) {
+                    new Choices(select, {
+                        searchEnabled: true,
+                        itemSelectText: '',
+                        placeholder: true,
+                        placeholderValue: 'Search your professional title...',
+                        searchPlaceholderValue: 'Type to search...'
+                    });
+                }
+            });
+        }
+    });
+
     // Biometric camera logic
     (function() {
         const bioVideo = document.getElementById('bioVideo');

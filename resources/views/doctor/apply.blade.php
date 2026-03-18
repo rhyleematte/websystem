@@ -3,6 +3,45 @@
 @section('title', 'Apply for Medical Staff')
 
 @section('content')
+<style>
+.choices {
+    width: 100%;
+    margin-bottom: 0;
+}
+.choices__inner {
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    background-color: var(--input-bg, #ffffff) !important;
+    padding: 2px 12px !important;
+    min-height: 48px !important;
+    display: flex;
+    align-items: center;
+    box-shadow: none !important;
+}
+.choices[data-type*="select-one"] .choices__inner {
+    padding-bottom: 2px !important;
+}
+.choices__list--dropdown {
+    background-color: var(--panel, #ffffff) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+    z-index: 100 !important;
+}
+.choices__list--dropdown .choices__item {
+    color: var(--text) !important;
+}
+.choices__list--dropdown .choices__item--selectable.is-highlighted {
+    background-color: var(--teal) !important;
+    color: white !important;
+}
+.input-group.choices-group {
+    padding: 0;
+    border: none;
+    background: transparent;
+    display: block;
+}
+</style>
 <main class="wrap">
   <section class="left">
     <div class="card" style="width: 100%; max-width: 520px; padding: 40px; margin: 0 auto; overflow-y: auto; max-height: calc(100vh - 120px);">
@@ -105,9 +144,15 @@
 
             <h3 style="margin: 25px 0 10px; font-size: 1.1em; color: var(--teal); border-bottom: 1px solid var(--border); padding-bottom: 5px;">3. Professional Information</h3>
             <label>Professional Titles (e.g., MD, RN) <span style="color: #ef4444;">*</span></label>
-            <div class="input-group">
-                <i data-lucide="award"></i>
-                <input type="text" name="professional_titles" value="{{ old('professional_titles') }}" placeholder="e.g., Cardiologist, MD" required />
+            <div class="input-group choices-group">
+                <select name="professional_titles" class="choices-select" required>
+                    <option value="" disabled {{ old('professional_titles') ? '' : 'selected' }}>Search and select a title...</option>
+                    @if(isset($professional_titles))
+                        @foreach($professional_titles as $title)
+                            <option value="{{ $title->name }}" {{ old('professional_titles') == $title->name ? 'selected' : '' }}>{{ $title->name }}</option>
+                        @endforeach
+                    @endif
+                </select>
             </div>
 
             <h3 style="margin: 25px 0 10px; font-size: 1.1em; color: var(--teal); border-bottom: 1px solid var(--border); padding-bottom: 5px;">4. Requirements Verification</h3>
@@ -188,7 +233,23 @@
     </div>
   </section>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const titleSelects = document.querySelectorAll('.choices-select');
+        titleSelects.forEach(select => {
+            new Choices(select, {
+                searchEnabled: true,
+                itemSelectText: '',
+                placeholder: true,
+                placeholderValue: 'Search your professional title...',
+                searchPlaceholderValue: 'Type to search...'
+            });
+        });
+    });
+
     // Biometric camera logic
     const bioVideo = document.getElementById('bioVideo');
     const bioCanvas = document.getElementById('bioCanvas');

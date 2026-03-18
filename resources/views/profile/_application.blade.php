@@ -17,6 +17,23 @@
     </div>
     <h2 style="font-size: 2rem; margin-bottom: 15px; color: var(--text);">Application Approved</h2>
     <p style="color: var(--muted); font-size: 1.1rem; line-height: 1.6;">Congratulations! You are officially an approved medical staff member.</p>
+    
+    <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: left; margin-top: 30px;">
+        <h3 style="margin-top: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="bot" style="color: var(--brand, #7c3aed); width: 22px; height: 22px;"></i>
+            AI Chatbot Recommendations
+        </h3>
+        <p style="color: var(--muted); font-size: 0.95rem; margin-bottom: 15px;">
+            When users interact with the Mental Health Chatbot, it can automatically suggest talking to a professional. You can choose whether you want the AI to recommend you to users.
+        </p>
+        <form method="POST" action="{{ route('profile.updateAiRecommendation') }}" style="display: flex; align-items: center;">
+            @csrf
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" name="allow_ai_recommendation" {{ $me->allow_ai_recommendation ? 'checked' : '' }} onchange="this.form.submit()" style="width: 18px; height: 18px; accent-color: var(--brand, #7c3aed);">
+                <span style="font-weight: 500;">Allow AI to recommend me</span>
+            </label>
+        </form>
+    </div>
 </div>
 @elseif($me->doctor_status === 'rejected' || ($application && $application->status === 'rejected'))
 <div id="rejectionFeedback">

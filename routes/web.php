@@ -97,6 +97,7 @@ Route::middleware('auth')->group(function () {
 // ── Profile ────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
 
+    Route::post('/profile/ai-recommendation', [ProfileController::class, 'updateAiRecommendation'])->name('profile.updateAiRecommendation');
     Route::get('/posts/{post}', [ProfileController::class , 'showPost'])->name('posts.show');
 
     // View profile (own or others)
@@ -160,6 +161,12 @@ Route::group(['prefix' => 'admin'], function () {
             Route::get('/guidelines', [\App\Http\Controllers\AdminAiGuidelineController::class , 'index'])->name('admin.guidelines.index');
             Route::post('/guidelines', [\App\Http\Controllers\AdminAiGuidelineController::class , 'store'])->name('admin.guidelines.store');
             Route::delete('/guidelines/{id}', [\App\Http\Controllers\AdminAiGuidelineController::class , 'destroy'])->name('admin.guidelines.destroy');
+
+            // Professional Titles
+            Route::get('/professional-titles', [\App\Http\Controllers\Admin\ProfessionalTitleController::class, 'index'])->name('admin.professional-titles.index');
+            Route::post('/professional-titles', [\App\Http\Controllers\Admin\ProfessionalTitleController::class, 'store'])->name('admin.professional-titles.store');
+            Route::put('/professional-titles/{professional_title}', [\App\Http\Controllers\Admin\ProfessionalTitleController::class, 'update'])->name('admin.professional-titles.update');
+            Route::delete('/professional-titles/{professional_title}', [\App\Http\Controllers\Admin\ProfessionalTitleController::class, 'destroy'])->name('admin.professional-titles.destroy');
         }
         );
     });

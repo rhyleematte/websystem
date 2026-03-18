@@ -68,7 +68,15 @@ class HelpRequestController extends Controller
         "- Do not claim to be a licensed therapist or medical professional.\n" .
         "- Do not share personal AI opinions or make assumptions about the user's condition.\n\n" .
         "Context (from mental health database):\n" . $knowledgeText . "\n\n" .
-        "Doctor Matching Execution: As instructed, only when you have conversed enough and it is evident they need professional help (e.g. Psychologist, Psychiatrist, Therapist, Counselor), you MUST append this exact text to the very end of your reply: [SUGGEST: ProfessionalTitle] where ProfessionalTitle is a single word.";
+        "Doctor Matching Execution: As instructed, only when you have conversed enough and it is evident they need professional help (e.g. Psychologist, Psychiatrist, Therapist, Counselor), you MUST provide a suggested title.\n\n" .
+        "IMPORTANT - JSON OUTPUT ONLY:\n" .
+        "You MUST respond entirely in valid JSON format. Return a JSON object with the following schema:\n" .
+        "{\n" .
+        "  \"reply\": \"Your conversational response directly to the user.\",\n" .
+        "  \"suggested_title\": \"Single word like 'Psychologist' or 'Therapist' ONLY if recommending one, otherwise null.\",\n" .
+        "  \"emotion\": \"The detected primary emotion of the user (e.g., 'Anxiety', 'Sadness', 'Relief', 'Neutral').\",\n" .
+        "  \"topics\": [\"topic1\", \"topic2\"]\n" .
+        "}";
 
         $systemPrompt = [
             'role' => 'system',
@@ -85,7 +93,10 @@ class HelpRequestController extends Controller
             ])->timeout(30)->post('https://api.groq.com/openai/v1/chat/completions', [
                 // Groq model
                 'model' => 'llama-3.3-70b-versatile',
-                'messages' => $apiMessages
+                'messages' => $apiMessages,
+                'temperature' => 0.7,
+                'max_tokens' => 1024,
+                'response_format' => ['type' => 'json_object']
             ]);
             
             // If the /api/v1/ fails with 404
@@ -101,21 +112,37 @@ class HelpRequestController extends Controller
             $result = $response->json();
             
             if ($result && isset($result['choices'][0]['message']['content'])) {
-                $reply = $result['choices'][0]['message']['content'];
+                $rawContent = $result['choices'][0]['message']['content'];
+                $parsed = json_decode($rawContent, true);
                 
-                // Check if AI suggested
-                if (preg_match('/\[SUGGEST:\s*(.*?)\]/i', $reply, $matches)) {
-                    $title = trim($matches[1]);
+                if (json_last_error() === JSON_ERROR_NONE && isset($parsed['reply'])) {
+                    $reply = $parsed['reply'];
+                    $title = $parsed['suggested_title'] ?? null;
+                    $emotion = $parsed['emotion'] ?? 'Neutral';
+                    $topics = $parsed['topics'] ?? [];
+                    
+                    if ($title) {
+                        return response()->json([
+                            'role' => 'assistant',
+                            'content' => "I understand what you're going through. Based on what you've shared, I suggest speaking with a " . $title . ".\n\n" . $reply,
+                            'suggested_title' => $title,
+                            'emotion' => $emotion,
+                            'topics' => $topics
+                        ]);
+                    }
+                    
                     return response()->json([
                         'role' => 'assistant',
-                        'content' => "I understand what you're going through. Based on what you've shared, I suggest speaking with a " . $title . ".",
-                        'suggested_title' => $title
+                        'content' => $reply,
+                        'emotion' => $emotion,
+                        'topics' => $topics
                     ]);
                 }
                 
+                // Fallback if not valid JSON
                 return response()->json([
                     'role' => 'assistant',
-                    'content' => $reply
+                    'content' => $rawContent
                 ]);
             }
             
@@ -141,7 +168,8 @@ class HelpRequestController extends Controller
         // We'll also try to match the title broadly via their doctorApplication
         $doctorsQuery = User::where('doctor_status', 'approved')
             ->where('is_online', true)
-            ->where('is_free_to_talk', true);
+            ->where('is_free_to_talk', true)
+            ->where('allow_ai_recommendation', true);
             
         $doctors = $doctorsQuery->with('doctorApplication')->get();
         

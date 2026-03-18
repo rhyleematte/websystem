@@ -66,6 +66,12 @@
         <div class="ai-modal-sidebar">
             <h4><i data-lucide="bot" style="width: 24px; height: 24px; color: var(--primary);"></i> About Bot</h4>
             
+            <h5>Real-Time Analysis</h5>
+            <div style="background:var(--panel); border:1px solid var(--border); padding:12px; border-radius:8px; margin-bottom:20px; font-size: 0.85rem;">
+                <p style="margin:0 0 5px;"><strong>Emotion:</strong> <span id="aiEmotionBadge" style="background:var(--hover); padding:2px 6px; border-radius:4px; color:var(--text);">Neutral</span></p>
+                <p style="margin:0;"><strong>Topics:</strong> <span id="aiTopicsBadge" style="color:var(--text-muted); font-style:italic;">None</span></p>
+            </div>
+            
             <h5>Description</h5>
             <p>An AI-powered chatbot designed to provide mental health support.</p>
             
@@ -242,6 +248,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.role) {
                 appendMessage('assistant', data.content);
                 chatHistory.push({ role: 'assistant', content: data.content });
+                
+                if (data.emotion) {
+                    document.getElementById('aiEmotionBadge').innerText = data.emotion;
+                }
+                if (data.topics && Array.isArray(data.topics) && data.topics.length > 0) {
+                    document.getElementById('aiTopicsBadge').innerText = data.topics.join(', ');
+                }
                 
                 if (data.suggested_title) {
                     // Fetch doctors with this title

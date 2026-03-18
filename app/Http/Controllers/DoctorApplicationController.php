@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
+use App\Models\ProfessionalTitle;
 
 class DoctorApplicationController extends Controller
 {
@@ -41,8 +42,9 @@ class DoctorApplicationController extends Controller
 
         $requirements = DoctorRequirement::all();
         $application = $user ?DoctorApplication::where('user_id', $user->id)->first() : null;
+        $professional_titles = ProfessionalTitle::orderBy('name')->get();
 
-        return view('doctor.apply', compact('requirements', 'application', 'user'));
+        return view('doctor.apply', compact('requirements', 'application', 'user', 'professional_titles'));
     }
 
     public function store(Request $request)
@@ -65,7 +67,7 @@ class DoctorApplicationController extends Controller
                 'email' => ['required', 'email:rfc,dns', 'unique:users,email', 'max:255'],
                 'username' => ['required', 'min:3', 'max:20', 'alpha_dash', 'unique:users,username'],
                 'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],
-                'professional_titles' => ['required', 'string', 'max:255'],
+                'professional_titles' => ['required', 'string', 'exists:professional_titles,name'],
                 'biometric_consent' => ['required', 'accepted'],
                 'liveness_verified' => ['required', 'in:1'],
                 'face_match_score' => ['required', 'numeric', 'min:0', 'max:100'],
@@ -87,7 +89,7 @@ class DoctorApplicationController extends Controller
             }
             // Additional rules if user is already logged in
             $rules = [
-                'professional_titles' => ['required', 'string', 'max:255'],
+                'professional_titles' => ['required', 'string', 'exists:professional_titles,name'],
                 'biometric_consent' => ['required', 'accepted'],
                 'liveness_verified' => ['required', 'in:1'],
                 'face_match_score' => ['required', 'numeric', 'min:0', 'max:100'],

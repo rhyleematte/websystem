@@ -86,6 +86,9 @@
         <a href="{{ route('admin.guidelines.index') }}" class="dropdown-item" style="text-decoration: none; color: inherit;">
           <i data-lucide="book-open"></i><span>AI Guidelines</span>
         </a>
+        <a href="{{ route('admin.professional-titles.index') }}" class="dropdown-item" style="text-decoration: none; color: inherit;">
+          <i data-lucide="briefcase"></i><span>Professional Titles</span>
+        </a>
         @endif
         <hr class="dropdown-divider">
         <form method="POST" action="{{ route('logout') }}" class="logout-form">
