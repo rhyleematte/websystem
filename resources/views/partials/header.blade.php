@@ -78,6 +78,15 @@
         <button type="button" class="dropdown-item" id="themeToggleBtn">
           <i data-lucide="moon"></i><span>Dark mode</span>
         </button>
+        @if(Auth::guard('admin')->check())
+        <hr class="dropdown-divider">
+        <a href="{{ route('admin.applications.index') }}" class="dropdown-item" style="text-decoration: none; color: inherit;">
+          <i data-lucide="users"></i><span>Applications</span>
+        </a>
+        <a href="{{ route('admin.guidelines.index') }}" class="dropdown-item" style="text-decoration: none; color: inherit;">
+          <i data-lucide="book-open"></i><span>AI Guidelines</span>
+        </a>
+        @endif
         <hr class="dropdown-divider">
         <form method="POST" action="{{ route('logout') }}" class="logout-form">
           @csrf

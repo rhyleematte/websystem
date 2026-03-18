@@ -84,6 +84,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/messenger/search', [\App\Http\Controllers\ChatController::class, 'searchUsers']);
     Route::post('/api/messenger/typing', [\App\Http\Controllers\ChatController::class, 'setTyping']);
     Route::get('/api/messenger/typing/{conversation}', [\App\Http\Controllers\ChatController::class, 'getTyping']);
+
+    // Get Help AI
+    Route::post('/api/help/chat', [\App\Http\Controllers\HelpRequestController::class, 'chat']);
+    Route::get('/api/help/doctors', [\App\Http\Controllers\HelpRequestController::class, 'findDoctors']);
+    Route::post('/api/help/request', [\App\Http\Controllers\HelpRequestController::class, 'requestConversation']);
+    Route::get('/api/help/pending', [\App\Http\Controllers\HelpRequestController::class, 'pendingRequests']);
+    Route::post('/api/help/accept/{id}', [\App\Http\Controllers\HelpRequestController::class, 'acceptRequest']);
+    Route::post('/api/help/toggle-status', [\App\Http\Controllers\HelpRequestController::class, 'toggleStatus']);
 });
 
 // ── Profile ────────────────────────────────────────────────────
@@ -147,6 +155,11 @@ Route::group(['prefix' => 'admin'], function () {
             Route::post('/profile', [\App\Http\Controllers\AdminProfileController::class , 'update'])->name('admin.profile.update');
             Route::post('/profile/update-photo', [\App\Http\Controllers\AdminProfileController::class , 'updatePhoto'])->name('admin.profile.update.photo');
             Route::post('/profile/delete-photo', [\App\Http\Controllers\AdminProfileController::class , 'deletePhoto'])->name('admin.profile.delete.photo');
+
+            // AI Guidelines
+            Route::get('/guidelines', [\App\Http\Controllers\AdminAiGuidelineController::class , 'index'])->name('admin.guidelines.index');
+            Route::post('/guidelines', [\App\Http\Controllers\AdminAiGuidelineController::class , 'store'])->name('admin.guidelines.store');
+            Route::delete('/guidelines/{id}', [\App\Http\Controllers\AdminAiGuidelineController::class , 'destroy'])->name('admin.guidelines.destroy');
         }
         );
     });

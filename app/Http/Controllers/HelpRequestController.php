@@ -1,0 +1,253 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use App\Models\User;
+use App\Models\HelpRequest;
+use App\Models\Conversation;
+use App\Models\ConversationParticipant;
+use App\Models\DoctorApplication;
+use Illuminate\Support\Facades\Log;
+
+class HelpRequestController extends Controller
+{
+    public function chat(Request $request)
+    {
+        $messages = $request->input('messages', []);
+        // Check for sensitive topics first
+        $sensitiveKeywords = [
+            'suicide', 'self-harm', 'self harm', 'kill myself', 'kill', 'end my life',
+            'want to die', 'hurting myself', 'cutting', 'overdose', 'harm myself',
+            'suicidal', 'self injury', 'self-injury', 'self mutilation',
+            'self-mutilation', 'suicidal thoughts', 'suicidal ideation',
+            'harmful behaviors', 'hurting myself', 'ending it all', 'no reason to live',
+            'can\'t go on', 'want to disappear', 'don\'t want to exist'
+        ];
+
+        // Check the last user message
+        $lastMessage = end($messages);
+        if ($lastMessage && $lastMessage['role'] === 'user') {
+            $userText = strtolower($lastMessage['content']);
+            foreach ($sensitiveKeywords as $keyword) {
+                if (str_contains($userText, $keyword)) {
+                    return response()->json([
+                        'role' => 'assistant',
+                        'content' => "It seems you may be experiencing distress. Please know that help is available. If you feel unsafe or overwhelmed, consider calling emergency services immediately. For ongoing support, here are some mental health helpline numbers: [Provide relevant Indian mental health helpline numbers]. We strongly encourage you to seek professional help."
+                    ]);
+                }
+            }
+        }
+
+        $knowledgeText = '';
+        $knowledgePath = storage_path('app/ai_knowledge.json');
+        if (file_exists($knowledgePath)) {
+            $docs = json_decode(file_get_contents($knowledgePath), true) ?? [];
+            if (!empty($docs)) {
+                shuffle($docs);
+                $selected = array_slice($docs, 0, 3);
+                foreach($selected as $doc) {
+                    $knowledgeText .= "[Source: " . $doc['source'] . "]\n" . $doc['content'] . "\n\n";
+                }
+            }
+        }
+        
+        $systemPromptText = "You are an empathetic, friendly, and highly conversational AI mental health companion. Talk to the user like a caring human friend would, not like a robotic clinical screener.\n" .
+        "Your primary role is to listen to the user, validate their feelings, and engage in a natural back-and-forth conversation.\n\n" .
+        "CRITICAL INSTRUCTIONS:\n" .
+        "1. Keep your replies very concise and brief, usually just 1 to 3 short sentences.\n" .
+        "2. Do NOT sound robotic or clinical. Use natural, warm, and conversational language.\n" .
+        "3. Ask thoughtful follow-up questions to understand how they are doing, but only one question at a time.\n" .
+        "4. Base any factual information loosely on the provided context guidelines, but do not sound like you are just reading from a textbook.\n" .
+        "5. IMPORTANT DOCTOR MATCHING RULE: First, listen and converse. DO NOT immediately suggest a professional in the first few messages. ONLY when they explicitly ask for professional help, or when it becomes very clear through the conversation that they need a doctor's attention, should you suggest one.\n" .
+        "6. Make use of a single relevant emoji occasionally to feel engaging.\n\n" .
+        "Negative Prompts (DO NOT DO THESE):\n" .
+        "- Do not provide medical diagnoses or prescribe medications.\n" .
+        "- Do not write long, multi-paragraph essays or dump large lists of information.\n" .
+        "- Do not claim to be a licensed therapist or medical professional.\n" .
+        "- Do not share personal AI opinions or make assumptions about the user's condition.\n\n" .
+        "Context (from mental health database):\n" . $knowledgeText . "\n\n" .
+        "Doctor Matching Execution: As instructed, only when you have conversed enough and it is evident they need professional help (e.g. Psychologist, Psychiatrist, Therapist, Counselor), you MUST append this exact text to the very end of your reply: [SUGGEST: ProfessionalTitle] where ProfessionalTitle is a single word.";
+
+        $systemPrompt = [
+            'role' => 'system',
+            'content' => $systemPromptText
+        ];
+        
+        $apiMessages = array_merge([$systemPrompt], $messages);
+        
+        try {
+            // Using standard OpenAI compatible format with Groq
+            $response = Http::withoutVerifying()->withHeaders([
+                'Authorization' => 'Bearer ' . env('GROQ_API_KEY'),
+                'Content-Type' => 'application/json'
+            ])->timeout(30)->post('https://api.groq.com/openai/v1/chat/completions', [
+                // Groq model
+                'model' => 'llama-3.3-70b-versatile',
+                'messages' => $apiMessages
+            ]);
+            
+            // If the /api/v1/ fails with 404
+            if (!$response->successful() && $response->status() === 404) {
+                // Mock the response so the UI flow doesn't break, since the chat endpoint might not exist yet on the server.
+                return response()->json([
+                    'role' => 'assistant',
+                    'content' => "I understand what you're going through. Based on what you've shared, I suggest speaking with a Psychiatrist.",
+                    'suggested_title' => 'Psychiatrist'
+                ]);
+            }
+            
+            $result = $response->json();
+            
+            if ($result && isset($result['choices'][0]['message']['content'])) {
+                $reply = $result['choices'][0]['message']['content'];
+                
+                // Check if AI suggested
+                if (preg_match('/\[SUGGEST:\s*(.*?)\]/i', $reply, $matches)) {
+                    $title = trim($matches[1]);
+                    return response()->json([
+                        'role' => 'assistant',
+                        'content' => "I understand what you're going through. Based on what you've shared, I suggest speaking with a " . $title . ".",
+                        'suggested_title' => $title
+                    ]);
+                }
+                
+                return response()->json([
+                    'role' => 'assistant',
+                    'content' => $reply
+                ]);
+            }
+            
+            return response()->json([
+                'role' => 'assistant',
+                'content' => 'API Error (Status '.$response->status().'). Raw response: ' . $response->body()
+            ], 200);
+            
+        } catch (\Exception $e) {
+            Log::error('AI Chat Error: ' . $e->getMessage());
+            return response()->json([
+                'role' => 'assistant',
+                'content' => 'Could not connect to AI. Error: ' . $e->getMessage()
+            ], 200);
+        }
+    }
+
+    public function findDoctors(Request $request)
+    {
+        $title = $request->query('title', '');
+        
+        // Find approved doctors who are online and free to talk
+        // We'll also try to match the title broadly via their doctorApplication
+        $doctorsQuery = User::where('doctor_status', 'approved')
+            ->where('is_online', true)
+            ->where('is_free_to_talk', true);
+            
+        $doctors = $doctorsQuery->with('doctorApplication')->get();
+        
+        // As a fallback or filter, ideally we'd filter by title
+        if ($title) {
+            $filtered = $doctors->filter(function($doc) use ($title) {
+                // If the prompt is "Psychiatrist" we see if it's in their professional_titles
+                $titles = $doc->professional_title ? strtolower($doc->professional_title) : '';
+                return str_contains($titles, strtolower($title));
+            });
+            // If we found exact matches, use them, otherwise return any free doctors
+            if ($filtered->count() > 0) {
+                $doctors = $filtered;
+            }
+        }
+
+        $result = $doctors->map(function($doc) {
+            return [
+                'id' => $doc->id,
+                'name' => $doc->full_name,
+                'avatar' => $doc->avatar_url,
+                'title' => $doc->professional_title ?? 'Doctor'
+            ];
+        })->values();
+
+        return response()->json(['doctors' => $result]);
+    }
+
+    public function requestConversation(Request $request)
+    {
+        $doctorId = $request->input('doctor_id');
+        $title = $request->input('suggested_title');
+        
+        $helpRequest = HelpRequest::create([
+            'user_id' => auth()->id(),
+            'doctor_id' => $doctorId,
+            'suggested_title' => $title,
+            'status' => 'pending'
+        ]);
+
+        return response()->json(['success' => true, 'request_id' => $helpRequest->id]);
+    }
+    
+    // For Doctors to View Their Pending Requests
+    public function pendingRequests()
+    {
+        $requests = HelpRequest::with('user')
+            ->where('doctor_id', auth()->id())
+            ->where('status', 'pending')
+            ->latest()
+            ->get();
+            
+        return response()->json(['requests' => $requests]);
+    }
+    
+    // For Doctor to Accept the Request
+    public function acceptRequest($id)
+    {
+        $helpRequest = HelpRequest::findOrFail($id);
+        
+        if ($helpRequest->doctor_id !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        
+        $helpRequest->update(['status' => 'accepted']);
+        
+        // Create conversation
+        $convo = Conversation::create(['type' => 'direct']);
+        
+        ConversationParticipant::create([
+            'conversation_id' => $convo->id,
+            'user_id' => $helpRequest->user_id
+        ]);
+        
+        ConversationParticipant::create([
+            'conversation_id' => $convo->id,
+            'user_id' => $helpRequest->doctor_id
+        ]);
+        
+        // Can optionally set doctor status to NOT free to talk
+        // auth()->user()->update(['is_free_to_talk' => false]);
+
+        return response()->json([
+            'success' => true,
+            'conversation_id' => $convo->id,
+            'redirect_url' => url('/dashboard')
+        ]);
+    }
+    
+    public function toggleStatus(Request $request)
+    {
+        $user = auth()->user();
+        
+        if ($request->has('is_online')) {
+            $user->is_online = $request->is_online;
+        }
+        
+        if ($request->has('is_free_to_talk')) {
+            $user->is_free_to_talk = $request->is_free_to_talk;
+        }
+        
+        $user->save();
+        
+        return response()->json([
+            'is_online' => $user->is_online,
+            'is_free_to_talk' => $user->is_free_to_talk
+        ]);
+    }
+}

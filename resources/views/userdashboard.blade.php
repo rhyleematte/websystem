@@ -55,9 +55,17 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
       <div class="panel mini-panel danger">
         <div class="mini-title"><i data-lucide="life-buoy"></i><span>Crisis Support</span></div>
         <p class="mini-sub">If you're in crisis, help is available 24/7</p>
-        <button class="danger-btn" type="button">Get Help Now</button>
+        <button class="danger-btn" type="button" id="getHelpBtn">Get Help Now</button>
       </div>
+
+      @if(Auth::user()->isApprovedDoctor())
+        @include('partials.doctor_status_panel')
+      @endif
     </aside>
+
+    @if(Auth::user()->isApprovedDoctor())
+        @include('partials.doctor_pending_requests')
+    @endif
 
     {{-- Main feed --}}
     <section class="dash-main">
@@ -161,5 +169,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
 
 {{-- Toast --}}
 <div id="dash-toast" class="dash-toast" aria-live="polite"></div>
+
+@include('partials.ai_chat_modal')
 
 @endsection

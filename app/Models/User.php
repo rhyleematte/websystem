@@ -26,6 +26,8 @@ class User extends Authenticatable
         'profile_photo',
         'cover_photo',
         'bio',
+        'is_online',
+        'is_free_to_talk',
     ];
 
     protected $hidden = [
