@@ -23,7 +23,9 @@
 
 <body>
 
-@auth
+@if(Auth::guard('admin')->check())
+  @include('partials.admin_header')
+@elseauth
   @php
     $layout_user = Auth::user();
     $layout_avatarUrl = $layout_user->avatar_url;

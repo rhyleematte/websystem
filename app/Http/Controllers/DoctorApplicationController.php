@@ -7,6 +7,7 @@ use App\Models\DoctorRequirement;
 use App\Models\DoctorApplication;
 use App\Models\DoctorApplicationDocument;
 use App\Models\User;
+use App\Models\AdminNotification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
@@ -179,6 +180,15 @@ class DoctorApplicationController extends Controller
                 ]);
             }
         }
+
+        // 6. Notify all admins of new doctor application
+        AdminNotification::createForAll('doctor_application', [
+            'application_id'  => $application->id,
+            'applicant_name'  => trim($user->fname . ' ' . $user->lname),
+            'applicant_email' => $user->email,
+            'url'             => url('/admin/applications/' . $application->id),
+            'submitted_at'    => now()->toDateTimeString(),
+        ]);
 
         return redirect()->back()->with('success', 'Your application has been submitted successfully and is pending approval. You are now logged in.');
     }

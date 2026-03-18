@@ -81,13 +81,14 @@ class AdminApplicationController extends Controller
     public function show(Request $request, $id)
     {
         $application = DoctorApplication::with(['user', 'documents.requirement'])->findOrFail($id);
+        $requirements = \App\Models\DoctorRequirement::all();
 
         $tab = $request->query('tab', 'all');
         $search = $request->query('search');
         $fromDate = $request->query('from_date');
         $toDate = $request->query('to_date');
 
-        return view('admin.applications.show', compact('application', 'tab', 'search', 'fromDate', 'toDate'));
+        return view('admin.applications.show', compact('application', 'requirements', 'tab', 'search', 'fromDate', 'toDate'));
     }
 
     public function approve(Request $request, $id)

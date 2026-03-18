@@ -344,15 +344,72 @@
             </div>
 
             <div class="details-wrapper">
-                <span class="section-title">Applicant Information</span>
-                <div class="detail-grid">
+
+                {{-- === SECTION 1: PERSONAL INFORMATION === --}}
+                <span class="section-title">1. Personal Information</span>
+                @php
+                    $bday = $application->user->bday ? \Carbon\Carbon::parse($application->user->bday) : null;
+                    $age   = $bday ? $bday->age : null;
+                    $genderMap = ['male' => 'Male', 'female' => 'Female', 'other' => 'Other', 'prefer_not_say' => 'Prefer not to say'];
+                @endphp
+                <div class="detail-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 30px;">
                     <div class="detail-item">
-                        <strong>Full Name</strong>
-                        <span>{{ $application->user->fname }} {{ $application->user->lname }}</span>
+                        <strong>First Name</strong>
+                        <span>{{ $application->user->fname ?? '—' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Middle Name</strong>
+                        <span>{{ $application->user->mname ?? '—' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Last Name</strong>
+                        <span>{{ $application->user->lname ?? '—' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Gender</strong>
+                        <span>{{ $genderMap[$application->user->gender] ?? ucfirst($application->user->gender ?? '—') }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Birthday</strong>
+                        <span>{{ $bday ? $bday->format('M d, Y') : '—' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Age</strong>
+                        <span>{{ $age !== null ? $age . ' years old' : '—' }}</span>
+                    </div>
+                </div>
+
+                <hr style="border: none; border-top: 1px solid var(--border); margin-bottom: 30px;">
+
+                {{-- === SECTION 2: ACCOUNT CREDENTIALS === --}}
+                <span class="section-title">2. Account Credentials</span>
+                <div class="detail-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 30px;">
+                    <div class="detail-item">
+                        <strong>Username</strong>
+                        <span>{{ '@' . ($application->user->username ?? '—') }}</span>
                     </div>
                     <div class="detail-item">
                         <strong>Email Address</strong>
-                        <span>{{ $application->user->email }}</span>
+                        <span>{{ $application->user->email ?? '—' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Account Role</strong>
+                        <span style="text-transform: capitalize;">{{ $application->user->role ?? '—' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Doctor Status</strong>
+                        <span class="badge {{ $application->status }}" style="font-size: 0.7rem;">{{ ucfirst($application->status) }}</span>
+                    </div>
+                </div>
+
+                <hr style="border: none; border-top: 1px solid var(--border); margin-bottom: 30px;">
+
+                {{-- === SECTION 3: PROFESSIONAL INFORMATION === --}}
+                <span class="section-title">3. Professional Information</span>
+                <div class="detail-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 30px;">
+                    <div class="detail-item">
+                        <strong>Professional Title</strong>
+                        <span>{{ $application->professional_titles ?? 'Not specified' }}</span>
                     </div>
                     <div class="detail-item">
                         <strong>Submitted On</strong>
@@ -364,49 +421,131 @@
                     </div>
                 </div>
 
-                <span class="section-title">Submitted Documents</span>
-                @if($application->documents->isEmpty())
-                    <p style="color: var(--muted); padding: 20px; text-align: center; background: var(--bg); border-radius: 8px;">No documents were uploaded with this application.</p>
-                @else
+                <hr style="border: none; border-top: 1px solid var(--border); margin-bottom: 30px;">
+
+                {{-- === SECTION 4: BIOMETRIC VERIFICATION === --}}
+                <span class="section-title">4. Biometric Verification</span>
+                <div class="detail-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 30px;">
+                    <div class="detail-item">
+                        <strong>Biometric Consent</strong>
+                        @if($application->biometric_consent)
+                            <span style="color: #059669; font-weight: 600;">✓ Agreed</span>
+                        @else
+                            <span style="color: #dc2626;">✗ Not Given</span>
+                        @endif
+                    </div>
+                    <div class="detail-item">
+                        <strong>Liveness Verified</strong>
+                        @if($application->liveness_verified)
+                            <span style="color: #059669; font-weight: 600;">✓ Verified</span>
+                        @else
+                            <span style="color: #dc2626;">✗ Not Verified</span>
+                        @endif
+                    </div>
+                    <div class="detail-item">
+                        <strong>Face Match Score</strong>
+                        @php $score = floatval($application->face_match_score); @endphp
+                        <span style="font-weight: 600; color: {{ $score >= 90 ? '#059669' : ($score >= 70 ? '#d97706' : '#dc2626') }};">
+                            {{ $score > 0 ? number_format($score, 2) . '%' : '—' }}
+                        </span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Verified At</strong>
+                        <span>{{ $application->biometric_verified_at ? \Carbon\Carbon::parse($application->biometric_verified_at)->format('M d, Y h:i A') : '—' }}</span>
+                    </div>
+                </div>
+
+                <hr style="border: none; border-top: 1px solid var(--border); margin-bottom: 30px;">
+
+                {{-- === SECTION 5: SUBMITTED DOCUMENTS === --}}
+                <span class="section-title">5. Requirements Verification — Submitted Documents</span>
+
+                @php
+                    // Key submitted docs by requirement_id for easy lookup
+                    $submittedDocs = $application->documents->keyBy('doctor_requirement_id');
+                    // Docs without a linked requirement (orphaned)
+                    $orphanedDocs = $application->documents->filter(fn($d) => !$d->requirement);
+                @endphp
+
+                @if(isset($requirements) && $requirements->isNotEmpty())
                     <div class="document-list">
-                        @foreach($application->documents as $doc)
-                            <div class="document-item">
-                                <div>
-                                    <div class="doc-name">{{ $doc->requirement->name ?? 'Unknown Requirement' }}</div>
-                                    <div class="doc-desc">{{ $doc->requirement->description ?? 'No description provided.' }}</div>
-                                </div>
-                                <div>
-                                    @if($doc->file_path)
-                                        <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="btn-outline">
-                                            <i data-lucide="external-link" style="width: 16px; height: 16px;"></i>
-                                            View Document
-                                        </a>
+                        @foreach($requirements as $req)
+                            @php $doc = $submittedDocs->get($req->id); @endphp
+                            <div class="document-item" style="flex-wrap: wrap; gap: 10px; {{ !$doc && $req->is_required ? 'border-left: 4px solid #ef4444;' : (!$doc ? 'border-left: 4px solid #d97706;' : 'border-left: 4px solid #059669;') }}">
+                                <div style="flex: 1; min-width: 200px;">
+                                    <div class="doc-name">
+                                        {{ $req->name }}
+                                        @if($req->is_required)
+                                            <span style="background: rgba(239,68,68,0.1); color:#ef4444; padding: 2px 7px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 6px;">Required</span>
+                                        @else
+                                            <span style="background: var(--input-bg); color: var(--muted); padding: 2px 7px; border-radius: 4px; font-size: 0.7rem; margin-left: 6px;">Optional</span>
+                                        @endif
+                                    </div>
+                                    <div class="doc-desc">{{ $req->description ?? 'No description provided.' }}</div>
+
+                                    @if(!$doc)
+                                        @if($req->is_required)
+                                            <div style="margin-top: 8px; padding: 8px 12px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; font-size: 0.82rem; color: #dc2626;">
+                                                ⚠ <strong>Not Submitted</strong> — This required document was not uploaded. The application may be incomplete.
+                                            </div>
+                                        @else
+                                            <div style="margin-top: 8px; padding: 8px 12px; background: rgba(217,119,6,0.08); border: 1px solid rgba(217,119,6,0.25); border-radius: 6px; font-size: 0.82rem; color: #b45309;">
+                                                ℹ <strong>Not Submitted</strong> — This optional document was not provided by the applicant.
+                                            </div>
+                                        @endif
                                     @else
-                                        <span style="color: var(--muted); font-size: 0.85rem; font-style: italic;">No file attached</span>
+                                        @php
+                                            $ext = $doc->file_path ? strtoupper(pathinfo($doc->file_path, PATHINFO_EXTENSION)) : null;
+                                            $isVideo = in_array(strtolower($ext ?? ''), ['mp4', 'webm', 'mov', 'avi']);
+                                        @endphp
+                                        <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                            @if($ext)
+                                                <span style="background: rgba(59,130,246,0.1); color:#3b82f6; padding: 2px 8px; border-radius: 4px; font-size:0.75rem; font-weight:700;">
+                                                    {{ $isVideo ? '🎥' : '📄' }} {{ $ext }}
+                                                </span>
+                                            @endif
+                                            <span style="font-size: 0.8rem; color: var(--muted);">{{ basename($doc->file_path ?? '—') }}</span>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                                    @if($doc)
+                                        <span style="font-size: 0.8rem; color: {{ $doc->status === 'accepted' ? '#059669' : ($doc->status === 'rejected' ? '#dc2626' : '#d97706') }}; font-weight: 600; text-transform: capitalize; min-width: 65px; text-align: right;">
+                                            {{ ucfirst($doc->status ?? 'submitted') }}
+                                        </span>
+                                        @if($doc->file_path)
+                                            <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="btn-outline">
+                                                <i data-lucide="external-link" style="width: 16px; height: 16px;"></i>
+                                                View
+                                            </a>
+                                        @endif
+                                    @else
+                                        <span style="font-size: 0.8rem; color: var(--muted); font-style: italic;">No file</span>
                                     @endif
                                 </div>
                             </div>
                         @endforeach
                     </div>
+                @else
+                    <p style="color: var(--muted); padding: 20px; text-align: center; background: var(--bg); border-radius: 8px;">No requirement definitions found.</p>
                 @endif
 
+                {{-- === REVIEW DECISION === --}}
                 <div class="review-actions">
                     @if($application->status === 'pending')
                         <span class="section-title">Review Decision</span>
                         <div class="review-form-grid">
-                            {{-- Approval Card --}}
                             <div class="review-card" style="border-top: 4px solid #059669;">
                                 <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: #059669;">Approve Application</h3>
                                 <form action="{{ route('admin.applications.approve', $application->id) }}" method="POST">
                                     @csrf
                                     <textarea name="admin_notes" placeholder="Add approval notes for the doctor (optional)..."></textarea>
                                     <button type="submit" class="btn-solid btn-approve" style="width: 100%;">
-                                        Approve & Verify Doctor
+                                        Approve &amp; Verify Doctor
                                     </button>
                                 </form>
                             </div>
-
-                            {{-- Rejection Card --}}
                             <div class="review-card" style="border-top: 4px solid #dc2626;">
                                 <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: #dc2626;">Reject Application</h3>
                                 <form action="{{ route('admin.applications.reject', $application->id) }}" method="POST">
@@ -429,6 +568,7 @@
                         </div>
                     @endif
                 </div>
+
             </div>
         </div>
     </section>

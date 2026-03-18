@@ -167,6 +167,16 @@ Route::group(['prefix' => 'admin'], function () {
             Route::post('/professional-titles', [\App\Http\Controllers\Admin\ProfessionalTitleController::class, 'store'])->name('admin.professional-titles.store');
             Route::put('/professional-titles/{professional_title}', [\App\Http\Controllers\Admin\ProfessionalTitleController::class, 'update'])->name('admin.professional-titles.update');
             Route::delete('/professional-titles/{professional_title}', [\App\Http\Controllers\Admin\ProfessionalTitleController::class, 'destroy'])->name('admin.professional-titles.destroy');
+
+            // Admin Messaging
+            Route::get('/messages', [\App\Http\Controllers\Admin\AdminMessageController::class, 'index'])->name('admin.messages.index');
+            Route::get('/messages/{adminId}', [\App\Http\Controllers\Admin\AdminMessageController::class, 'show'])->name('admin.messages.show');
+            Route::post('/messages/{adminId}', [\App\Http\Controllers\Admin\AdminMessageController::class, 'store'])->name('admin.messages.store');
+
+            // Admin Notifications
+            Route::get('/notifications', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'index'])->name('admin.notifications.index');
+            Route::get('/notifications/unread-count', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'unreadCount'])->name('admin.notifications.unread');
+            Route::post('/notifications/{id}/read', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'markRead'])->name('admin.notifications.read');
         }
         );
     });

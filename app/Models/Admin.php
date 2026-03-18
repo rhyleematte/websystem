@@ -43,4 +43,32 @@ class Admin extends Authenticatable
     protected $casts = [
         'bday' => 'date',
     ];
+
+    public function sentMessages()
+    {
+        return $this->hasMany(\App\Models\AdminMessage::class, 'from_admin_id');
+    }
+
+    public function receivedMessages()
+    {
+        return $this->hasMany(\App\Models\AdminMessage::class, 'to_admin_id');
+    }
+
+    /** Helper: full name **/
+    public function getFullNameAttribute()
+    {
+        return trim($this->fname . ' ' . $this->mname . ' ' . $this->lname) ?: $this->email;
+    }
+
+    /** Helper: short name **/
+    public function getShortNameAttribute()
+    {
+        return trim($this->fname . ' ' . $this->lname) ?: $this->email;
+    }
+
+    /** Used in the header **/
+    public function getUsernameAttribute()
+    {
+        return $this->email;
+    }
 }
