@@ -1,1 +1,1 @@
-<?php require 'vendor/autoload.php'; \ = require_once 'bootstrap/app.php'; \ = \->make(Illuminate\Contracts\Console\Kernel::class); \->bootstrap(); \ = App\Models\User::find(6); \->profile_photo = 'profiles/test_photo.jpg'; \->save();
+<?php require 'vendor/autoload.php'; $app = require_once 'bootstrap/app.php'; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); $user = App\Models\User::find(6); if($user) { $user->profile_photo = 'profiles/test_photo.jpg'; $user->save(); }

@@ -312,6 +312,7 @@ class ProfileController extends Controller
             'group_id' => ['nullable', 'exists:groups,id'],
         ]);
 
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $hasText = filled($request->text_content);
         $hasMedia = $request->hasFile('media');
@@ -589,6 +590,7 @@ class ProfileController extends Controller
         $comment->load('user');
 
         // Notifications: post owner + group creator + mentions
+        /** @var \App\Models\User $actor */
         $actor = Auth::user();
         $actorName = $actor->short_name ?: $actor->full_name;
         $postUrl = $this->postUrl($post, $comment->id);
@@ -670,6 +672,7 @@ class ProfileController extends Controller
         ]);
 
         // Notifications: shared post owner + mentions in share text
+        /** @var \App\Models\User $actor */
         $actor = Auth::user();
         $actorName = $actor->short_name ?: $actor->full_name;
         if ($origin->user_id !== $actor->id) {

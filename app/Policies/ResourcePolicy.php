@@ -77,7 +77,7 @@ class ResourcePolicy
      */
     public function restore(User $user, Resource $resource)
     {
-        //
+        return false;
     }
 
     /**
@@ -89,6 +89,6 @@ class ResourcePolicy
      */
     public function forceDelete(User $user, Resource $resource)
     {
-        //
+        return false;
     }
 }

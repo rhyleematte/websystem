@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Models\HelpRequest;
 use App\Models\Conversation;
 use App\Models\ConversationParticipant;
+use App\Models\Notification;
+use App\Models\Message;
 use App\Models\DoctorApplication;
 use Illuminate\Support\Facades\Log;
 
@@ -219,7 +221,34 @@ class HelpRequestController extends Controller
             'status' => 'pending'
         ]);
 
+        // Create a notification for the doctor
+        Notification::create([
+            'user_id' => $doctorId,
+            'actor_id' => auth()->id(),
+            'type' => 'help_request',
+            'data' => [
+                'message' => auth()->user()->full_name . " is requesting a " . $title . " chat.",
+                'request_id' => $helpRequest->id,
+                'suggested_title' => $title,
+                'url' => url('/dashboard') // Point to dashboard where the approval panel is
+            ]
+        ]);
+
         return response()->json(['success' => true, 'request_id' => $helpRequest->id]);
+    }
+    
+    public function getRequestStatus($id)
+    {
+        $helpRequest = HelpRequest::findOrFail($id);
+        
+        return response()->json([
+            'status' => $helpRequest->status,
+            'conversation_id' => $helpRequest->status === 'accepted' ? Conversation::whereHas('participants', function($q) use ($helpRequest) {
+                $q->where('user_id', $helpRequest->user_id);
+            })->whereHas('participants', function($q) use ($helpRequest) {
+                $q->where('user_id', $helpRequest->doctor_id);
+            })->latest()->first()->id ?? null : null
+        ]);
     }
     
     // For Doctors to View Their Pending Requests
@@ -256,6 +285,14 @@ class HelpRequestController extends Controller
         ConversationParticipant::create([
             'conversation_id' => $convo->id,
             'user_id' => $helpRequest->doctor_id
+        ]);
+
+        // Send an automated first message as the "approval message"
+        Message::create([
+            'conversation_id' => $convo->id,
+            'sender_user_id' => auth()->id(),
+            'message_type' => 'text',
+            'body' => "Hello! I have accepted your request for a " . ($helpRequest->suggested_title ?? 'consultation') . ". How can I help you today?"
         ]);
         
         // Can optionally set doctor status to NOT free to talk

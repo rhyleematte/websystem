@@ -242,7 +242,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     const resData = await r.json();
                     if (resData.success) {
                         e.target.innerText = 'Sent!';
-                        appendMessage('assistant', 'Your request has been sent! Please wait for the doctor to accept it. You will be redirected or notified.');
+                        const requestId = resData.request_id;
+                        appendMessage('assistant', 'Your request has been sent! Please stay on this page. I will notify you the moment a doctor accepts your request.');
+                        
+                        // Start polling for status
+                        const pollInterval = setInterval(async () => {
+                            try {
+                                const statusRes = await fetch(`{{ url("/api/help/request") }}/${requestId}/status`);
+                                const statusData = await statusRes.json();
+                                
+                                if (statusData.status === 'accepted') {
+                                    clearInterval(pollInterval);
+                                    appendMessage('assistant', 'Great news! A doctor has accepted your request. Redirecting you to the chat now...');
+                                    setTimeout(() => {
+                                        window.location.href = "{{ url('/dashboard') }}";
+                                    }, 2000);
+                                }
+                            } catch (pollError) {
+                                console.error("Status check failed", pollError);
+                            }
+                        }, 5000); // Check every 5 seconds
                     } else {
                         e.target.innerText = 'Failed';
                         e.target.disabled = false;

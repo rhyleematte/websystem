@@ -1,9 +1,7 @@
-<div class="panel" id="doctorRequestsPanel" style="display: none; border: 2px solid var(--primary); background: var(--hover, #f8fafc);">
-    <div class="mini-title" style="color: var(--primary); font-weight: 700;">
-        <i data-lucide="alert-circle"></i><span>Urgent: Incoming Help Request</span>
-    </div>
+<div class="panel" id="doctorRequestsPanel" style="display: none;">
+    <div class="mini-title"><i data-lucide="bell"></i><span>Incoming Help Requests</span></div>
     <div id="doctorRequestsList" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-        <span style="font-size: 13px; color: var(--text-muted);">Checking for requests...</span>
+        <span style="font-size: 13px; color: var(--text-3);">No pending requests.</span>
     </div>
 </div>
 
@@ -14,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadRequests() {
         try {
-            const res = await fetch('{{ url("/api/help/pending") }}');
+            const res = await fetch('<?php echo e(url("/api/help/pending")); ?>');
             if (!res.ok) return;
             const data = await res.json();
             
@@ -41,10 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         e.target.disabled = true;
                         
                         try {
-                            const acceptRes = await fetch(`{{ url("/api/help/accept") }}/${rid}`, {
+                            const acceptRes = await fetch(`<?php echo e(url("/api/help/accept")); ?>/${rid}`, {
                                 method: 'POST',
                                 headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                                     'Content-Type': 'application/json'
                                 }
                             });
@@ -71,3 +69,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 </script>
+<?php /**PATH C:\websystem\resources\views/partials/doctor_pending_requests.blade.php ENDPATH**/ ?>

@@ -89,6 +89,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/api/help/chat', [\App\Http\Controllers\HelpRequestController::class, 'chat']);
     Route::get('/api/help/doctors', [\App\Http\Controllers\HelpRequestController::class, 'findDoctors']);
     Route::post('/api/help/request', [\App\Http\Controllers\HelpRequestController::class, 'requestConversation']);
+    Route::get('/api/help/request/{id}/status', [\App\Http\Controllers\HelpRequestController::class, 'getRequestStatus']);
     Route::get('/api/help/pending', [\App\Http\Controllers\HelpRequestController::class, 'pendingRequests']);
     Route::post('/api/help/accept/{id}', [\App\Http\Controllers\HelpRequestController::class, 'acceptRequest']);
     Route::post('/api/help/toggle-status', [\App\Http\Controllers\HelpRequestController::class, 'toggleStatus']);
