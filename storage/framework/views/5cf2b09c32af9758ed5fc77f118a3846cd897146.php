@@ -253,10 +253,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                 
                                 if (statusData.status === 'accepted') {
                                     clearInterval(pollInterval);
-                                    appendMessage('assistant', 'Great news! A doctor has accepted your request. Redirecting you to the chat now...');
+                                    appendMessage('assistant', 'Great news! A doctor has accepted your request. Opening the chat for you now...');
                                     setTimeout(() => {
-                                        window.location.href = "<?php echo e(url('/dashboard')); ?>";
+                                        if (window.openConversationById) {
+                                            window.openConversationById(statusData.conversation_id);
+                                            // Close modal
+                                            document.querySelector('#aiChatModal').classList.remove('open');
+                                        } else {
+                                            window.location.href = "<?php echo e(url('/dashboard')); ?>?open_chat=" + statusData.conversation_id;
+                                        }
                                     }, 2000);
+                                } else if (statusData.status === 'declined') {
+                                    clearInterval(pollInterval);
+                                    appendMessage('assistant', 'It looks like the doctor is currently unavailable or busy. Let me find someone else for you...');
+                                    fetchDoctors(t); // Re-fetch doctors list
                                 }
                             } catch (pollError) {
                                 console.error("Status check failed", pollError);

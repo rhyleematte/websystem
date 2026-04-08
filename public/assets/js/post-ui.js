@@ -242,12 +242,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!current || !current.type || !current.id) return null;
     if (current.type === 'post') return '/profile/posts/' + current.id + '/share';
     if (current.type === 'resource') return '/resources/' + current.id + '/share';
+    if (current.type === 'group') return '/groups/' + current.id + '/share';
     return null;
   }
 
   function bindShareTriggers() {
     document.addEventListener('click', function (e) {
-      var btn = e.target.closest('.js-share-post, .js-share-resource');
+      var btn = e.target.closest('.js-share-post, .js-share-resource, .js-share-group');
       if (!btn) return;
       e.preventDefault();
 
@@ -257,11 +258,17 @@ document.addEventListener('DOMContentLoaded', function () {
           id: btn.dataset.postId,
           preview_text: btn.dataset.preview || 'a post'
         });
-      } else {
+      } else if (btn.classList.contains('js-share-resource')) {
         openModal({
           type: 'resource',
           id: btn.dataset.resourceId,
           preview_text: btn.dataset.preview || 'a resource'
+        });
+      } else if (btn.classList.contains('js-share-group')) {
+        openModal({
+          type: 'group',
+          id: btn.dataset.groupId,
+          preview_text: btn.dataset.preview || 'a group'
         });
       }
     });
@@ -337,6 +344,15 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!d.type || !d.id) return;
     if (d.type === 'resource') {
       var btn = document.querySelector('.js-share-resource[data-resource-id="' + d.id + '"]');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="check"></i> Shared';
+        btn.style.background = '#10b981';
+        btn.style.color = '#fff';
+        if (window.lucide) lucide.createIcons({ root: btn });
+      }
+    } else if (d.type === 'group') {
+      var btn = document.querySelector('.js-share-group[data-group-id="' + d.id + '"]');
       if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="check"></i> Shared';

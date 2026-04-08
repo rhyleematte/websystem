@@ -9,33 +9,9 @@
   $me        = Auth::user();
 ?>
 
-<div class="groups-shell">
-  <div class="groups-body">
-    
-    <aside class="groups-sidebar">
-      <div class="panel nav-panel">
-        <a class="nav-item" href="<?php echo e(route('user.dashboard')); ?>">
-          <i data-lucide="home"></i><span>Feed</span>
-        </a>
-        <a class="nav-item active" href="<?php echo e(route('groups.index')); ?>">
-          <i data-lucide="users"></i><span>Support Groups</span>
-        </a>
-        <a class="nav-item" href="<?php echo e(route('resources.index')); ?>">
-          <i data-lucide="book-open"></i><span>Resources</span>
-        </a>
-        <a class="nav-item" href="<?php echo e(route('profile.show', $me->id)); ?>">
-          <i data-lucide="user"></i><span>My Profile</span>
-        </a>
-      </div>
-      
-      <?php echo $__env->make('partials.daily_affirmation_panel', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
-
-      <div class="panel mini-panel danger">
-        <div class="mini-title"><i data-lucide="life-buoy"></i><span>Crisis Support</span></div>
-        <p class="mini-sub">If you're in crisis, help is available 24/7</p>
-        <button class="danger-btn" type="button">Get Help Now</button>
-      </div>
-    </aside>
+<main class="dash">
+  <div class="dash-body">
+    <?php echo $__env->make('partials.sidebar', ['active' => 'groups'], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
     
     <main class="groups-main">
@@ -107,7 +83,7 @@
       </div>
     </main>
   </div>
-</div>
+</main>
 
 
 <?php if($me->doctor_status === 'approved'): ?>

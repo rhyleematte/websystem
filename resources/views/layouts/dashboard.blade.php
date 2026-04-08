@@ -13,6 +13,9 @@
   <!-- Base + Dashboard CSS -->
   <link rel="stylesheet" href="{{ asset('assets/css/dashboard.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/css/messenger.css') }}">
+  @if(Auth::check() && Auth::user()->isApprovedDoctor())
+    <link rel="stylesheet" href="{{ asset('assets/css/schedule.css') }}">
+  @endif
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -36,6 +39,7 @@
   </script>
   @include('partials.header')
   @include('partials.messenger')
+  @include('partials.appointments_modal')
 @endauth
 
 @yield('content')
@@ -71,6 +75,8 @@
 <script src="{{ asset('assets/js/dashboard.js') }}?v={{ filemtime(public_path('assets/js/dashboard.js')) }}" defer></script>
 <script src="{{ asset('assets/js/post-ui.js') }}?v={{ filemtime(public_path('assets/js/post-ui.js')) }}" defer></script>
 <script src="{{ asset('assets/js/messenger.js') }}" defer></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+<script src="{{ asset('assets/js/appointments.js') }}" defer></script>
 
 @stack('scripts')
 </body>

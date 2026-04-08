@@ -32,6 +32,9 @@
   </div>
 
   <div class="dash-actions">
+    <button class="icon-btn schedule-toggle" type="button" aria-label="Schedule" id="headerScheduleBtn">
+      <i data-lucide="calendar"></i>
+    </button>
     <button class="icon-btn messenger-toggle" type="button" aria-label="Messages">
       <i data-lucide="message-circle"></i>
     </button>

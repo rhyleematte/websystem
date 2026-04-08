@@ -240,14 +240,23 @@ class HelpRequestController extends Controller
     public function getRequestStatus($id)
     {
         $helpRequest = HelpRequest::findOrFail($id);
+        $convo = null;
+        
+        if ($helpRequest->status === 'accepted') {
+            $convo = Conversation::where('type', 'direct')
+                ->whereHas('participants', function($q) use ($helpRequest) {
+                    $q->where('user_id', $helpRequest->user_id);
+                })
+                ->whereHas('participants', function($q) use ($helpRequest) {
+                    $q->where('user_id', $helpRequest->doctor_id);
+                })
+                ->latest('conversations.updated_at')
+                ->first();
+        }
         
         return response()->json([
             'status' => $helpRequest->status,
-            'conversation_id' => $helpRequest->status === 'accepted' ? Conversation::whereHas('participants', function($q) use ($helpRequest) {
-                $q->where('user_id', $helpRequest->user_id);
-            })->whereHas('participants', function($q) use ($helpRequest) {
-                $q->where('user_id', $helpRequest->doctor_id);
-            })->latest()->first()->id ?? null : null
+            'conversation_id' => $convo ? $convo->id : null
         ]);
     }
     
@@ -274,26 +283,52 @@ class HelpRequestController extends Controller
         
         $helpRequest->update(['status' => 'accepted']);
         
-        // Create conversation
-        $convo = Conversation::create(['type' => 'direct']);
-        
-        ConversationParticipant::create([
-            'conversation_id' => $convo->id,
-            'user_id' => $helpRequest->user_id
-        ]);
-        
-        ConversationParticipant::create([
-            'conversation_id' => $convo->id,
-            'user_id' => $helpRequest->doctor_id
-        ]);
+        // Check for existing direct conversation (prefer most recently active one)
+        $convo = Conversation::where('type', 'direct')
+            ->whereHas('participants', function($q) use ($helpRequest) {
+                $q->where('user_id', $helpRequest->doctor_id);
+            })
+            ->whereHas('participants', function($q) use ($helpRequest) {
+                $q->where('user_id', $helpRequest->user_id);
+            })
+            ->latest('conversations.updated_at')
+            ->first();
 
-        // Send an automated first message as the "approval message"
-        Message::create([
-            'conversation_id' => $convo->id,
-            'sender_user_id' => auth()->id(),
-            'message_type' => 'text',
-            'body' => "Hello! I have accepted your request for a " . ($helpRequest->suggested_title ?? 'consultation') . ". How can I help you today?"
-        ]);
+        if (!$convo) {
+            // Create conversation
+            $convo = Conversation::create(['type' => 'direct']);
+            
+            ConversationParticipant::create([
+                'conversation_id' => $convo->id,
+                'user_id' => $helpRequest->user_id
+            ]);
+            
+            ConversationParticipant::create([
+                'conversation_id' => $convo->id,
+                'user_id' => $helpRequest->doctor_id
+            ]);
+        } else {
+            // Restore visibility if it was hidden/archived
+            ConversationParticipant::where('conversation_id', $convo->id)
+                ->where('user_id', $helpRequest->user_id)
+                ->update(['deleted_at' => null]);
+            ConversationParticipant::where('conversation_id', $convo->id)
+                ->where('user_id', $helpRequest->doctor_id)
+                ->update(['deleted_at' => null]);
+        }
+
+        // Send an automated greeting if it's not already the last message
+        $lastMessage = Message::where('conversation_id', $convo->id)->latest()->first();
+        $greetingBody = "Hello! I have accepted your request for a " . ($helpRequest->suggested_title ?? 'consultation') . ". How can I help you today?";
+        
+        if (!$lastMessage || $lastMessage->body !== $greetingBody) {
+            Message::create([
+                'conversation_id' => $convo->id,
+                'sender_user_id' => auth()->id(),
+                'message_type' => 'text',
+                'body' => $greetingBody
+            ]);
+        }
         
         // Can optionally set doctor status to NOT free to talk
         // auth()->user()->update(['is_free_to_talk' => false]);
@@ -301,7 +336,29 @@ class HelpRequestController extends Controller
         return response()->json([
             'success' => true,
             'conversation_id' => $convo->id,
-            'redirect_url' => url('/dashboard')
+            'redirect_url' => url('/dashboard'),
+            'other_user' => [
+                'id' => $helpRequest->user->id,
+                'name' => $helpRequest->user->short_name ?: $helpRequest->user->full_name,
+                'avatar' => $helpRequest->user->avatar_url
+            ]
+        ]);
+    }
+    
+    // For Doctor to Decline the Request
+    public function declineRequest($id)
+    {
+        $helpRequest = HelpRequest::findOrFail($id);
+        
+        if ($helpRequest->doctor_id !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        
+        $helpRequest->update(['status' => 'declined']);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Request declined'
         ]);
     }
     
@@ -315,13 +372,15 @@ class HelpRequestController extends Controller
         
         if ($request->has('is_free_to_talk')) {
             $user->is_free_to_talk = $request->is_free_to_talk;
+            $user->allow_ai_recommendation = $request->is_free_to_talk;
         }
         
         $user->save();
         
         return response()->json([
             'is_online' => $user->is_online,
-            'is_free_to_talk' => $user->is_free_to_talk
+            'is_free_to_talk' => $user->is_free_to_talk,
+            'allow_ai_recommendation' => $user->allow_ai_recommendation
         ]);
     }
 

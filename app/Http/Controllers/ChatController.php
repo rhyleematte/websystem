@@ -21,7 +21,21 @@ class ChatController extends Controller
         $conversations = $user->conversations()
             ->with(['users', 'latestMessage'])
             ->wherePivot('deleted_at', null)
+            ->orderBy('conversations.updated_at', 'desc')
             ->get();
+
+        // 2. Filter conversations to keep only one per user pair
+        $alreadyPaired = [];
+        $conversations = $conversations->filter(function($conv) use ($user, &$alreadyPaired) {
+            $otherUser = $conv->users->where('id', '!=', $user->id)->first();
+            if (!$otherUser) return true; // Keep groups if they exist
+            
+            if (isset($alreadyPaired[$otherUser->id])) {
+                return false; // Skip duplicate conversations with the same user
+            }
+            $alreadyPaired[$otherUser->id] = true;
+            return true;
+        });
 
         $existingConversationUserIds = $conversations->flatMap(function($conv) use ($user) {
             return $conv->users->pluck('id');
@@ -143,6 +157,7 @@ class ChatController extends Controller
                 ->whereHas('participants', function($q) use ($request) {
                     $q->where('user_id', $request->receiver_id);
                 })
+                ->latest('conversations.updated_at')
                 ->first();
 
             if (!$conversation) {
@@ -160,6 +175,9 @@ class ChatController extends Controller
             'body' => $request->body,
             'message_type' => 'text',
         ]);
+
+        // Touch conversation to update updated_at
+        Conversation::where('id', $conversationId)->update(['updated_at' => now()]);
 
         // Restore conversation visibility for everyone in the conversation
         DB::table('conversation_participants')

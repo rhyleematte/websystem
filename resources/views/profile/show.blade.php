@@ -24,34 +24,10 @@
 {{-- ════════════════════════════════════════════════════════════════
      PROFILE WRAPPER
 ═══════════════════════════════════════════════════════════════════ --}}
-<div class="prof-shell">
-
-  {{-- ── Main Layout ── --}}
-  <div class="prof-body">
-
-    {{-- ══ LEFT – sticky sidebar ══ --}}
-    <aside class="prof-sidebar">
-      <div class="panel nav-panel">
-        <a class="nav-item" href="{{ route('user.dashboard') }}">
-          <i data-lucide="home"></i><span>Feed</span>
-        </a>
-        <a class="nav-item" href="{{ route('groups.index') }}">
-          <i data-lucide="users"></i><span>Support Groups</span>
-        </a>
-        <a class="nav-item" href="{{ route('resources.index') }}">
-          <i data-lucide="book-open"></i><span>Resources</span>
-        </a>
-        @if($me)
-        <a class="nav-item {{ $isOwn ? 'active' : '' }}" href="{{ route('profile.show', $me->id) }}">
-          <i data-lucide="user"></i><span>My Profile</span>
-        </a>
-        @else
-        <a class="nav-item active" href="{{ route('profile.show', $profileUser->id) }}">
-          <i data-lucide="user"></i><span>Profile</span>
-        </a>
-        @endif
-      </div>
-    </aside>
+<main class="dash">
+  <div class="dash-body">
+    {{-- ══ LEFT – shared sidebar ══ --}}
+    @include('partials.sidebar', ['active' => $isOwn ? 'profile' : ''])
 
     {{-- ══ CENTER – profile content ══ --}}
     <main class="prof-main">
@@ -605,7 +581,7 @@
 
     </main>
   </div>
-</div>
+</main>
 
 {{-- Toast notification --}}
 <div class="toast" id="toast"></div>

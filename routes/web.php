@@ -65,6 +65,7 @@ Route::middleware('auth')->group(function () {
     // Group Cover Photo
     Route::post('/groups/{id}/update-cover', [\App\Http\Controllers\GroupController::class , 'updateCoverPhoto'])->name('groups.update.cover');
     Route::post('/groups/{id}/delete-cover', [\App\Http\Controllers\GroupController::class , 'deleteCoverPhoto'])->name('groups.delete.cover');
+    Route::post('/groups/{id}/share', [\App\Http\Controllers\GroupController::class , 'share'])->name('groups.share');
 
     // Resources
     Route::resource('resources', \App\Http\Controllers\ResourceController::class);
@@ -92,7 +93,26 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/help/request/{id}/status', [\App\Http\Controllers\HelpRequestController::class, 'getRequestStatus']);
     Route::get('/api/help/pending', [\App\Http\Controllers\HelpRequestController::class, 'pendingRequests']);
     Route::post('/api/help/accept/{id}', [\App\Http\Controllers\HelpRequestController::class, 'acceptRequest']);
+    Route::post('/api/help/decline/{id}', [\App\Http\Controllers\HelpRequestController::class, 'declineRequest']);
     Route::post('/api/help/toggle-status', [\App\Http\Controllers\HelpRequestController::class, 'toggleStatus']);
+
+    // Schedule Management (Doctors Only)
+    Route::middleware(['auth'])->prefix('doctor/schedule')->group(function () {
+        Route::get('/', [App\Http\Controllers\DoctorScheduleController::class, 'index'])->name('doctor.schedule.index');
+        Route::post('/update', [App\Http\Controllers\DoctorScheduleController::class, 'update'])->name('doctor.schedule.update');
+        Route::post('/toggle', [App\Http\Controllers\DoctorScheduleController::class, 'toggle'])->name('doctor.schedule.toggle');
+    });
+
+    // Appointment Scheduling
+    Route::prefix('appointments')->group(function () {
+        Route::get('/create', [App\Http\Controllers\AppointmentController::class, 'create'])->name('appointments.create');
+        Route::get('/{appointment}', [App\Http\Controllers\AppointmentController::class, 'show'])->name('appointments.show');
+        Route::get('/api/events', [App\Http\Controllers\AppointmentController::class, 'getEvents'])->name('appointments.events');
+        Route::post('/api/store', [App\Http\Controllers\AppointmentController::class, 'store'])->name('appointments.store');
+        Route::post('/api/respond/{invitation}', [App\Http\Controllers\AppointmentController::class, 'respond'])->name('appointments.respond');
+        Route::delete('/api/destroy/{appointment}', [App\Http\Controllers\AppointmentController::class, 'destroy'])->name('appointments.destroy');
+        Route::get('/api/check-conflicts', [App\Http\Controllers\AppointmentController::class, 'checkConflicts'])->name('appointments.check-conflicts');
+    });
 });
 
 // ── Profile ────────────────────────────────────────────────────

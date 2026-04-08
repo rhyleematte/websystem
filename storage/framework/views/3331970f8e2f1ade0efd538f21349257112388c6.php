@@ -22,34 +22,10 @@
 ?>
 
 
-<div class="prof-shell">
-
-  
-  <div class="prof-body">
-
+<main class="dash">
+  <div class="dash-body">
     
-    <aside class="prof-sidebar">
-      <div class="panel nav-panel">
-        <a class="nav-item" href="<?php echo e(route('user.dashboard')); ?>">
-          <i data-lucide="home"></i><span>Feed</span>
-        </a>
-        <a class="nav-item" href="<?php echo e(route('groups.index')); ?>">
-          <i data-lucide="users"></i><span>Support Groups</span>
-        </a>
-        <a class="nav-item" href="<?php echo e(route('resources.index')); ?>">
-          <i data-lucide="book-open"></i><span>Resources</span>
-        </a>
-        <?php if($me): ?>
-        <a class="nav-item <?php echo e($isOwn ? 'active' : ''); ?>" href="<?php echo e(route('profile.show', $me->id)); ?>">
-          <i data-lucide="user"></i><span>My Profile</span>
-        </a>
-        <?php else: ?>
-        <a class="nav-item active" href="<?php echo e(route('profile.show', $profileUser->id)); ?>">
-          <i data-lucide="user"></i><span>Profile</span>
-        </a>
-        <?php endif; ?>
-      </div>
-    </aside>
+    <?php echo $__env->make('partials.sidebar', ['active' => $isOwn ? 'profile' : ''], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
     
     <main class="prof-main">
@@ -604,7 +580,7 @@
 
     </main>
   </div>
-</div>
+</main>
 
 
 <div class="toast" id="toast"></div>

@@ -108,6 +108,11 @@ class User extends Authenticatable
         return $this->hasMany(Message::class, 'sender_user_id');
     }
 
+    public function doctorSchedules()
+    {
+        return $this->hasMany(DoctorSchedule::class, 'doctor_id');
+    }
+
     // ── Accessors ─────────────────────────────────────────────────
     public function getFullNameAttribute()
     {

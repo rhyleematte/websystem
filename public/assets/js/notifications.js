@@ -22,7 +22,15 @@
         'X-CSRF-TOKEN': CSRF
       },
       body: body ? JSON.stringify(body) : null
-    }).then(function (r) { return r.json(); });
+    }).then(function (r) { 
+        if (!r.ok || !r.headers.get('content-type')?.includes('application/json')) {
+            return r.text().then(function(t) {
+                console.error("API Error (" + url + "):", r.status, t.substring(0, 100));
+                throw new Error("HTTP " + r.status);
+            });
+        }
+        return r.json(); 
+    });
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -89,6 +97,15 @@
         item.href = n.url || '#';
         item.dataset.id = n.id;
         item.dataset.url = n.url || '';
+        item.dataset.type = n.type || '';
+        
+        if (n.type === 'help_request' && n.data) {
+            item.dataset.requestId = n.data.request_id || '';
+            item.dataset.suggestedTitle = n.data.suggested_title || '';
+            item.dataset.requesterName = n.actor ? (n.actor.name) : 'User';
+            item.dataset.requesterAvatar = n.actor ? (n.actor.avatar_url) : '';
+            item.dataset.requesterId = n.actor ? (n.actor.id) : '';
+        }
 
         var avatar = (n.actor && n.actor.avatar_url) ? n.actor.avatar_url : '/assets/img/default.png';
         var actorName = (n.actor && n.actor.name) ? n.actor.name : 'System';
@@ -148,6 +165,24 @@
 
       var id = item.dataset.id;
       var url = item.dataset.url;
+      var type = item.dataset.type;
+
+      if (type === 'help_request' && window.openMessengerWithRequest) {
+          const requester = {
+              id: item.dataset.requesterId,
+              name: item.dataset.requesterName,
+              avatar_url: item.dataset.requesterAvatar
+          };
+          window.openMessengerWithRequest(requester, item.dataset.requestId, item.dataset.suggestedTitle);
+          isOpen = false;
+          dropdown.classList.remove('open');
+          
+          // Mark as read without jumping
+          apiJson('/api/notifications/' + id + '/read', {}).then(() => {
+              fetchNotifications(); // Refresh the count and list
+          });
+          return;
+      }
 
       apiJson('/api/notifications/' + id + '/read', {}).finally(function () {
         if (url && url !== '#') {

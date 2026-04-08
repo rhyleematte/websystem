@@ -41,7 +41,7 @@ class SecurityHeaders
             "script-src 'self' 'unsafe-inline' blob: https://unpkg.com https://cdn.jsdelivr.net",
             "worker-src 'self' blob:",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
-            "font-src 'self' https://fonts.gstatic.com",
+            "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: blob: https:",
             "media-src 'self' blob:",
             "connect-src 'self'{$debugConnectSrc} https://unpkg.com https://cdn.jsdelivr.net",

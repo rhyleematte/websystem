@@ -30,36 +30,9 @@ window.MY_PROFILE_URL = "<?php echo e(route('profile.show', Auth::id())); ?>";
   <div class="dash-body">
 
     
-    <aside class="dash-left">
-      <div class="panel nav-panel">
-        <a class="nav-item active" href="#"><i data-lucide="home"></i><span>Feed</span></a>
-        <a class="nav-item" href="<?php echo e(route('groups.index')); ?>"><i data-lucide="users"></i><span>Support Groups</span></a>
-        <a class="nav-item" href="<?php echo e(route('resources.index')); ?>"><i data-lucide="book-open"></i><span>Resources</span></a>
-        <a class="nav-item" href="<?php echo e(route('profile.show', Auth::id())); ?>">
-          <i data-lucide="user"></i><span>My Profile</span>
-        </a>
-        <?php if(Auth::user()->role !== 'doctor' && Auth::user()->doctor_status !== 'approved' && Auth::user()->doctor_status !== 'none' && Auth::user()->doctor_status !== null): ?>
-        <a class="nav-item" href="<?php echo e(route('profile.show', Auth::id())); ?>?tab=application">
-          <i data-lucide="stethoscope"></i><span>Apply as Doctor</span>
-        </a>
-        <?php endif; ?>
-      </div>
-
-      <?php echo $__env->make('partials.daily_affirmation_panel', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
-
-      <div class="panel mini-panel danger">
-        <div class="mini-title"><i data-lucide="life-buoy"></i><span>Crisis Support</span></div>
-        <p class="mini-sub">If you're in crisis, help is available 24/7</p>
-        <button class="danger-btn" type="button" id="getHelpBtn">Get Help Now</button>
-      </div>
-
-      <?php if(Auth::user()->isApprovedDoctor()): ?>
-        <?php echo $__env->make('partials.doctor_status_panel', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
-      <?php endif; ?>
-    </aside>
+    <?php echo $__env->make('partials.sidebar', ['active' => 'feed'], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
     <?php if(Auth::user()->isApprovedDoctor()): ?>
-        <?php echo $__env->make('partials.doctor_pending_requests', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     <?php endif; ?>
 
     

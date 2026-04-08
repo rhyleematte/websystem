@@ -37,6 +37,18 @@
         <div class="chat-box-messages">
             {{-- Messages load here --}}
         </div>
+
+        <div class="chat-pending-overlay" style="display: none;">
+            <div class="pending-info">
+                <div class="pending-user-name"></div>
+                <div class="pending-request-text"></div>
+            </div>
+            <div class="pending-actions">
+                <button class="decline-request-btn">Decline</button>
+                <button class="accept-request-btn">Accept</button>
+            </div>
+        </div>
+
         <div class="typing-indicator">
             <div class="dot"></div>
             <span class="typing-text">someone is typing...</span>

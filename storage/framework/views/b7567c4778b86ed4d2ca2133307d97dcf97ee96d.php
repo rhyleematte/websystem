@@ -1,7 +1,9 @@
-<div class="panel" id="doctorRequestsPanel" style="display: none;">
-    <div class="mini-title"><i data-lucide="bell"></i><span>Incoming Help Requests</span></div>
+<div class="panel" id="doctorRequestsPanel" style="display: none; border: 2px solid var(--primary); background: var(--hover, #f8fafc);">
+    <div class="mini-title" style="color: var(--primary); font-weight: 700;">
+        <i data-lucide="alert-circle"></i><span>Urgent: Incoming Help Request</span>
+    </div>
     <div id="doctorRequestsList" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-        <span style="font-size: 13px; color: var(--text-3);">No pending requests.</span>
+        <span style="font-size: 13px; color: var(--text-muted);">Checking for requests...</span>
     </div>
 </div>
 

@@ -27,13 +27,29 @@ document.addEventListener('DOMContentLoaded', function () {
         ? { 'X-CSRF-TOKEN': CSRF }
         : { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
       body: isFormData ? body : JSON.stringify(body),
-    }).then(function (r) { return r.json(); });
+    }).then(function (r) { 
+        if (!r.ok || !r.headers.get('content-type')?.includes('application/json')) {
+            return r.text().then(function(t) {
+                console.error("API POST Error (" + url + "):", r.status, t.substring(0, 200));
+                throw new Error("HTTP " + r.status);
+            });
+        }
+        return r.json(); 
+    });
   }
 
   function apiGet(url) {
     return fetch(url, {
       headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-    }).then(function (r) { return r.json(); });
+    }).then(function (r) { 
+        if (!r.ok || !r.headers.get('content-type')?.includes('application/json')) {
+            return r.text().then(function(t) {
+                console.error("API GET Error (" + url + "):", r.status, t.substring(0, 200));
+                throw new Error("HTTP " + r.status);
+            });
+        }
+        return r.json(); 
+    });
   }
 
   function showToast(msg, type) {
@@ -124,12 +140,13 @@ document.addEventListener('DOMContentLoaded', function () {
       searchTimer = setTimeout(function () {
         apiGet('/api/search/users?q=' + encodeURIComponent(query))
           .then(function (res) {
-            if (res.ok && res.users) {
+            if (res && (res.users || Array.isArray(res))) {
+              const users = res.users || res;
               searchDropdown.innerHTML = '';
-              if (res.users.length === 0) {
+              if (users.length === 0) {
                 searchDropdown.innerHTML = '<div class="search-empty">No users found.</div>';
               } else {
-                res.users.forEach(function (u) {
+                users.forEach(function (u) {
                   var item = document.createElement('a');
                   item.href = u.profile_url;
                   item.className = 'search-item';
@@ -512,6 +529,19 @@ document.addEventListener('DOMContentLoaded', function () {
         '</div></a>';
     }
 
+    /* group card (for group_share type) */
+    var groupHtml = '';
+    if (post.group) {
+      groupHtml = 
+        '<a href="' + post.group.url + '" class="post-resource-card group-share-card">' +
+        '<div class="res-mini-thumb"><img src="' + esc(post.group.cover_url) + '"></div>' +
+        '<div class="res-mini-info">' +
+        '<div class="res-mini-type" style="color:var(--brand);">Support Group</div>' +
+        '<div class="res-mini-title">' + esc(post.group.name) + '</div>' +
+        '<div class="res-mini-desc">' + esc(post.group.description) + '</div>' +
+        '</div></a>';
+    }
+
     /* shared post card (for post_share type) */
     var sharedHtml = '';
     if (post.shared_post) {
@@ -596,6 +626,7 @@ document.addEventListener('DOMContentLoaded', function () {
       + tagsHtml
       + moodHtml
       + resourceHtml
+      + groupHtml
       + sharedHtml
       + mediaHtml
       + '<div class="post-actions">'

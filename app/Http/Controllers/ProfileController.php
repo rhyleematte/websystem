@@ -231,9 +231,16 @@ class ProfileController extends Controller
             ? Auth::user()->following()->pluck('users.id')->toArray()
             : [];
 
-        $posts = Post::with(['user', 'user.doctorApplication', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource', 'sharedPost.user', 'sharedPost.user.doctorApplication', 'sharedPost.media', 'sharedPost.resource'])
+        if (Auth::check()) {
+            // Priority: Self + Followed
+            $followedIds[] = Auth::id();
+        }
+
+        $posts = Post::with(['user', 'user.doctorApplication', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource', 'group', 'sharedPost.user', 'sharedPost.user.doctorApplication', 'sharedPost.media', 'sharedPost.resource', 'sharedPost.group'])
             ->when(!empty($followedIds), function ($q) use ($followedIds) {
-                $ids = implode(',', $followedIds);
+                // Remove duplicates in case user is somehow following themselves
+                $uniqueIds = array_unique($followedIds);
+                $ids = implode(',', $uniqueIds);
                 $q->orderByRaw("CASE WHEN user_id IN ($ids) THEN 0 ELSE 1 END");
             })
             ->latest()
@@ -804,6 +811,13 @@ class ProfileController extends Controller
                 'description' => $post->resource->description,
                 'thumbnail_url' => $post->resource->thumbnail_url,
                 'url' => route('resources.show', $post->resource->id),
+            ] : null,
+            'group' => $post->group ? [
+                'id' => $post->group->id,
+                'name' => $post->group->name,
+                'description' => $post->group->description,
+                'cover_url' => $post->group->cover_url,
+                'url' => route('groups.show', $post->group->id),
             ] : null,
             'shared_post' => $post->sharedPost ? $this->formatPost($post->sharedPost) : null,
         ];

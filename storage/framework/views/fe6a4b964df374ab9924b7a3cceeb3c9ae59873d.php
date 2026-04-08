@@ -104,13 +104,21 @@ window.MY_PROFILE_URL = "<?php echo e(route('profile.show', $me->id ?? 0)); ?>";
 
             <?php if($isMember): ?>
               <?php if($me->id !== $group->creator_id): ?>
-              <button class="btn primary" onclick="leaveGroup(<?php echo e($group->id); ?>)" style="padding:10px 24px; border-radius:8px; background:linear-gradient(90deg, #7c3aed, #4f46e5); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.2); border:none; color:#fff;">
-                Leave Group
-              </button>
+              <div style="display:flex; gap:10px;">
+                <button class="btn primary" onclick="leaveGroup(<?php echo e($group->id); ?>)" style="padding:10px 24px; border-radius:8px; background:linear-gradient(90deg, #7c3aed, #4f46e5); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.2); border:none; color:#fff;">
+                  Leave Group
+                </button>
+                <button class="btn secondary js-share-group" type="button" data-group-id="<?php echo e($group->id); ?>" data-preview="<?php echo e($group->name); ?>" style="padding:10px 18px; border-radius:8px; border:1px solid var(--border); background:var(--chip-bg); color:var(--text);">
+                  <i data-lucide="share-2" style="width:16px;height:16px;"></i> Share
+                </button>
+              </div>
               <?php else: ?>
               <div style="display:flex; gap:10px;">
                 <button class="btn secondary" type="button" onclick="openEditGroupModal()" style="padding:10px 18px; border-radius:8px; border:1px solid var(--border); background:var(--chip-bg); color:var(--text);">
                   <i data-lucide="pencil" style="width:16px;height:16px;"></i> Edit Group
+                </button>
+                <button class="btn secondary js-share-group" type="button" data-group-id="<?php echo e($group->id); ?>" data-preview="<?php echo e($group->name); ?>" style="padding:10px 18px; border-radius:8px; border:1px solid var(--border); background:var(--chip-bg); color:var(--text);">
+                  <i data-lucide="share-2" style="width:16px;height:16px;"></i> Share
                 </button>
                 <button class="btn secondary" type="button" onclick="deleteGroup(<?php echo e($group->id); ?>)" style="padding:10px 18px; border-radius:8px; border:1px solid #fecaca; background:#fff1f2; color:#b91c1c;">
                   <i data-lucide="trash-2" style="width:16px;height:16px;"></i> Delete
@@ -118,9 +126,14 @@ window.MY_PROFILE_URL = "<?php echo e(route('profile.show', $me->id ?? 0)); ?>";
               </div>
               <?php endif; ?>
             <?php else: ?>
-            <button class="btn primary" onclick="joinGroup(<?php echo e($group->id); ?>)" style="padding:10px 24px; border-radius:8px; background:linear-gradient(90deg, #7c3aed, #4f46e5); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.2); border:none; color:#fff;">
-              Join Group
-            </button>
+            <div style="display:flex; gap:10px;">
+              <button class="btn primary" onclick="joinGroup(<?php echo e($group->id); ?>)" style="padding:10px 24px; border-radius:8px; background:linear-gradient(90deg, #7c3aed, #4f46e5); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.2); border:none; color:#fff;">
+                Join Group
+              </button>
+              <button class="btn secondary js-share-group" type="button" data-group-id="<?php echo e($group->id); ?>" data-preview="<?php echo e($group->name); ?>" style="padding:10px 18px; border-radius:8px; border:1px solid var(--border); background:var(--chip-bg); color:var(--text);">
+                <i data-lucide="share-2" style="width:16px;height:16px;"></i> Share
+              </button>
+            </div>
             <?php endif; ?>
           </div>
 

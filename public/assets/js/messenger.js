@@ -50,6 +50,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const response = await fetch('/api/messenger/conversations');
+            if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) {
+                if (response.status === 401) return; // Silent on unauthorized
+                const text = await response.text();
+                console.error('Messenger Load Error:', response.status, text.substring(0, 100));
+                return;
+            }
             const conversations = await response.json();
             
             conversationList.innerHTML = '';
@@ -136,6 +142,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 conversationList.appendChild(item);
             });
             lucide.createIcons();
+
+            // Handle open_chat URL param
+            const urlParams = new URLSearchParams(window.location.search);
+            const openChatId = urlParams.get('open_chat');
+            if (openChatId) {
+                const convToOpen = conversations.find(c => c.id == openChatId);
+                if (convToOpen) {
+                    openChatBox(convToOpen);
+                    // Optionally clear the param to avoid re-opening on refresh
+                    const newUrl = window.location.pathname + window.location.hash;
+                    window.history.replaceState({}, document.title, newUrl);
+                }
+            }
         } catch (error) {
             console.error('Error loading conversations:', error);
         }
@@ -155,6 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const response = await fetch(`/api/messenger/search?q=${query}`);
+            if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return;
             const users = await response.json();
 
             searchResults.innerHTML = '';
@@ -194,11 +214,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Open Chat Box
-    function openChatBox(conv) {
+    function openChatBox(conv, pendingRequest = null) {
         const convId = conv.id || `temp-${conv.other_user.id}`;
+        
         if (openChats.has(convId)) {
             const chatObj = openChats.get(convId);
             chatObj.element.classList.remove('minimized');
+            
+            if (pendingRequest) {
+                // If it was already open but now we got a new request, show overlay
+                setupPendingUI(chatObj.element, conv, pendingRequest);
+            }
             return;
         }
 
@@ -260,6 +286,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                 });
 
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error("Messenger Send Error:", response.status, text.substring(0, 100));
+                    throw new Error("HTTP " + response.status);
+                }
+
                 const msg = await response.json();
                 input.value = '';
                 addMessageToBox(chatBox, msg, 'sent');
@@ -310,6 +342,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         chatTray.appendChild(chatBox);
         
+        if (pendingRequest) {
+            setupPendingUI(chatBox, conv, pendingRequest);
+        }
+        
         const chatObj = {
             element: chatBox,
             lastMsgId: 0,
@@ -344,6 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!convId || chatBox.classList.contains('minimized')) return;
         try {
             const response = await fetch(`/api/messenger/typing/${convId}`);
+            if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return;
             const data = await response.json();
             const statusLabel = chatBox.querySelector('.chat-user-status');
             const typingIndicator = chatBox.querySelector('.typing-indicator');
@@ -373,10 +410,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const response = await fetch(`/api/messenger/messages/${convId}?after_id=${chatObj.lastMsgId}`);
+            if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return;
             const messages = await response.json();
             if (messages.length > 0) {
                 messages.forEach(msg => {
-                    if (msg.sender_user_id != window.MY_ID) {
+                    if (String(msg.sender_user_id) !== String(window.MY_ID)) {
                         addMessageToBox(chatBox, msg, 'received');
                     }
                     chatObj.lastMsgId = Math.max(chatObj.lastMsgId, msg.id);
@@ -389,6 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadMessages(chatBox, convId) {
         try {
             const response = await fetch(`/api/messenger/messages/${convId}`);
+            if (!response.ok) return;
             const messages = await response.json();
             const container = chatBox.querySelector('.chat-box-messages');
             container.innerHTML = '';
@@ -396,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const chatObj = openChats.get(convId);
             
             messages.forEach(msg => {
-                const type = msg.sender_user_id == window.MY_ID ? 'sent' : 'received';
+                const type = (String(msg.sender_user_id) === String(window.MY_ID)) ? 'sent' : 'received';
                 addMessageToBox(chatBox, msg, type);
                 if (chatObj) chatObj.lastMsgId = Math.max(chatObj.lastMsgId, msg.id);
             });
@@ -407,10 +446,132 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function addMessageToBox(chatBox, msg, type) {
         const container = chatBox.querySelector('.chat-box-messages');
+        
+        // Ensure type is correct if not already provided
+        if (!type) {
+            type = (String(msg.sender_user_id) === String(window.MY_ID)) ? 'sent' : 'received';
+        }
+
         const bubble = document.createElement('div');
         bubble.className = `message-bubble ${type}`;
         bubble.textContent = msg.body;
         container.appendChild(bubble);
         container.scrollTop = container.scrollHeight;
+    }
+
+    // Export to global scope
+    window.openConversationById = async function(convId) {
+        try {
+            const response = await fetch('/api/messenger/conversations');
+            if (!response.ok) return;
+            const conversations = await response.json();
+            const conv = conversations.find(c => c.id == convId);
+            if (conv) {
+                openChatBox(conv);
+            }
+        } catch (e) {
+            console.error('Error opening conversation:', e);
+        }
+    };
+
+    window.openMessengerWithRequest = async function(requester, requestId, suggestedTitle) {
+        try {
+            // Check if we already have an active conversation with this person to use its ID
+            const response = await fetch('/api/messenger/conversations');
+            if (!response.ok) return;
+            const conversations = await response.json();
+            const existingConv = conversations.find(c => c.other_user && String(c.other_user.id) === String(requester.id) && c.id);
+            
+            // We ALWAYS show the pending overlay for a new request notification,
+            // but we pass the existing ID so that Acceptance connects correctly.
+            const conv = {
+                id: existingConv ? existingConv.id : null,
+                other_user: {
+                    id: requester.id,
+                    name: requester.name,
+                    avatar: requester.avatar_url || requester.avatar || '/assets/img/default.png',
+                    is_doctor: false
+                }
+            };
+            const pending = {
+                id: requestId,
+                suggestedTitle: suggestedTitle
+            };
+            openChatBox(conv, pending);
+        } catch (e) {
+            console.error('Error in openMessengerWithRequest:', e);
+        }
+    };
+
+    function setupPendingUI(chatBox, conv, pendingRequest) {
+        const convId = chatBox.dataset.conversationId;
+        chatBox.classList.add('pending');
+        const overlay = chatBox.querySelector('.chat-pending-overlay');
+        overlay.style.display = 'flex';
+        overlay.querySelector('.pending-user-name').textContent = conv.other_user.name;
+        overlay.querySelector('.pending-request-text').textContent = `is requesting a ${pendingRequest.suggestedTitle} chat.`;
+        
+        overlay.querySelector('.decline-request-btn').onclick = async () => {
+            if (!confirm('Are you sure you want to decline this request?')) return;
+            try {
+                const res = await fetch(`/api/help/decline/${pendingRequest.id}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                });
+                if (res.ok) {
+                    chatBox.querySelector('.close-chat').click();
+                }
+            } catch (e) {
+                console.error('Decline error:', e);
+            }
+        };
+        
+        overlay.querySelector('.accept-request-btn').onclick = async () => {
+            const btn = overlay.querySelector('.accept-request-btn');
+            btn.disabled = true;
+            btn.innerText = 'Accepting...';
+            
+            try {
+                const res = await fetch(`/api/help/accept/${pendingRequest.id}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                });
+                if (!res.ok) {
+                    const text = await res.text();
+                    console.error("Accept API Error:", res.status, text.substring(0, 100));
+                    throw new Error("HTTP " + res.status);
+                }
+                const data = await res.json();
+                if (data.success) {
+                    chatBox.classList.remove('pending');
+                    overlay.style.display = 'none';
+                    chatBox.dataset.conversationId = data.conversation_id;
+                    
+                    // Update state in openChats
+                    const chatObj = openChats.get(convId);
+                    if (chatObj) {
+                        clearInterval(chatObj.pollInterval);
+                        clearInterval(chatObj.typingInterval);
+                    }
+                    
+                    const newChatObj = {
+                        element: chatBox,
+                        lastMsgId: 0,
+                        pollInterval: setInterval(() => pollForMessages(chatBox, data.conversation_id), 3000),
+                        typingInterval: setInterval(() => pollForTyping(chatBox, data.conversation_id), 3000),
+                        isTyping: false
+                    };
+                    openChats.set(data.conversation_id, newChatObj);
+                    openChats.delete(convId);
+                    
+                    loadMessages(chatBox, data.conversation_id);
+                    loadConversations();
+                }
+            } catch (e) {
+                console.error('Accept error:', e);
+                btn.disabled = false;
+                btn.innerText = 'Accept';
+            }
+        };
     }
 });

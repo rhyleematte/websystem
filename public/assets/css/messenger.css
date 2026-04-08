@@ -412,3 +412,116 @@
     vertical-align: middle;
     filter: drop-shadow(0 1px 2px rgba(59, 130, 246, 0.3));
 }
+
+/* Pending Request Overlay */
+.chat-pending-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    text-align: center;
+    border-radius: 12px;
+    transition: background 0.3s ease;
+}
+
+html.theme-dark .chat-pending-overlay {
+    background: rgba(15, 23, 42, 0.92);
+}
+
+html.theme-dark .pending-request-text {
+    color: #ffffff;
+    opacity: 0.9;
+}
+
+/* Explicit White Text for Dark Mode Chat */
+html.theme-dark .message-bubble {
+    color: #ffffff !important;
+}
+
+html.theme-dark .chat-box-input textarea {
+    color: #ffffff !important;
+}
+
+html.theme-dark .chat-box-input textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.pending-info {
+    margin-bottom: 24px;
+}
+
+.pending-user-name {
+    display: block;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--brand);
+    margin-bottom: 8px;
+}
+
+.pending-request-text {
+    font-size: 14px;
+    color: var(--text);
+    opacity: 0.8;
+    line-height: 1.5;
+}
+
+.pending-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 220px;
+}
+
+.pending-actions button {
+    width: 100%;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.decline-request-btn {
+    background: var(--hover);
+    color: var(--muted);
+}
+
+.decline-request-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.accept-request-btn {
+    background: var(--brand);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(var(--brand-rgb, 99, 102, 241), 0.3);
+}
+
+.accept-request-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(var(--brand-rgb, 99, 102, 241), 0.4);
+    filter: brightness(1.1);
+}
+
+.chat-box.pending .chat-box-input {
+    opacity: 0.3;
+    filter: grayscale(1);
+    pointer-events: none;
+}

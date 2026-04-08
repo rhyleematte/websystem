@@ -214,6 +214,30 @@ class GroupController extends Controller
         return response()->json(['ok' => false, 'message' => 'No cover photo to remove.'], 400);
     }
 
+    public function share(Request $request, $id)
+    {
+        $group = Group::findOrFail($id);
+        
+        $request->validate([
+            'text_content' => 'nullable|string|max:5000',
+            'hashtags' => 'nullable|string|max:500',
+        ]);
+
+        $post = \App\Models\Post::create([
+            'user_id' => Auth::id(),
+            'group_id' => $group->id,
+            'post_type' => 'group_share',
+            'text_content' => $request->text_content ?: ("Recommended Support Group: " . $group->name),
+            'hashtags' => $request->hashtags,
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Group shared to feed!',
+            'post_id' => $post->id
+        ]);
+    }
+
     public function update(Request $request, $id)
     {
         $user = Auth::user();

@@ -11,24 +11,9 @@
   $me = Auth::user();
 @endphp
 
-<div class="res-shell">
-
-  <div class="res-body">
-    <aside class="res-sidebar">
-      <div class="panel nav-panel">
-        <a class="nav-item" href="{{ route('user.dashboard') }}"><i data-lucide="home"></i><span>Feed</span></a>
-        <a class="nav-item" href="{{ route('groups.index') }}"><i data-lucide="users"></i><span>Support Groups</span></a>
-        <a class="nav-item active" href="{{ route('resources.index') }}"><i data-lucide="book-open"></i><span>Resources</span></a>
-        @auth
-        <a class="nav-item" href="{{ route('profile.show', $me->id) }}"><i data-lucide="user"></i><span>My Profile</span></a>
-        @endauth
-      </div>
-      
-      <div class="panel mini-panel">
-        <div class="mini-title"><i data-lucide="sparkles"></i><span>Curated for You</span></div>
-        <p class="mini-text">Explore professional guides, audio sessions, and workbooks designed by verified experts.</p>
-      </div>
-    </aside>
+<main class="dash">
+  <div class="dash-body">
+    @include('partials.sidebar', ['active' => 'resources'])
 
     <main class="res-main">
       <div class="res-header-panel">
@@ -139,7 +124,7 @@
       </div>
     </main>
   </div>
-</div>
+</main>
 @endsection
 
 @push('scripts')

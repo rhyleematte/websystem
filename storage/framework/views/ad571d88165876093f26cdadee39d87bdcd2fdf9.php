@@ -13,6 +13,9 @@
   <!-- Base + Dashboard CSS -->
   <link rel="stylesheet" href="<?php echo e(asset('assets/css/dashboard.css')); ?>">
   <link rel="stylesheet" href="<?php echo e(asset('assets/css/messenger.css')); ?>">
+  <?php if(Auth::check() && Auth::user()->isApprovedDoctor()): ?>
+    <link rel="stylesheet" href="<?php echo e(asset('assets/css/schedule.css')); ?>">
+  <?php endif; ?>
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -36,6 +39,7 @@
   </script>
   <?php echo $__env->make('partials.header', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
   <?php echo $__env->make('partials.messenger', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+  <?php echo $__env->make('partials.appointments_modal', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 <?php endif; ?>
 
 <?php echo $__env->yieldContent('content'); ?>
@@ -71,6 +75,8 @@
 <script src="<?php echo e(asset('assets/js/dashboard.js')); ?>?v=<?php echo e(filemtime(public_path('assets/js/dashboard.js'))); ?>" defer></script>
 <script src="<?php echo e(asset('assets/js/post-ui.js')); ?>?v=<?php echo e(filemtime(public_path('assets/js/post-ui.js'))); ?>" defer></script>
 <script src="<?php echo e(asset('assets/js/messenger.js')); ?>" defer></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+<script src="<?php echo e(asset('assets/js/appointments.js')); ?>" defer></script>
 
 <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>

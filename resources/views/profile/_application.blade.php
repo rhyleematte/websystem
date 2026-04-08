@@ -18,23 +18,71 @@
     <h2 style="font-size: 2rem; margin-bottom: 15px; color: var(--text);">Application Approved</h2>
     <p style="color: var(--muted); font-size: 1.1rem; line-height: 1.6;">Congratulations! You are officially an approved medical staff member.</p>
     
-    <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: left; margin-top: 30px;">
-        <h3 style="margin-top: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="bot" style="color: var(--brand, #7c3aed); width: 22px; height: 22px;"></i>
-            AI Chatbot Recommendations
+    <div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 25px; text-align: left; margin-top: 30px;">
+        <h3 style="margin-top: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 10px;">
+            <i data-lucide="stethoscope" style="color: var(--brand, #7c3aed); width: 24px; height: 24px;"></i>
+            Professional Status & Availability
         </h3>
-        <p style="color: var(--muted); font-size: 0.95rem; margin-bottom: 15px;">
-            When users interact with the Mental Health Chatbot, it can automatically suggest talking to a professional. You can choose whether you want the AI to recommend you to users.
+        <p style="color: var(--muted); font-size: 1rem; margin-bottom: 25px;">
+            Set your availability to appear in AI recommendations and receive real-time crisis support notifications.
         </p>
-        <form method="POST" action="{{ route('profile.updateAiRecommendation') }}" style="display: flex; align-items: center;">
-            @csrf
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" name="allow_ai_recommendation" {{ $me->allow_ai_recommendation ? 'checked' : '' }} onchange="this.form.submit()" style="width: 18px; height: 18px; accent-color: var(--brand, #7c3aed);">
-                <span style="font-weight: 500;">Allow AI to recommend me</span>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+            {{-- Online Toggle --}}
+            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 15px 20px; background: var(--hover); border-radius: 12px; border: 1px solid var(--border);">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="font-weight: 700; font-size: 15px; color: var(--text);">Online Status</span>
+                    <span style="font-size: 12px; color: var(--muted);">Visible to other users</span>
+                </div>
+                <input type="checkbox" id="doctorOnlineToggle" {{ $me->is_online ? 'checked' : '' }} style="width: 20px; height: 20px; accent-color: var(--brand, #7c3aed);">
             </label>
-        </form>
+
+            {{-- Combined Availability Toggle --}}
+            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 15px 20px; background: var(--hover); border-radius: 12px; border: 1px solid var(--border);">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="font-weight: 700; font-size: 15px; color: var(--text);">Available for Referrals & Get Help</span>
+                    <span style="font-size: 12px; color: var(--muted);">AI recommendations + Crisis alerts</span>
+                </div>
+                <input type="checkbox" id="doctorFreeToggle" {{ ($me->is_free_to_talk || $me->allow_ai_recommendation) ? 'checked' : '' }} style="width: 20px; height: 20px; accent-color: var(--brand, #7c3aed);">
+            </label>
+        </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const onlineToggle = document.getElementById('doctorOnlineToggle');
+    const freeToggle = document.getElementById('doctorFreeToggle');
+
+    function updateStatus(isOnline, isFree) {
+        fetch('{{ url("/api/help/toggle-status") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                is_online: onlineToggle.checked, // Use current state
+                is_free_to_talk: freeToggle.checked
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log('Status updated', data);
+            // Optionally show feedback
+        })
+        .catch(err => console.error(err));
+    }
+
+    if (onlineToggle) {
+        onlineToggle.addEventListener('change', () => updateStatus());
+    }
+    if (freeToggle) {
+        freeToggle.addEventListener('change', () => updateStatus());
+    }
+});
+</script>
 @elseif($me->doctor_status === 'rejected' || ($application && $application->status === 'rejected'))
 <div id="rejectionFeedback">
     <div class="panel" style="padding: 40px; text-align: center; border-left: 6px solid #ef4444; background: rgba(239, 68, 68, 0.02);">
