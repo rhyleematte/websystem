@@ -80,39 +80,4 @@
     </div>
 </div>
 
-
-<!-- Appointment View Sub-Modal -->
-<div id="aptViewModal" class="apt-sub-modal">
-    <div class="apt-sub-modal-content">
-        <div class="apt-sub-modal-header">
-            <div style="width:60px;"></div> <!-- Spacer to match layout -->
-            <h3 id="viewAptTitle">Appointment</h3>
-            <button class="ios-btn-link" onclick="closeAptSubModal('aptViewModal')">Done</button>
-        </div>
-        <div class="apt-form-body">
-            <div class="ios-row">
-                <label class="ios-input-label">Time</label>
-                <div id="viewAptTime" style="font-size:1rem;"></div>
-            </div>
-            <div class="ios-row">
-                <label class="ios-input-label">Organizer</label>
-                <div id="viewAptCreator" style="font-size:1rem;"></div>
-            </div>
-            <div id="viewAptDescContainer" class="ios-row" style="display:none;">
-                <label class="ios-input-label">Notes</label>
-                <div id="viewAptDesc" style="font-size:0.95rem; white-space:pre-wrap;"></div>
-            </div>
-            
-            <p id="viewAptStatus" style="font-weight:700; text-transform:uppercase; font-size:0.75rem; margin-top:1rem; padding:0 0.5rem;"></p>
-
-            <div id="aptInviteActions" style="display:none; gap:10px; margin-top:1rem;">
-                <button onclick="respondApt('accepted')" class="ios-btn-primary" style="flex:1; background:#1cc88a;">Accept</button>
-                <button onclick="respondApt('declined')" class="ios-btn-primary" style="flex:1; background:#e74a3b;">Decline</button>
-            </div>
-            <div id="aptOwnerActions" style="display:none; margin-top:1rem;">
-                <button onclick="deleteApt()" class="ios-btn-primary" style="background:rgba(255,59,48,0.15); color:var(--ios-accent);">Delete Appointment</button>
-            </div>
-        </div>
-    </div>
-</div>
 <?php /**PATH C:\websystem\resources\views/partials/appointments_modal.blade.php ENDPATH**/ ?>

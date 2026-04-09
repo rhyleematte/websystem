@@ -8,10 +8,10 @@
 
 @section('content')
 @php
-  $me        = Auth::user();
+  $me = Auth::user();
 @endphp
 
-<main class="dash">
+<main class="dash dashboard-groups-index">
   <div class="dash-body">
     @include('partials.sidebar', ['active' => 'groups'])
 
@@ -24,9 +24,9 @@
         </div>
         @if($me->doctor_status === 'approved')
         <div class="groups-header-right">
-          <button class="create-group-btn" onclick="document.getElementById('createGroupModal').classList.add('open')">
+          <a href="{{ route('groups.create') }}" class="create-group-btn" style="text-decoration: none;">
             <i data-lucide="plus"></i> Create Group
-          </button>
+          </a>
         </div>
         @endif
       </div>
@@ -85,60 +85,6 @@
     </main>
   </div>
 </main>
-
-{{-- Create Group Modal --}}
-@if($me->doctor_status === 'approved')
-<div class="modal-backdrop" id="createGroupModal">
-  <div class="modal-box" style="max-width: 500px;">
-    <div class="modal-header">
-      <h2>Create Support Group</h2>
-      <button class="modal-close" onclick="document.getElementById('createGroupModal').classList.remove('open')" type="button"><i data-lucide="x"></i></button>
-    </div>
-    
-    <div style="padding: 0 24px 20px; color: var(--muted); font-size: 14px;">
-      Please fill out the necessary details below to create a new support community for users.
-    </div>
-
-    <form id="createGroupForm" onsubmit="createGroup(event)" enctype="multipart/form-data" style="padding: 0 24px 24px;">
-      @csrf
-
-      <div class="form-group" style="margin-bottom: 20px;">
-        <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--text); font-size:14px;">Group Cover Photo <span style="font-weight:400; color:var(--muted); font-size:13px;">(Optional)</span></label>
-        <div class="cover-upload-wrapper" style="position:relative; width:100%; height:120px; border:2px dashed var(--border); border-radius:10px; background:var(--input-bg); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; transition:all 0.2s;">
-            <input type="file" name="cover_photo" id="groupCover" accept="image/*" style="opacity:0; position:absolute; inset:0; z-index:10; cursor:pointer; width:100%; height:100%;">
-            <div id="coverUploadCTA" style="text-align:center; color:var(--muted); pointer-events:none;">
-                <i data-lucide="image" style="width:24px; height:24px; margin-bottom:8px; opacity:0.6;"></i>
-                <div style="font-size:13px; font-weight:500;">Click to upload a cover photo</div>
-                <div style="font-size:11px; margin-top:4px; opacity:0.8;">JPG, PNG up to 10MB</div>
-            </div>
-            <img id="coverPreview" src="" style="display:none; position:absolute; width:100%; height:100%; object-fit:cover; inset:0; z-index:5;">
-        </div>
-      </div>
-
-      <div class="form-group" style="margin-bottom: 20px;">
-        <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--text); font-size:14px;">Group Name <span style="color:var(--danger);">*</span></label>
-        <input type="text" name="name" required placeholder="e.g. Anxiety Support Circle" style="width:100%; padding:12px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); border-radius:10px; font-size:14px;">
-      </div>
-      <div class="form-group" style="margin-bottom: 20px;">
-        <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--text); font-size:14px;">Description <span style="color:var(--danger);">*</span></label>
-        <textarea name="description" required rows="3" placeholder="What is the main focus or journey of this group?" style="width:100%; padding:12px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); border-radius:10px; font-size:14px; resize:vertical;"></textarea>
-      </div>
-      <div class="form-group" style="margin-bottom: 24px;">
-        <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--text); font-size:14px;">Guidelines <span style="font-weight:400; color:var(--muted); font-size:13px;">(Optional)</span></label>
-        <textarea name="guidelines" rows="4" placeholder="e.g. Be respectful, no medical advice..." style="width:100%; padding:12px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); border-radius:10px; font-size:14px; resize:vertical;"></textarea>
-      </div>
-      <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 12px;">
-        <button type="button" class="btn secondary" onclick="document.getElementById('createGroupModal').classList.remove('open')" style="padding:10px 20px; border-radius:10px; font-weight:600; background:var(--hover); color:var(--text); border:1px solid var(--border);">Cancel</button>
-        <button type="submit" class="btn primary" style="background:linear-gradient(90deg, #7c3aed, #4f46e5); color:#fff; border:none; padding:10px 24px; border-radius:10px; font-weight:600; box-shadow:0 4px 12px rgba(124,58,237,0.2);">Create Group</button>
-      </div>
-    </form>
-  </div>
-</div>
-@endif
-
-{{-- Toast --}}
-<div id="toast" class="toast"></div>
-
 @endsection
 
 @push('scripts')
@@ -153,45 +99,6 @@ async function joinGroup(id) {
         if(data.ok) location.reload();
     } catch(e) {}
 }
-
-async function createGroup(e) {
-    e.preventDefault();
-    let fd = new FormData(e.target);
-    try {
-        let res = await fetch(`{{ route('groups.store') }}`, {
-            method: 'POST',
-            body: fd,
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-        });
-        let data = await res.json();
-        if(data.ok) window.location.href = data.redirect;
-    } catch(e) {}
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const coverInput = document.getElementById('groupCover');
-    const coverPreview = document.getElementById('coverPreview');
-    const coverUploadCTA = document.getElementById('coverUploadCTA');
-
-    if (coverInput) {
-        coverInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    coverPreview.src = e.target.result;
-                    coverPreview.style.display = 'block';
-                    coverUploadCTA.style.display = 'none';
-                }
-                reader.readAsDataURL(file);
-            } else {
-                coverPreview.src = '';
-                coverPreview.style.display = 'none';
-                coverUploadCTA.style.display = 'block';
-            }
-        });
-    }
-});
 
 // Simple header search filter for groups list
 document.addEventListener('DOMContentLoaded', () => {

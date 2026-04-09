@@ -79,19 +79,9 @@
     </a>
   @endif
 
-  {{-- Group card (group_share) --}}
-  @if($post->group)
-    <a href="{{ route('groups.show', $post->group->id) }}" class="post-resource-card group-share-card" style="display:flex; gap:12px; border:1px solid var(--border); border-radius:14px; padding:12px; text-decoration:none; color:inherit; margin-bottom:12px;">
-      <div class="res-mini-thumb" style="width:64px; height:64px; border-radius:12px; overflow:hidden; flex-shrink:0; background:var(--hover); border:1px solid var(--border);">
-        <img src="{{ $post->group->cover_url }}" alt="{{ $post->group->name }}" style="width:100%; height:100%; object-fit:cover;">
-      </div>
-      <div class="res-mini-info" style="min-width:0; display:flex; flex-direction:column; gap:4px;">
-        <div class="res-mini-type" style="font-size:11px; font-weight:800; color:var(--brand); text-transform:uppercase;">Support Group</div>
-        <div class="res-mini-title" style="font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $post->group->name }}</div>
-        <div class="res-mini-desc" style="font-size:13px; color:var(--muted); overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">{{ $post->group->description }}</div>
-      </div>
-    </a>
-  @endif
+@php
+/* Group share block removed as requested */
+@endphp
 
   {{-- Shared post card (post_share) --}}
   @if($post->sharedPost)

@@ -15,17 +15,16 @@
         <a class="nav-item {{ $active === 'resources' ? 'active' : '' }}" href="{{ route('resources.index') }}">
             <i data-lucide="book-open"></i><span>Resources</span>
         </a>
-        <a class="nav-item {{ $active === 'profile' ? 'active' : '' }}" href="{{ route('profile.show', $sidebar_user->id) }}">
+        <a class="nav-item {{ $active === 'profile' ? 'active' : '' }}"
+            href="{{ route('profile.show', $sidebar_user->id) }}">
             <i data-lucide="user"></i><span>My Profile</span>
         </a>
-        <a class="nav-item {{ $active === 'appointments' ? 'active' : '' }}" href="javascript:void(0)" id="sidebarScheduleBtn">
-            <i data-lucide="calendar"></i><span>Appointments</span>
-        </a>
-        
+
         @if($sidebar_user->role !== 'doctor' && $sidebar_user->doctor_status !== 'approved' && $sidebar_user->doctor_status !== 'none' && $sidebar_user->doctor_status !== null)
-        <a class="nav-item {{ $active === 'application' ? 'active' : '' }}" href="{{ route('profile.show', $sidebar_user->id) }}?tab=application">
-            <i data-lucide="stethoscope"></i><span>Apply as Doctor</span>
-        </a>
+            <a class="nav-item {{ $active === 'application' ? 'active' : '' }}"
+                href="{{ route('profile.show', $sidebar_user->id) }}?tab=application">
+                <i data-lucide="stethoscope"></i><span>Apply as Doctor</span>
+            </a>
         @endif
     </div>
 

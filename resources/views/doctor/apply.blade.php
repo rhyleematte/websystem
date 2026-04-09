@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Apply for Medical Staff')
+@section('title', 'Apply for Medical Staff | AskDocPH')
 
 @section('content')
 <style>

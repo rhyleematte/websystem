@@ -54,6 +54,12 @@ class ChatController extends Controller
 
         $formattedConversations = $conversations->map(function ($conv) use ($user) {
             $otherUser = $conv->users->where('id', '!=', $user->id)->first();
+            
+            $unreadCount = Message::where('conversation_id', $conv->id)
+                ->where('sender_user_id', '!=', $user->id)
+                ->whereNull('read_at')
+                ->count();
+
             return [
                 'id' => $conv->id,
                 'other_user' => $otherUser ? [
@@ -63,7 +69,7 @@ class ChatController extends Controller
                     'is_doctor' => $otherUser->isApprovedDoctor(),
                 ] : null,
                 'latest_message' => $conv->latestMessage,
-                'unread_count' => 0,
+                'unread_count' => $unreadCount,
                 'is_conversation' => true
             ];
         });
@@ -123,6 +129,7 @@ class ChatController extends Controller
     public function getMessages($conversationId, Request $request)
     {
         $afterId = $request->get('after_id');
+        $user = Auth::user();
         
         $query = Message::where('conversation_id', $conversationId)
             ->with('sender')
@@ -133,6 +140,12 @@ class ChatController extends Controller
         }
 
         $messages = $query->get();
+
+        // Mark incoming messages as read
+        Message::where('conversation_id', $conversationId)
+            ->where('sender_user_id', '!=', $user->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
 
         return response()->json($messages);
     }
@@ -145,15 +158,17 @@ class ChatController extends Controller
             'body' => 'required|string',
         ]);
 
-        $senderId = Auth::id();
+        $user = Auth::user();
+        $senderId = $user->id;
         $conversationId = $request->conversation_id;
 
         if (!$conversationId && $request->receiver_id) {
             // Check for existing direct conversation
-            $conversation = Conversation::where('type', 'direct')
-                ->whereHas('participants', function($q) use ($senderId) {
-                    $q->where('user_id', $senderId);
-                })
+            $conversation = Conversation::with(['participants', 'latestMessage'])
+            ->whereHas('participants', function($q) use ($user) {
+                $q->where('conversation_participants.user_id', $user->id)
+                  ->whereNull('conversation_participants.deleted_at');
+            })
                 ->whereHas('participants', function($q) use ($request) {
                     $q->where('user_id', $request->receiver_id);
                 })
@@ -257,5 +272,45 @@ class ChatController extends Controller
             ->take(10);
 
         return response()->json($users);
+    }
+    public function unreadCounts()
+    {
+        $user = Auth::user();
+        
+        $notifCount = \App\Models\Notification::where('user_id', $user->id)
+            ->whereNull('read_at')
+            ->count();
+            
+        // Use EXACT same logic as getConversations to ensure badge matches drawer
+        $conversations = $user->conversations()
+            ->with(['users'])
+            ->wherePivot('deleted_at', null)
+            ->orderBy('conversations.updated_at', 'desc')
+            ->get();
+
+        $alreadyPaired = [];
+        $totalMsgCount = 0;
+
+        foreach ($conversations as $conv) {
+            $otherUser = $conv->users->where('id', '!=', $user->id)->first();
+            
+            // Mirror drawers visibility rules
+            if (!$otherUser) continue; 
+            
+            // Deduplication: Only count the same person once (the most recent one)
+            if (isset($alreadyPaired[$otherUser->id])) continue;
+            $alreadyPaired[$otherUser->id] = true;
+
+            // Add up unread messages for this visible conversation
+            $totalMsgCount += $conv->messages()
+                ->where('sender_user_id', '!=', $user->id)
+                ->whereNull('read_at')
+                ->count();
+        }
+            
+        return response()->json([
+            'notifications' => $notifCount,
+            'messages' => $totalMsgCount
+        ]);
     }
 }

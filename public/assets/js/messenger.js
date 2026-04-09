@@ -59,13 +59,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const conversations = await response.json();
             
             conversationList.innerHTML = '';
+            if (!conversations || conversations.length === 0) {
+                conversationList.innerHTML = '<div class="search-empty">No conversations found</div>';
+                return;
+            }
             conversations.forEach(conv => {
-                const isMutual = conv.other_user.is_mutual;
+                if (!conv.other_user) return; // Skip conversations without other_user (e.g. system bot or deleted)
+                
+                const isMutual = conv.other_user ? conv.other_user.is_mutual : false;
                 const isConversation = conv.is_conversation;
                 
                 const item = document.createElement('div');
                 item.className = 'conversation-item';
                 if (!isConversation) item.classList.add('contact-item');
+                if (conv.unread_count > 0) item.classList.add('unread');
                 
                 let lastMsg = 'No messages yet';
                 if (conv.latest_message) {
@@ -88,6 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div class="conv-last-msg">${lastMsg}</div>
                     </div>
+                    ${conv.unread_count > 0 ? '<div class="unread-dot"></div>' : ''}
                     ${isConversation ? `
                     <div class="conv-actions">
                         <button class="conv-menu-btn" type="button"><i data-lucide="more-vertical"></i></button>
@@ -359,6 +367,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (conv.id) {
             loadMessages(chatBox, conv.id);
+
+            // Clear unread status locally for better UX
+            const convItem = document.querySelector(`.conversation-item[onclick*="'${convId}'"]`);
+            if (convItem) {
+                convItem.classList.remove('unread');
+                const dot = convItem.querySelector('.unread-dot');
+                if (dot) dot.remove();
+            }
         }
     }
 
@@ -388,10 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const otherUserName = chatBox.querySelector('.chat-user-name').textContent;
 
             if (data.is_typing) {
-                statusLabel.textContent = 'typing...';
-                statusLabel.style.fontSize = '11px';
-                statusLabel.style.opacity = '0.8';
-                
+                statusLabel.textContent = '';
                 typingText.textContent = `${otherUserName} is typing...`;
                 typingIndicator.style.display = 'flex';
                 
@@ -447,6 +460,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function addMessageToBox(chatBox, msg, type) {
         const container = chatBox.querySelector('.chat-box-messages');
         
+        // Prevent duplication by checking if message ID already exists in this box
+        if (msg.id && container.querySelector(`[data-message-id="${msg.id}"]`)) {
+            return;
+        }
+
         // Ensure type is correct if not already provided
         if (!type) {
             type = (String(msg.sender_user_id) === String(window.MY_ID)) ? 'sent' : 'received';
@@ -455,7 +473,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const bubble = document.createElement('div');
         bubble.className = `message-bubble ${type}`;
         bubble.textContent = msg.body;
+        if (msg.id) bubble.setAttribute('data-message-id', msg.id);
         container.appendChild(bubble);
+
+        if (type === 'sent') {
+            const status = document.createElement('div');
+            status.className = 'message-status';
+            status.textContent = msg.read_at ? 'Seen' : 'Sent';
+            container.appendChild(status);
+        }
+
         container.scrollTop = container.scrollHeight;
     }
 
@@ -574,4 +601,41 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
     }
+
+    // Initial Load
+    loadConversations();
+    
+    // Auto-update unread badge on messenger icon
+    const messengerBadge = document.createElement('span');
+    messengerBadge.className = 'notif-badge messenger-badge';
+    messengerBadge.style.display = 'none';
+    if (messengerToggle) messengerToggle.appendChild(messengerBadge);
+
+    async function updateMessengerBadge() {
+        try {
+            const response = await fetch('/api/unread-counts');
+            if (!response.ok) return;
+            const data = await response.json();
+            
+            const count = data.messages || 0;
+            if (count > 0) {
+                messengerBadge.textContent = count > 99 ? '99+' : count;
+                messengerBadge.style.display = 'inline-flex';
+                
+                // Optional: Play sound or pulse if count increased
+                if (parseInt(messengerBadge.dataset.oldCount || 0) < count) {
+                   messengerBadge.classList.remove('pulse');
+                   void messengerBadge.offsetWidth; // trigger reflow
+                   messengerBadge.classList.add('pulse');
+                }
+                messengerBadge.dataset.oldCount = count;
+            } else {
+                messengerBadge.style.display = 'none';
+                messengerBadge.dataset.oldCount = 0;
+            }
+        } catch (e) {}
+    }
+
+    updateMessengerBadge();
+    setInterval(updateMessengerBadge, 10000);
 });

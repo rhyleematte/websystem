@@ -15,17 +15,16 @@
         <a class="nav-item <?php echo e($active === 'resources' ? 'active' : ''); ?>" href="<?php echo e(route('resources.index')); ?>">
             <i data-lucide="book-open"></i><span>Resources</span>
         </a>
-        <a class="nav-item <?php echo e($active === 'profile' ? 'active' : ''); ?>" href="<?php echo e(route('profile.show', $sidebar_user->id)); ?>">
+        <a class="nav-item <?php echo e($active === 'profile' ? 'active' : ''); ?>"
+            href="<?php echo e(route('profile.show', $sidebar_user->id)); ?>">
             <i data-lucide="user"></i><span>My Profile</span>
         </a>
-        <a class="nav-item <?php echo e($active === 'appointments' ? 'active' : ''); ?>" href="javascript:void(0)" id="sidebarScheduleBtn">
-            <i data-lucide="calendar"></i><span>Appointments</span>
-        </a>
-        
+
         <?php if($sidebar_user->role !== 'doctor' && $sidebar_user->doctor_status !== 'approved' && $sidebar_user->doctor_status !== 'none' && $sidebar_user->doctor_status !== null): ?>
-        <a class="nav-item <?php echo e($active === 'application' ? 'active' : ''); ?>" href="<?php echo e(route('profile.show', $sidebar_user->id)); ?>?tab=application">
-            <i data-lucide="stethoscope"></i><span>Apply as Doctor</span>
-        </a>
+            <a class="nav-item <?php echo e($active === 'application' ? 'active' : ''); ?>"
+                href="<?php echo e(route('profile.show', $sidebar_user->id)); ?>?tab=application">
+                <i data-lucide="stethoscope"></i><span>Apply as Doctor</span>
+            </a>
         <?php endif; ?>
     </div>
 
@@ -37,5 +36,4 @@
         <button class="danger-btn" type="button" id="getHelpBtn">Get Help Now</button>
     </div>
 
-</aside>
-<?php /**PATH C:\websystem\resources\views/partials/sidebar.blade.php ENDPATH**/ ?>
+</aside><?php /**PATH C:\websystem\resources\views/partials/sidebar.blade.php ENDPATH**/ ?>

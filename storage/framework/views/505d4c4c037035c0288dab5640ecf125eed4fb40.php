@@ -1,6 +1,6 @@
 
 
-<?php $__env->startSection('title', 'Login'); ?>
+<?php $__env->startSection('title', 'Login | AskDocPH'); ?>
 
 <?php $__env->startSection('content'); ?>
 <main class="wrap">

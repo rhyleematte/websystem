@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Login')
+@section('title', 'Login | AskDocPH')
 
 @section('content')
 <main class="wrap">

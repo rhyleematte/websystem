@@ -55,8 +55,10 @@ Route::middleware('auth')->group(function () {
 
     // Support Groups
     Route::get('/groups', [\App\Http\Controllers\GroupController::class , 'index'])->name('groups.index');
+    Route::get('/groups/create', [\App\Http\Controllers\GroupController::class , 'create'])->name('groups.create');
     Route::post('/groups', [\App\Http\Controllers\GroupController::class , 'store'])->name('groups.store');
     Route::get('/groups/{id}', [\App\Http\Controllers\GroupController::class , 'show'])->name('groups.show');
+    Route::get('/groups/{id}/edit', [\App\Http\Controllers\GroupController::class , 'edit'])->name('groups.edit');
     Route::post('/groups/{id}/join', [\App\Http\Controllers\GroupController::class , 'join'])->name('groups.join');
     Route::post('/groups/{id}/leave', [\App\Http\Controllers\GroupController::class , 'leave'])->name('groups.leave');
     Route::put('/groups/{id}', [\App\Http\Controllers\GroupController::class , 'update'])->name('groups.update');
@@ -85,6 +87,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/messenger/search', [\App\Http\Controllers\ChatController::class, 'searchUsers']);
     Route::post('/api/messenger/typing', [\App\Http\Controllers\ChatController::class, 'setTyping']);
     Route::get('/api/messenger/typing/{conversation}', [\App\Http\Controllers\ChatController::class, 'getTyping']);
+    Route::get('/api/unread-counts', [\App\Http\Controllers\ChatController::class, 'unreadCounts']);
 
     // Get Help AI
     Route::post('/api/help/chat', [\App\Http\Controllers\HelpRequestController::class, 'chat']);

@@ -15,14 +15,16 @@ use Illuminate\Support\Facades\Cache;
 
 class AppointmentController extends Controller
 {
-    public function show(Appointment $appointment)
+    public function show($id)
     {
+        $appointment = Appointment::withTrashed()->findOrFail($id);
         $user = Auth::user();
+
+        // Check if user is creator or invited
         $invitation = AppointmentInvitation::where('appointment_id', $appointment->id)
             ->where('user_id', $user->id)
             ->first();
 
-        // Check if user is creator or invited
         if ($appointment->creator_id !== $user->id && !$invitation) {
             abort(403, 'You do not have permission to view this appointment.');
         }
@@ -30,7 +32,8 @@ class AppointmentController extends Controller
         return view('appointments.show', [
             'appointment' => $appointment,
             'invitation' => $invitation,
-            'isCreator' => $appointment->creator_id === $user->id
+            'isCreator' => $appointment->creator_id === $user->id,
+            'isDeleted' => $appointment->trashed()
         ]);
     }
 
@@ -281,8 +284,21 @@ class AppointmentController extends Controller
     public function destroy(Appointment $appointment)
     {
         abort_if($appointment->creator_id !== Auth::id(), 403);
+        
+        $user = Auth::user();
+        $participants = $appointment->participants;
+
+        // Notify all participants about cancellation
+        foreach ($participants as $participant) {
+            NotificationService::create($participant, $user, 'appointment_canceled', [
+                'message' => 'CANCELED: ' . $user->full_name . ' has canceled the appointment: ' . $appointment->subject,
+                'url' => route('appointments.show', $appointment->id),
+                'appointment_id' => $appointment->id,
+            ]);
+        }
+
         $appointment->delete();
-        return response()->json(['ok' => true, 'message' => 'Appointment deleted.']);
+        return response()->json(['ok' => true, 'message' => 'Appointment canceled and participants notified.']);
     }
 
     public function checkConflicts(Request $request)

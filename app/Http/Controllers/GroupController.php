@@ -86,11 +86,23 @@ class GroupController extends Controller
         return view('groups.show', compact('group', 'isMember', 'posts', 'me'));
     }
 
+    public function create()
+    {
+        $user = Auth::user();
+        if ($user->doctor_status !== 'approved') {
+            return redirect()->route('groups.index')->with('error', 'Only approved doctors can create groups.');
+        }
+        return view('groups.create');
+    }
+
     public function store(Request $request)
     {
         $user = Auth::user();
         if ($user->doctor_status !== 'approved') {
-            return response()->json(['ok' => false, 'message' => 'Only approved doctors can create groups.'], 403);
+            if ($request->ajax()) {
+                return response()->json(['ok' => false, 'message' => 'Only approved doctors can create groups.'], 403);
+            }
+            return redirect()->route('groups.index')->with('error', 'Only approved doctors can create groups.');
         }
 
         $request->validate([
@@ -122,11 +134,15 @@ class GroupController extends Controller
             'role' => 'admin',
         ]);
 
-        return response()->json([
-            'ok' => true,
-            'message' => 'Group created successfully.',
-            'redirect' => route('groups.show', $group->id)
-        ]);
+        if ($request->ajax()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Group created successfully.',
+                'redirect' => route('groups.show', $group->id)
+            ]);
+        }
+
+        return redirect()->route('groups.show', $group->id)->with('success', 'Group created successfully.');
     }
 
     public function join($id)
@@ -238,13 +254,28 @@ class GroupController extends Controller
         ]);
     }
 
+    public function edit($id)
+    {
+        $group = Group::findOrFail($id);
+        $user = Auth::user();
+
+        if ($group->creator_id !== $user->id) {
+            return redirect()->route('groups.show', $id)->with('error', 'Unauthorized. Only the group creator can edit this group.');
+        }
+
+        return view('groups.edit', compact('group'));
+    }
+
     public function update(Request $request, $id)
     {
         $user = Auth::user();
         $group = Group::findOrFail($id);
 
         if ($group->creator_id !== $user->id) {
-            return response()->json(['ok' => false, 'message' => 'Unauthorized. Only the group creator can edit this group.'], 403);
+            if ($request->ajax()) {
+                return response()->json(['ok' => false, 'message' => 'Unauthorized. Only the group creator can edit this group.'], 403);
+            }
+            return redirect()->route('groups.show', $id)->with('error', 'Unauthorized. Only the group creator can edit this group.');
         }
 
         $data = $request->validate([
@@ -255,15 +286,19 @@ class GroupController extends Controller
 
         $group->update($data);
 
-        return response()->json([
-            'ok' => true,
-            'message' => 'Group updated.',
-            'group' => [
-                'name' => $group->name,
-                'description' => $group->description,
-                'guidelines' => $group->guidelines,
-            ],
-        ]);
+        if ($request->ajax()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Group updated.',
+                'group' => [
+                    'name' => $group->name,
+                    'description' => $group->description,
+                    'guidelines' => $group->guidelines,
+                ],
+            ]);
+        }
+
+        return redirect()->route('groups.show', $group->id)->with('success', 'Group updated successfully.');
     }
 
     public function destroy($id)

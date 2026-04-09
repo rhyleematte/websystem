@@ -1,4 +1,4 @@
-<?php $__env->startSection('title', 'Create New Appointment | AskDocPH'); ?>
+<?php $__env->startSection('title', 'Create Appointment | AskDocPH'); ?>
 
 <?php $__env->startPush('styles'); ?>
     <link rel="stylesheet" href="<?php echo e(asset('assets/css/appointments_ios.css')); ?>">
@@ -25,13 +25,15 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
+
         .visual-placeholder-ios:hover {
             transform: scale(1.01);
         }
+
         .visual-edit-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0, 0, 0, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -42,6 +44,7 @@
             transition: opacity 0.2s;
             backdrop-filter: blur(4px);
         }
+
         .visual-placeholder-ios:hover .visual-edit-overlay {
             opacity: 1;
         }
@@ -63,8 +66,8 @@
                     </div>
 
                     <div class="title-section">
-                        <textarea id="aptSubject" class="massive-title-input" placeholder="Appointment Title"
-                            required autofocus rows="1"></textarea>
+                        <textarea id="aptSubject" class="massive-title-input" placeholder="Appointment Title" required
+                            autofocus rows="1"></textarea>
                         <div class="title-underline"></div>
                     </div>
 
@@ -123,7 +126,8 @@
                     </div>
 
                     <div class="visual-placeholder-ios" onclick="document.getElementById('aptCoverInput').click()">
-                        <img id="aptCoverPreview" src="<?php echo e(asset('assets/img/appointment_default.jpg')); ?>" alt="Default Placeholder" class="ios-visual-img">
+                        <img id="aptCoverPreview" src="<?php echo e(asset('assets/img/appointment_default.jpg')); ?>"
+                            alt="Default Placeholder" class="ios-visual-img">
                         <div class="visual-edit-overlay">
                             <i data-lucide="camera" style="margin-right: 8px;"></i> EDIT STUDIO VISUAL
                         </div>
@@ -161,7 +165,8 @@
                     </div>
 
 
-                    <div id="aptActionError" class="ios-btn-link-red" style="display: none; background: #fff5f5; padding: 1rem; border-radius: 12px; margin-bottom: 1rem; text-align: center; border: 1px solid #ff000020; font-weight: 600; font-size: 0.9rem;">
+                    <div id="aptActionError" class="ios-btn-link-red"
+                        style="display: none; background: #fff5f5; padding: 1rem; border-radius: 12px; margin-bottom: 1rem; text-align: center; border: 1px solid #ff000020; font-weight: 600; font-size: 0.9rem;">
                         <!-- Error messages will appear here -->
                     </div>
 
@@ -187,14 +192,13 @@
                     aptSubject.style.height = aptSubject.scrollHeight + 'px';
                 };
 
-                aptSubject.addEventListener('input', function() {
-                    const words = this.value.split(/\s+/).filter(word => word.length > 0);
-                    if (words.length > 50) {
-                        this.value = words.slice(0, 50).join(' ');
+                aptSubject.addEventListener('input', function () {
+                    if (this.value.length > 50) {
+                        this.value = this.value.substring(0, 50);
                     }
                     adjustHeight();
                 });
-                
+
                 adjustHeight();
             }
 
@@ -209,12 +213,12 @@
                 const dateVal = datePicker.selectedDates[0];
                 const startT = startTimePicker.selectedDates[0];
                 const endT = endTimePicker.selectedDates[0];
-                
+
                 if (dateVal && startT && endT) {
                     // Combine Date + Start Time
                     const start = new Date(dateVal);
                     start.setHours(startT.getHours(), startT.getMinutes(), 0);
-                    
+
                     // Combine Date + End Time
                     const end = new Date(dateVal);
                     end.setHours(endT.getHours(), endT.getMinutes(), 0);
@@ -226,12 +230,12 @@
                     }
 
                     // Update Hidden ISO Values for Backend & Conflict Check
-                    const toIso = (d) => d.getFullYear() + '-' + 
-                                       String(d.getMonth() + 1).padStart(2, '0') + '-' + 
-                                       String(d.getDate()).padStart(2, '0') + 'T' + 
-                                       String(d.getHours()).padStart(2, '0') + ':' + 
-                                       String(d.getMinutes()).padStart(2, '0');
-                    
+                    const toIso = (d) => d.getFullYear() + '-' +
+                        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(d.getDate()).padStart(2, '0') + 'T' +
+                        String(d.getHours()).padStart(2, '0') + ':' +
+                        String(d.getMinutes()).padStart(2, '0');
+
                     const startISO = toIso(start);
                     hiddenStart.value = startISO;
                     hiddenEnd.value = toIso(end);
@@ -240,7 +244,7 @@
                     const errDisp = document.getElementById('aptActionError');
                     const now = new Date();
                     now.setSeconds(0, 0); // Ignore seconds for a smoother "immediate" check
-                    
+
                     if (start < now) {
                         if (errDisp) {
                             errDisp.innerText = "Appointment cannot be in the past.";
@@ -263,7 +267,7 @@
             }
 
             // Inline Selection Logic
-            window.toggleSuite = function(suiteId) {
+            window.toggleSuite = function (suiteId) {
                 const suites = ['dateSuite', 'startSuite', 'endSuite'];
                 suites.forEach(s => {
                     const el = document.getElementById(s);
@@ -279,10 +283,13 @@
             const datePicker = flatpickr("#dateInput", {
                 inline: true,
                 enableTime: false,
-                dateFormat: "Y-m-d", 
+                dateFormat: "Y-m-d",
                 defaultDate: "today",
                 minDate: "today",
-                onChange: syncAptDateTime
+                onChange: function (selectedDates, dateStr, instance) {
+                    syncAptDateTime();
+                    window.toggleSuite(null);
+                }
             });
 
             const startTimePicker = flatpickr("#startTimeInput", {
@@ -291,7 +298,10 @@
                 noCalendar: true,
                 dateFormat: "H:i",
                 defaultDate: "10:00",
-                onChange: syncAptDateTime
+                onChange: function(selectedDates, dateStr, instance) {
+                    syncAptDateTime();
+                    window.toggleSuite(null);
+                }
             });
 
             const endTimePicker = flatpickr("#endTimeInput", {
@@ -300,7 +310,10 @@
                 noCalendar: true,
                 dateFormat: "H:i",
                 defaultDate: "11:00",
-                onChange: syncAptDateTime
+                onChange: function(selectedDates, dateStr, instance) {
+                    syncAptDateTime();
+                    window.toggleSuite(null);
+                }
             });
 
             // Initial Sync
@@ -311,11 +324,11 @@
             const coverPreview = document.getElementById('aptCoverPreview');
 
             if (coverInput && coverPreview) {
-                coverInput.addEventListener('change', function() {
+                coverInput.addEventListener('change', function () {
                     const file = this.files[0];
                     if (file) {
                         const reader = new FileReader();
-                        reader.onload = function(e) {
+                        reader.onload = function (e) {
                             coverPreview.src = e.target.result;
                             coverPreview.style.opacity = '1';
                         }

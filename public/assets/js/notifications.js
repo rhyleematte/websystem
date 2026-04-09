@@ -127,7 +127,18 @@
       return apiJson('/api/notifications')
         .then(function (res) {
           if (res && res.ok) {
-            setBadge(res.unread_count || 0);
+            var newCount = res.unread_count || 0;
+            var oldCount = parseInt(badge.dataset.oldCount || 0);
+            
+            setBadge(newCount);
+            
+            if (newCount > oldCount) {
+                badge.classList.remove('pulse');
+                void badge.offsetWidth; // trigger reflow
+                badge.classList.add('pulse');
+            }
+            badge.dataset.oldCount = newCount;
+            
             renderList(res.notifications || []);
           }
         })
@@ -193,6 +204,6 @@
 
     // Initial fetch + polling
     fetchNotifications();
-    setInterval(fetchNotifications, 30000);
+    setInterval(fetchNotifications, 10000); // Increased frequency for "Auto Update"
   });
 })();

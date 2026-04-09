@@ -136,46 +136,35 @@
 @endpush
 
 @section('content')
-<div class="res-shell">
+<main class="dash">
+    <div class="dash-body">
+        @include('partials.sidebar', ['active' => 'resources'])
 
-    <div class="res-body">
-        <aside class="res-sidebar">
-            @php $me = Auth::user(); @endphp
-            @if(request('from') === 'profile' && request('profile_id'))
-                <a href="{{ route('profile.show', request('profile_id')) }}?tab=resources" class="nav-item active" style="margin-bottom:16px; font-weight:500;">
-                    <i data-lucide="arrow-left"></i><span>Back to My Profile</span>
-                </a>
-            @else
-                <a href="{{ route('resources.index') }}" class="nav-item active" style="margin-bottom:16px; font-weight:500;">
-                    <i data-lucide="arrow-left"></i><span>Back to Resources</span>
-                </a>
-            @endif
-            
-            <div class="panel mini-panel" style="margin-top: 24px;">
-                    <div class="mini-title"><span class="icon-emoji" aria-hidden="true">✨</span><span>Curated Resource</span></div>
-            </div>
-            
-            @if(Auth::check() && Auth::user()->can('update', $resource))
-            <div class="panel mini-panel" style="margin-top: 16px; border-color: var(--border);">
-                <div class="mini-title"><i data-lucide="settings"></i><span>Management</span></div>
-                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
-                    <a href="{{ route('resources.edit', $resource->id) }}" class="chip-btn" style="width: 100%; justify-content: center; background: var(--hover); border-color: var(--border);">
-                        <i data-lucide="edit-3"></i> Edit Resource
+        <main class="res-main">
+            <div class="res-header-panel">
+                <div class="res-header-left">
+                    <a href="{{ route('resources.index') }}" class="chip-btn" style="margin-bottom: 0;">
+                        <i data-lucide="arrow-left"></i> Back to Resources
+                    </a>
+                </div>
+                
+                @if(Auth::check() && Auth::user()->can('update', $resource))
+                <div class="res-header-right" style="display: flex; gap: 12px;">
+                    <a href="{{ route('resources.edit', $resource->id) }}" class="chip-btn" style="background: var(--hover); border-color: var(--border);">
+                        <i data-lucide="edit-3"></i> Edit
                     </a>
                     
-                    <form action="{{ route('resources.destroy', $resource->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this resource?');">
+                    <form action="{{ route('resources.destroy', $resource->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this resource?');" style="display: inline;">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="chip-btn" style="width: 100%; justify-content: center; color: var(--danger); background: transparent; border-color: var(--danger); opacity: 0.8;">
-                            <i data-lucide="trash-2"></i> Delete Resource
+                        <button type="submit" class="chip-btn" style="color: var(--danger); border-color: var(--danger); opacity: 0.8;">
+                            <i data-lucide="trash-2"></i> Delete
                         </button>
                     </form>
                 </div>
+                @endif
             </div>
-            @endif
-        </aside>
 
-        <main class="res-main">
             <div class="res-show-container">
                 @if($resource->thumbnail)
                 <img src="{{ $resource->thumbnail_url }}" alt="{{ $resource->title }}" class="res-show-cover">
@@ -410,7 +399,8 @@
             </div>
         </main>
     </div>
-</div>
+</main>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

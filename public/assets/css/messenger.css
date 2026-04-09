@@ -124,6 +124,14 @@
     border-bottom-left-radius: 2px;
 }
 
+.message-status {
+    font-size: 10px;
+    color: var(--muted);
+    margin: -4px 4px 4px;
+    align-self: flex-end;
+    font-weight: 500;
+}
+
 .typing-indicator {
     padding: 8px 12px;
     background: rgba(var(--brand-rgb), 0.05);
@@ -344,6 +352,28 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.conversation-item.unread .conv-name {
+    font-weight: 800;
+    color: var(--text);
+}
+
+.conversation-item.unread .conv-last-msg {
+    color: var(--brand);
+    font-weight: 600;
+}
+
+.unread-dot {
+    width: 10px;
+    height: 10px;
+    background: #3b82f6; /* Vibrant Blue for light/dark mode distinction from mutual-dot */
+    border-radius: 50%;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
 }
 
 .search-results-popover {

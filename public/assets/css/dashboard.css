@@ -335,6 +335,34 @@ html.theme-dark .search-item:hover {
   border: 2px solid var(--panel);
 }
 
+.notif-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid var(--panel);
+}
+
+@keyframes badge-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.notif-badge.pulse {
+    animation: badge-pulse 0.4s ease-in-out 3;
+}
+
 /* ==========================
    LAYOUT
 ========================== */
@@ -372,18 +400,22 @@ html.theme-dark .search-item:hover {
   padding: 14px;
 }
 
-.nav-item {
+.nav-panel .nav-item {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px;
   border-radius: 12px;
   text-decoration: none;
-  color: var(--text);
+  color: #000000;
   font-weight: 700;
 }
 
-.nav-item svg {
+html.theme-dark .nav-panel .nav-item {
+  color: #ffffff;
+}
+
+.nav-panel .nav-item svg {
   width: 18px;
   height: 18px;
   color: var(--muted);
@@ -394,14 +426,22 @@ html.theme-dark .search-item:hover {
 }
 
 /* Active sidebar like your screenshot */
-.nav-item.active {
+.nav-panel .nav-item.active {
   background: linear-gradient(90deg, #7c3aed, #4f46e5);
-  color: #fff;
+  color: #000000;
   box-shadow: 0 10px 22px rgba(124, 58, 237, .25);
 }
 
-.nav-item.active svg {
-  color: #fff;
+html.theme-dark .nav-panel .nav-item.active {
+  color: #ffffff;
+}
+
+.nav-panel .nav-item.active svg {
+  color: #000000;
+}
+
+html.theme-dark .nav-panel .nav-item.active svg {
+  color: #ffffff;
 }
 
 /* Mini panels */

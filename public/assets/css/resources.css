@@ -7,31 +7,6 @@
   --res-border: var(--border);
 }
 
-.res-shell {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background: var(--bg);
-}
-
-
-.res-body {
-  display: flex;
-  padding: 24px;
-  gap: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.res-sidebar {
-  width: 280px;
-  flex-shrink: 0;
-  position: sticky;
-  top: 90px;
-  height: fit-content;
-}
-
 .res-main {
   flex: 1;
   min-width: 0;
@@ -276,23 +251,35 @@
 
 /* Create Button */
 .create-res-btn {
-  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-  color: #fff;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-weight: 600;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
-  transition: all 0.2s;
+  padding: 12px 24px;
+  background: linear-gradient(90deg, #7c3aed, #4f46e5);
+  color: #fff !important;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25);
+  border: none;
+  white-space: nowrap;
+  text-decoration: none;
 }
 
 .create-res-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35);
+  box-shadow: 0 12px 28px rgba(124, 58, 237, 0.35);
+  filter: brightness(1.1);
+}
+
+.create-res-btn:active {
+  transform: translateY(0);
+}
+
+.create-res-btn i {
+  width: 18px;
+  height: 18px;
 }
 
 /* Modal and Form Styles */
