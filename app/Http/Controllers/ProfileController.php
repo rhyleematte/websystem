@@ -29,8 +29,8 @@ class ProfileController extends Controller
             ->get();
 
         // Joined / created resources
-        $joinedResources = $profileUser->joinedResources()
-            ->with('user')
+        $savedResources = $profileUser->savedResources()
+            ->with(['user', 'body'])
             ->latest()
             ->get();
 
@@ -78,7 +78,7 @@ class ProfileController extends Controller
             'application'      => $application,
             'requirements'     => $requirements,
             'professional_titles' => $professional_titles,
-            'joinedResources'  => $joinedResources,
+            'savedResources'   => $savedResources,
             'createdResources' => $createdResources,
             'joinedGroups'     => $joinedGroups,
             'createdGroups'    => $createdGroups,

@@ -39,8 +39,8 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
-        'email_verified_at'       => 'datetime',
-        'last_active_at'          => 'datetime',
+        'email_verified_at' => 'datetime',
+        'last_active_at' => 'datetime',
         'messenger_active_status' => 'boolean',
     ];
 
@@ -65,7 +65,7 @@ class User extends Authenticatable
         return $this->hasMany(GroupMember::class);
     }
 
-    public function joinedResources()
+    public function savedResources()
     {
         return $this->belongsToMany(Resource::class, 'resource_user')
             ->withTimestamps()
@@ -123,7 +123,7 @@ class User extends Authenticatable
         // Normalize each part: first letter uppercase, rest lowercase
         $parts = [];
         foreach (['fname', 'mname', 'lname'] as $field) {
-            $val = $this->{ $field};
+            $val = $this->{$field};
             if ($val && trim($val) !== '') {
                 $parts[] = $this->toTitleCase(trim($val));
             }
@@ -174,7 +174,8 @@ class User extends Authenticatable
 
     public function getProfessionalTitleAttribute()
     {
-        if (!$this->isApprovedDoctor()) return null;
+        if (!$this->isApprovedDoctor())
+            return null;
         $app = $this->doctorApplication;
         return $app ? $app->professional_titles : null;
     }

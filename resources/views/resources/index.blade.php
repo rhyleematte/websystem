@@ -90,18 +90,9 @@
                       @endif
                     </div>
                     <div>
-                      @auth
-                        @php
-                          $isJoined = in_array($res->id, $joinedResourceIds ?? []);
-                        @endphp
-                        <a href="{{ route('resources.show', $res->id) }}" class="res-card-btn">
-                          {{ $isJoined ? 'Joined' : 'View More' }}
-                        </a>
-                      @endauth
-
-                      @guest
-                        <a href="{{ route('resources.show', $res->id) }}" class="res-card-btn">View More</a>
-                      @endguest
+                      <a href="{{ route('resources.show', $res->id) }}" class="res-card-btn">
+                        View
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -126,49 +117,49 @@
 
 @push('scripts')
   <script>
-        document.addEventListener('DOMContentLoaded', function (    ) {
-        var search = document.getElementById('resSearchInput');
-        var filters = document.getElementById('resFilters');
-        var cards = Array.from(document.querySelectorAll('.res-grid .res-card'));
-        var noResults = document.getElementById('resNoResults');
+    document.addEventListener('DOMContentLoaded', function () {
+      var search = document.getElementById('resSearchInput');
+      var filters = document.getElementById('resFilters');
+      var cards = Array.from(document.querySelectorAll('.res-grid .res-card'));
+      var noResults = document.getElementById('resNoResults');
 
-        function norm(s) { return (s || '').toString().trim().toLowerCase(); }
-        var state = { q: '', type: 'all' };
+      function norm(s) { return (s || '').toString().trim().toLowerCase(); }
+      var state = { q: '', type: 'all' };
 
-        function apply() {
-          var shown = 0;
-          cards.forEach(function (card) {
-            var type = card.dataset.type || '';
-            var hay = (card.dataset.title || '') + ' ' + (card.dataset.desc || '') + ' ' + (card.dataset.tags || '') + ' ' + norm(type);
-            var okType = (state.type === 'all') || (type === state.type);
-            var okQ = !state.q || hay.indexOf(state.q) !== -1;
-            var show = okType && okQ;
-            card.style.display = show ? '' : 'none';
-            if (show) shown++;
+      function apply() {
+        var shown = 0;
+        cards.forEach(function (card) {
+          var type = card.dataset.type || '';
+          var hay = (card.dataset.title || '') + ' ' + (card.dataset.desc || '') + ' ' + (card.dataset.tags || '') + ' ' + norm(type);
+          var okType = (state.type === 'all') || (type === state.type);
+          var okQ = !state.q || hay.indexOf(state.q) !== -1;
+          var show = okType && okQ;
+          card.style.display = show ? '' : 'none';
+          if (show) shown++;
+        });
+
+        if (noResults) noResults.classList.toggle('hidden', shown !== 0 || cards.length === 0);
+        if (window.lucide) lucide.createIcons();
+      }
+
+      if (search) {
+        search.addEventListener('input', function () {
+          state.q = norm(search.value);
+          apply();
+        });
+      }
+
+      if (filters) {
+        filters.addEventListener('click', function (e) {
+          var btn = e.target.closest('button[data-filter]');
+          if (!btn) return;
+          state.type = btn.dataset.filter || 'all';
+          filters.querySelectorAll('button[data-filter]').forEach(function (b) {
+            b.classList.toggle('active', b === btn);
           });
-
-          if (noResults) noResults.classList.toggle('hidden', shown !== 0 || cards.length === 0);
-          if (window.lucide) lucide.createIcons();
-        }
-
-        if (search) {
-          search.addEventListener('input', function () {
-            state.q = norm(search.value);
-            apply();
-          });
-        }
-
-        if (filters) {
-          filters.addEventListener('click', function (e) {
-            var btn = e.target.closest('button[data-filter]');
-            if (!btn) return;
-            state.type = btn.dataset.filter || 'all';
-            filters.querySelectorAll('button[data-filter]').forEach(function (b) {
-              b.classList.toggle('active', b === btn);
-            });
-            apply();
-          });
-        }
-      });
-    </script>
+          apply();
+        });
+      }
+    });
+  </script>
 @endpush

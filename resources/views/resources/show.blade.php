@@ -368,23 +368,23 @@
 
                 <div class="res-actions-bar">
                     <div style="font-size: 14px; font-weight: 600;">
-                        Found this helpful? Join it and share with your community.
+                        Enjoyed this resource? Save it or share with others.
                     </div>
                     <div style="display:flex; gap:10px; align-items:center;">
                         @auth
-                          @if($isJoined ?? false)
-                            <form method="POST" action="{{ route('resources.unjoin', $resource->id) }}">
+                          @if($isSaved ?? false)
+                            <form method="POST" action="{{ route('resources.unsave', $resource->id) }}">
                               @csrf
                               @method('DELETE')
-                              <button type="submit" class="share-btn-lg" style="background:#10b981;">
-                                <i data-lucide="check"></i> Joined
+                              <button type="submit" class="share-btn-lg" title="Unsave Resource" style="background:#10b981; padding: 12px; border-radius: 50%;">
+                                <i data-lucide="bookmark-check"></i>
                               </button>
                             </form>
                           @else
-                            <form method="POST" action="{{ route('resources.join', $resource->id) }}">
+                            <form method="POST" action="{{ route('resources.save', $resource->id) }}">
                               @csrf
-                              <button type="submit" class="share-btn-lg" style="background:#22c55e;">
-                                <i data-lucide="user-plus"></i> Join Resource
+                              <button type="submit" class="share-btn-lg" title="Save Resource" style="background: var(--hover); color: var(--text); border: 1px solid var(--border); padding: 12px; border-radius: 50%;">
+                                <i data-lucide="bookmark"></i>
                               </button>
                             </form>
                           @endif

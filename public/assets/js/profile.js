@@ -409,12 +409,12 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             const dropdown = option.closest('.prof-filter-dropdown');
             const target = dropdown.dataset.target;
-            const value = option.dataset.value; // 'joined' | 'created'
+            const value = option.dataset.value; // 'saved' | 'created'
 
             const toggleBtn = dropdown.querySelector('.prof-filter-toggle');
             const labelSpan = toggleBtn?.querySelector('span');
             if (toggleBtn) toggleBtn.dataset.current = value;
-            if (labelSpan) labelSpan.textContent = value === 'created' ? 'Created' : 'Joined';
+            if (labelSpan) labelSpan.textContent = value === 'created' ? 'Created' : 'Saved';
 
             const section = document.querySelector(`.prof-section[data-section="${target}"]`);
             if (section) {
@@ -446,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const section = document.querySelector(`.prof-section[data-section="${target}"]`);
         if (!section) return;
 
-        const joinedGrid = section.querySelector(target === 'groups' ? '.prof-groups-joined' : '.prof-resources-joined');
+        const joinedGrid = section.querySelector(target === 'groups' ? '.prof-groups-joined' : '.prof-resources-saved');
         const createdGrid = section.querySelector(target === 'groups' ? '.prof-groups-created' : '.prof-resources-created');
 
         const allCards = [

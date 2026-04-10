@@ -15,7 +15,7 @@
   $shortName = $me ? ($me->short_name ?: $me->full_name) : '';
   $username  = $profileUser->username ?? 'username';
   $groupsJoinedCount = isset($joinedGroups) ? $joinedGroups->count() : 0;
-  $resourcesJoinedCount = isset($joinedResources) ? $joinedResources->count() : 0;
+  $resourcesSavedCount = isset($savedResources) ? $savedResources->count() : 0;
   $hasCreatedGroups = isset($createdGroups) && $createdGroups->isNotEmpty();
   $hasCreatedResources = isset($createdResources) && $createdResources->isNotEmpty();
   $isVerifiedDoctor = $profileUser->role === 'doctor' && $profileUser->doctor_status === 'approved';
@@ -97,7 +97,7 @@
                 <span class="stat-lbl">Groups</span>
               </div>
               <div class="stat-item">
-                <span class="stat-num"><?php echo e($resourcesJoinedCount); ?></span>
+                <span class="stat-num"><?php echo e($resourcesSavedCount); ?></span>
                 <span class="stat-lbl">Resources</span>
               </div>
             </div>
@@ -396,12 +396,12 @@
               </div>
             <?php if($isVerifiedDoctor): ?>
               <div class="prof-filter-dropdown" data-target="resources">
-                <button type="button" class="prof-filter-toggle" data-current="joined">
-                  <span>Joined</span>
+                <button type="button" class="prof-filter-toggle" data-current="saved">
+                  <span>Saved</span>
                   <i data-lucide="chevron-down"></i>
                 </button>
                 <div class="prof-filter-menu">
-                  <button type="button" data-value="joined">Joined</button>
+                  <button type="button" data-value="saved">Saved</button>
                   <button type="button" data-value="created">Created</button>
                 </div>
               </div>
@@ -411,8 +411,8 @@
 
           <div class="prof-section-body">
             
-            <div class="prof-grid prof-grid-resources prof-resources-joined">
-              <?php $__empty_1 = true; $__currentLoopData = $joinedResources; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $res): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <div class="prof-grid prof-grid-resources prof-resources-saved">
+              <?php $__empty_1 = true; $__currentLoopData = $savedResources; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $res): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <a href="<?php echo e(route('resources.show', $res->id)); ?>?from=profile&profile_id=<?php echo e($profileUser->id); ?>&tab=resources" class="prof-card prof-resource-card">
                   <div class="prof-res-thumb" style="background-image:url('<?php echo e($res->thumbnail_url); ?>');"></div>
                   <div class="prof-card-main">
@@ -442,7 +442,7 @@
               <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <div class="empty-state soft">
                   <i data-lucide="book-open"></i>
-                  <p>No joined resources yet.</p>
+                  <p>No saved resources yet.</p>
                 </div>
               <?php endif; ?>
             </div>

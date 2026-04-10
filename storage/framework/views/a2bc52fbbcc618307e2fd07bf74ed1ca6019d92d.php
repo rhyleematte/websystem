@@ -1,6 +1,6 @@
 
 
-<?php $__env->startSection('title', 'Apply for Medical Staff'); ?>
+<?php $__env->startSection('title', 'Apply for Medical Staff | AskDocPH'); ?>
 
 <?php $__env->startSection('content'); ?>
 <style>

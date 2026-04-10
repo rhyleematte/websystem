@@ -15,17 +15,17 @@ class ResourceController extends Controller
     {
         $resources = Resource::with('user')->latest()->get();
 
-        $joinedResourceIds = [];
+        $savedResourceIds = [];
         if (Auth::check()) {
-            $joinedResourceIds = Auth::user()
-                ->joinedResources()
+            $savedResourceIds = Auth::user()
+                ->savedResources()
                 ->pluck('resources.id')
                 ->toArray();
         }
 
         return view('resources.index', [
             'resources' => $resources,
-            'joinedResourceIds' => $joinedResourceIds,
+            'savedResourceIds' => $savedResourceIds,
         ]);
     }
 
@@ -33,16 +33,16 @@ class ResourceController extends Controller
     {
         $resource->loadMissing(['user', 'body']);
 
-        $isJoined = false;
+        $isSaved = false;
         if (Auth::check()) {
-            $isJoined = Auth::user()
-                ->joinedResources()
+            $isSaved = Auth::user()
+                ->savedResources()
                 ->where('resources.id', $resource->id)
                 ->exists();
         }
 
         // For Article vs others, logic might differ but we'll use same show page for now
-        return view('resources.show', compact('resource', 'isJoined'));
+        return view('resources.show', compact('resource', 'isSaved'));
     }
 
     public function create()
@@ -175,22 +175,22 @@ class ResourceController extends Controller
         return response()->json(['ok' => true, 'message' => 'Shared to feed!', 'post_id' => $post->id]);
     }
 
-    public function join(Resource $resource)
+    public function save(Resource $resource)
     {
         $user = Auth::user();
-        $user->joinedResources()->syncWithoutDetaching([
-            $resource->id => ['status' => 'joined'],
+        $user->savedResources()->syncWithoutDetaching([
+            $resource->id => ['status' => 'saved'],
         ]);
 
-        return back()->with('success', 'Resource joined.');
+        return back()->with('success', 'Resource saved.');
     }
 
-    public function unjoin(Resource $resource)
+    public function unsave(Resource $resource)
     {
         $user = Auth::user();
-        $user->joinedResources()->detach($resource->id);
+        $user->savedResources()->detach($resource->id);
 
-        return back()->with('success', 'Resource unjoined.');
+        return back()->with('success', 'Resource unsaved.');
     }
 
     public function destroy(Resource $resource)
@@ -315,7 +315,7 @@ class ResourceController extends Controller
         // while in create mode we keep the same "create" authorization rule.
         if ($request->filled('resource_id')) {
             $resource = Resource::find($request->input('resource_id'));
-            if (! $resource) {
+            if (!$resource) {
                 abort(404);
             }
             $this->authorize('update', $resource);
