@@ -29,6 +29,8 @@ class User extends Authenticatable
         'is_online',
         'is_free_to_talk',
         'allow_ai_recommendation',
+        'last_active_at',
+        'messenger_active_status',
     ];
 
     protected $hidden = [
@@ -37,7 +39,9 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
-        'email_verified_at' => 'datetime',
+        'email_verified_at'       => 'datetime',
+        'last_active_at'          => 'datetime',
+        'messenger_active_status' => 'boolean',
     ];
 
     // ── Relationships ─────────────────────────────────────────────
@@ -99,7 +103,7 @@ class User extends Authenticatable
     public function conversations()
     {
         return $this->belongsToMany(Conversation::class, 'conversation_participants')
-            ->withPivot('last_read_message_id', 'muted', 'archived', 'last_read_at', 'deleted_at')
+            ->withPivot('last_read_message_id', 'muted', 'archived', 'archived_at', 'last_read_at', 'deleted_at')
             ->withTimestamps();
     }
 
@@ -151,6 +155,21 @@ class User extends Authenticatable
     public function isApprovedDoctor()
     {
         return $this->doctor_status === 'approved';
+    }
+
+    /**
+     * A user is considered "online" if they made a request within the last 5 minutes.
+     * This replaces the manual is_online toggle for messenger presence.
+     */
+    public function isOnline(): bool
+    {
+        // If "Active Status" is OFF, always return false (Stealth Mode)
+        if (!$this->messenger_active_status) {
+            return false;
+        }
+
+        return $this->last_active_at !== null
+            && $this->last_active_at->gt(now()->subMinutes(5));
     }
 
     public function getProfessionalTitleAttribute()

@@ -27,62 +27,19 @@
             Set your availability to appear in AI recommendations and receive real-time crisis support notifications.
         </p>
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
-            
-            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 15px 20px; background: var(--hover); border-radius: 12px; border: 1px solid var(--border);">
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <span style="font-weight: 700; font-size: 15px; color: var(--text);">Online Status</span>
-                    <span style="font-size: 12px; color: var(--muted);">Visible to other users</span>
-                </div>
-                <input type="checkbox" id="doctorOnlineToggle" <?php echo e($me->is_online ? 'checked' : ''); ?> style="width: 20px; height: 20px; accent-color: var(--brand, #7c3aed);">
-            </label>
-
-            
-            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 15px 20px; background: var(--hover); border-radius: 12px; border: 1px solid var(--border);">
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <span style="font-weight: 700; font-size: 15px; color: var(--text);">Available for Referrals & Get Help</span>
-                    <span style="font-size: 12px; color: var(--muted);">AI recommendations + Crisis alerts</span>
-                </div>
-                <input type="checkbox" id="doctorFreeToggle" <?php echo e(($me->is_free_to_talk || $me->allow_ai_recommendation) ? 'checked' : ''); ?> style="width: 20px; height: 20px; accent-color: var(--brand, #7c3aed);">
-            </label>
+        <div style="padding: 15px 20px; background: rgba(124,58,237,0.05); border-radius: 12px; border: 1px solid rgba(124,58,237,0.15); display: flex; align-items: flex-start; gap: 12px;">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(124,58,237,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <i data-lucide="sparkles" style="width:16px; height:16px; color:var(--brand, #7c3aed);"></i>
+            </div>
+            <div>
+                <span style="display: block; font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 2px;">Automatic AI & Crisis Referral</span>
+                <span style="font-size: 12px; color: var(--muted); line-height: 1.4;">
+                    Since your application is <strong>Approved</strong>, you are automatically eligible for AI referrals and help requests whenever you are active on the platform (within the last 15 minutes). No manual toggle required.
+                </span>
+            </div>
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const onlineToggle = document.getElementById('doctorOnlineToggle');
-    const freeToggle = document.getElementById('doctorFreeToggle');
-
-    function updateStatus(isOnline, isFree) {
-        fetch('<?php echo e(url("/api/help/toggle-status")); ?>', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                is_online: onlineToggle.checked, // Use current state
-                is_free_to_talk: freeToggle.checked
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            console.log('Status updated', data);
-            // Optionally show feedback
-        })
-        .catch(err => console.error(err));
-    }
-
-    if (onlineToggle) {
-        onlineToggle.addEventListener('change', () => updateStatus());
-    }
-    if (freeToggle) {
-        freeToggle.addEventListener('change', () => updateStatus());
-    }
-});
-</script>
 <?php elseif($me->doctor_status === 'rejected' || ($application && $application->status === 'rejected')): ?>
 <div id="rejectionFeedback">
     <div class="panel" style="padding: 40px; text-align: center; border-left: 6px solid #ef4444; background: rgba(239, 68, 68, 0.02);">

@@ -376,8 +376,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     <div class="digest-card" ${!isHoliday ? `onclick="showAptDetailsById('${ev.id}')"` : 'style="cursor: default;"'}>
                         <div class="digest-card-title">${ev.title}</div>
-                        <div class="digest-card-desc">${props.description || 'No description provided.'}</div>
-                        
+                        ${isHoliday && props.description ? `<div class="digest-card-desc">${props.description}</div>` : ''}
+
                         <div class="digest-card-footer">
                             <div class="digest-avatars">
                                 ${props.invited_users ? props.invited_users.slice(0, 3).map(u => `

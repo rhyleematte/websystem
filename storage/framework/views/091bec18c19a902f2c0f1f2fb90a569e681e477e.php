@@ -21,7 +21,7 @@
 
 <header class="topbar">
   <div class="brand">
-    <a href="<?php echo e(auth()->check() ? route('user.dashboard') : route('login')); ?>">
+    <a href="<?php echo e(auth()->check() ? route('user.dashboard') : route('home')); ?>">
       <img src="<?php echo e(asset('assets/img/AskDocPH.png')); ?>" class="logo" alt="AskDocPH">
     </a>
   </div>

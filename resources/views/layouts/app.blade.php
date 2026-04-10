@@ -21,7 +21,7 @@
 
 <header class="topbar">
   <div class="brand">
-    <a href="{{ auth()->check() ? route('user.dashboard') : route('login') }}">
+    <a href="{{ auth()->check() ? route('user.dashboard') : route('home') }}">
       <img src="{{ asset('assets/img/AskDocPH.png') }}" class="logo" alt="AskDocPH">
     </a>
   </div>

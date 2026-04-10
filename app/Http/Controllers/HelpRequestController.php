@@ -178,9 +178,7 @@ class HelpRequestController extends Controller
         // Find approved doctors who are online and free to talk
         // We'll also try to match the title broadly via their doctorApplication
         $doctorsQuery = User::where('doctor_status', 'approved')
-            ->where('is_online', true)
-            ->where('is_free_to_talk', true)
-            ->where('allow_ai_recommendation', true);
+            ->where('last_active_at', '>=', now()->subMinutes(15)); // Automatically match doctors active in last 15 min
             
         $doctors = $doctorsQuery->with('doctorApplication')->get();
         

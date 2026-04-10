@@ -738,6 +738,9 @@ html.theme-dark .apt-sub-modal {
     transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
     border: 1px solid transparent;
+    overflow: hidden;       /* prevent any child from bleeding out */
+    min-width: 0;           /* allow flex children to shrink */
+    word-break: break-word; /* handle long words without spaces */
 }
 
 .digest-card:hover {
@@ -751,6 +754,12 @@ html.theme-dark .apt-sub-modal {
     font-weight: 700;
     color: var(--ios-text);
     margin-bottom: 0.5rem;
+    /* Clamp to 2 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .digest-card-desc {
@@ -758,6 +767,12 @@ html.theme-dark .apt-sub-modal {
     color: var(--ios-text-muted);
     line-height: 1.5;
     margin-bottom: 1.2rem;
+    /* Clamp to 3 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .digest-card-footer {
@@ -2250,4 +2265,288 @@ html.theme-dark .selection-suite-ios {
 .selection-suite-ios .flatpickr-day {
     height: 38px !important;
     line-height: 38px !important;
+}
+
+/* ================================================================
+   APPOINTMENT SHOW PAGE — LIGHT & DARK MODE THEMING
+   ================================================================ */
+
+/* ── Page Wrapper ────────────────────────────────────────────── */
+.creation-page-wrapper {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+}
+
+/* ── Back Link ───────────────────────────────────────────────── */
+.discard-draft {
+    color: var(--muted) !important;
+}
+
+/* ── Title ───────────────────────────────────────────────────── */
+#aptShowSubject,
+.massive-title-input {
+    color: var(--text) !important;
+    background: transparent !important;
+}
+
+/* ── Section Labels ──────────────────────────────────────────── */
+.section-label {
+    color: var(--muted) !important;
+}
+
+/* ── Pills (Date, Time, Location) ────────────────────────────── */
+.hero-pill {
+    background: var(--panel) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.hero-pill-value {
+    color: var(--text) !important;
+}
+
+.pill-icon-red {
+    color: #dc3545 !important;
+}
+
+/* ── Cover Image Area ─────────────────────────────────────────── */
+.visual-placeholder-ios {
+    background: var(--panel) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--shadow) !important;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* ── Editorial Notes Box ─────────────────────────────────────── */
+.editorial-textarea-ios,
+.editorial-textarea {
+    background: var(--panel) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--shadow) !important;
+    border-radius: 16px;
+    padding: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.65;
+}
+
+/* ── Action Card (Update / Delete Box) ───────────────────────── */
+.action-card-ios {
+    background: var(--panel) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--shadow) !important;
+    border-radius: 24px;
+    padding: 2rem;
+    text-align: center;
+}
+
+/* ── Update Appointment Button ───────────────────────────────── */
+.btn-create-apt-red {
+    background: linear-gradient(135deg, #dc3545, #b02a37) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 8px 24px rgba(220, 53, 69, 0.35) !important;
+}
+
+.btn-create-apt-red:hover {
+    background: linear-gradient(135deg, #c82333, #9c1a27) !important;
+    transform: translateY(-1px);
+}
+
+/* ── Delete Appointment Button ───────────────────────────────── */
+.btn-decline-ios {
+    background: var(--panel) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 16px !important;
+    font-weight: 700 !important;
+    transition: background 0.2s, border-color 0.2s !important;
+}
+
+.btn-decline-ios:hover {
+    background: var(--hover) !important;
+    border-color: #dc3545 !important;
+    color: #dc3545 !important;
+}
+
+/* ── "You are the Organizer" label ───────────────────────────── */
+.workspace-label-mini {
+    color: var(--muted) !important;
+}
+
+/* ── Accept / Decline Invitation Buttons ─────────────────────── */
+.btn-accept-ios {
+    background: #1cc88a !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+/* ── Participant Cards ───────────────────────────────────────── */
+.participant-card-ios {
+    background: var(--panel) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--shadow) !important;
+    border-radius: 16px;
+}
+
+.p-card-name {
+    color: var(--text) !important;
+}
+
+.p-card-title {
+    color: var(--muted) !important;
+}
+
+/* ── Error Alert Box ─────────────────────────────────────────── */
+#aptActionError {
+    background: rgba(220, 53, 69, 0.08) !important;
+    border: 1px solid rgba(220, 53, 69, 0.2) !important;
+    color: #dc3545 !important;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* ── Deleted Alert Box ───────────────────────────────────────── */
+.appointment-deleted-alert {
+    background: rgba(220, 53, 69, 0.08) !important;
+    border: 1px solid rgba(220, 53, 69, 0.25) !important;
+    color: #dc3545 !important;
+}
+
+html.theme-dark .appointment-deleted-alert {
+    background: rgba(220, 53, 69, 0.12) !important;
+}
+
+/* ── Dark Mode Specific Overrides ────────────────────────────── */
+html.theme-dark .btn-decline-ios {
+    background: #1e293b !important;
+    color: #cbd5e1 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.theme-dark .btn-decline-ios:hover {
+    background: #263245 !important;
+    border-color: #dc3545 !important;
+    color: #ff6b6b !important;
+}
+
+html.theme-dark .editorial-textarea-ios,
+html.theme-dark .editorial-textarea {
+    background: #0f172a !important;
+    color: #cbd5e1 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.theme-dark .visual-placeholder-ios {
+    background: #0f172a !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.theme-dark .ios-search-minimal {
+    background: #0f172a !important;
+    color: #cbd5e1 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.theme-dark .participants-stack::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+html.theme-dark .participants-stack::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* --- UTILITY CLASSES --- */
+.outline-red {
+    background: none !important;
+    border: 1.5px solid var(--ios-accent) !important;
+    color: var(--ios-accent) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.outline-red:hover {
+    background: var(--ios-accent) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+}
+
+.ios-error-box {
+    display: none;
+    background: rgba(255, 59, 48, 0.08);
+    color: var(--ios-accent);
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255, 59, 48, 0.15);
+    text-align: center;
+    line-height: 1.4;
+    animation: iosAlertSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html.theme-dark .ios-error-box {
+    background: rgba(255, 59, 48, 0.12);
+    border-color: rgba(255, 59, 48, 0.25);
+}
+
+
+@keyframes iosAlertSlide {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* --- CREATE PAGE SPECIFICS --- */
+.massive-title-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--ios-text);
+    outline: none;
+    padding: 0;
+    margin: 0;
+    resize: none;
+    caret-color: var(--ios-accent);
+}
+
+.massive-title-input::placeholder {
+    color: var(--ios-text-muted);
+    opacity: 0.3;
+}
+
+.title-underline {
+    height: 1px;
+    background: var(--ios-border);
+    margin-top: 8px;
+    margin-bottom: 2.5rem;
+}
+
+.editorial-textarea-ios {
+    width: 100%;
+    min-height: 150px;
+    background: var(--ios-secondary);
+    border: 1px solid var(--ios-border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    font-size: 1rem;
+    color: var(--ios-text);
+    outline: none;
+    resize: none;
+    line-height: 1.6;
+}
+
+.hero-pill-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--ios-text);
+    font-size: 0.95rem;
+    width: 100%;
+    font-weight: 500;
 }

@@ -18,11 +18,18 @@ class ChatController extends Controller
         $user = Auth::user();
         
         // 1. Get existing conversations (not deleted for this user)
-        $conversations = $user->conversations()
+        $query = $user->conversations()
             ->with(['users', 'latestMessage'])
-            ->wherePivot('deleted_at', null)
-            ->orderBy('conversations.updated_at', 'desc')
-            ->get();
+            ->wherePivot('deleted_at', null);
+
+        // Filter by archived status
+        if (request()->query('archived') == '1') {
+            $query->wherePivotNotNull('archived_at');
+        } else {
+            $query->wherePivot('archived_at', null);
+        }
+
+        $conversations = $query->orderBy('conversations.updated_at', 'desc')->get();
 
         // 2. Filter conversations to keep only one per user pair
         $alreadyPaired = [];
@@ -67,6 +74,7 @@ class ChatController extends Controller
                     'name' => $otherUser->full_name,
                     'avatar' => $otherUser->avatar_url,
                     'is_doctor' => $otherUser->isApprovedDoctor(),
+                    'is_online' => $otherUser->isOnline(),
                 ] : null,
                 'latest_message' => $conv->latestMessage,
                 'unread_count' => $unreadCount,
@@ -83,6 +91,7 @@ class ChatController extends Controller
                     'avatar' => $u->avatar_url,
                     'is_doctor' => $u->isApprovedDoctor(),
                     'is_mutual' => in_array($u->id, $mutualIds),
+                    'is_online' => $u->isOnline(),
                 ],
                 'latest_message' => null,
                 'unread_count' => 0,
@@ -312,5 +321,41 @@ class ChatController extends Controller
             'notifications' => $notifCount,
             'messages' => $totalMsgCount
         ]);
+    }
+
+    public function toggleActiveStatus(Request $request)
+    {
+        $user = Auth::user();
+        $status = filter_var($request->input('status'), FILTER_VALIDATE_BOOLEAN);
+        
+        $user->update(['messenger_active_status' => $status]);
+
+        return response()->json([
+            'success' => true,
+            'messenger_active_status' => $user->messenger_active_status,
+            'is_online' => $user->isOnline() // Should be false if status was just set to false
+        ]);
+    }
+
+    public function archiveConversation(Request $request, $id)
+    {
+        $user = Auth::user();
+        DB::table('conversation_participants')
+            ->where('conversation_id', $id)
+            ->where('user_id', $user->id)
+            ->update(['archived_at' => now(), 'archived' => true]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function unarchiveConversation(Request $request, $id)
+    {
+        $user = Auth::user();
+        DB::table('conversation_participants')
+            ->where('conversation_id', $id)
+            ->where('user_id', $user->id)
+            ->update(['archived_at' => null, 'archived' => false]);
+
+        return response()->json(['success' => true]);
     }
 }

@@ -301,6 +301,68 @@ class AppointmentController extends Controller
         return response()->json(['ok' => true, 'message' => 'Appointment canceled and participants notified.']);
     }
 
+    public function update(Request $request, Appointment $appointment)
+    {
+        abort_if($appointment->creator_id !== Auth::id(), 403);
+
+        $request->validate([
+            'subject'     => 'required|string|max:255',
+            'location'    => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'start_at'    => 'required|date',
+            'end_at'      => 'required|date|after:start_at',
+            'cover_image' => 'nullable|image|max:2048',
+        ]);
+
+        $user = Auth::user();
+
+        // Conflict check — exclude this appointment itself
+        $start = \Carbon\Carbon::parse($request->start_at);
+        $end   = \Carbon\Carbon::parse($request->end_at);
+
+        $conflict = Appointment::where('creator_id', $user->id)
+            ->where('id', '!=', $appointment->id)
+            ->where('start_at', '<', $end)
+            ->where('end_at', '>', $start)
+            ->first();
+
+        if ($conflict) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'You already have another appointment during this time: "' . $conflict->subject . '".',
+            ], 422);
+        }
+
+        // Handle cover image replacement
+        if ($request->hasFile('cover_image')) {
+            $file = $request->file('cover_image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('assets/img/appointments'), $filename);
+            $appointment->cover_image = 'assets/img/appointments/' . $filename;
+        }
+
+        $appointment->subject     = $request->subject;
+        $appointment->location    = $request->location;
+        $appointment->description = $request->description;
+        $appointment->start_at    = $request->start_at;
+        $appointment->end_at      = $request->end_at;
+        $appointment->save();
+
+        // Notify participants of the update
+        foreach ($appointment->participants as $participant) {
+            NotificationService::create($participant, $user, 'appointment_updated', [
+                'message' => $user->full_name . ' updated the appointment: ' . $appointment->subject,
+                'url'     => route('appointments.show', $appointment->id),
+                'appointment_id' => $appointment->id,
+            ]);
+        }
+
+        return response()->json([
+            'ok'      => true,
+            'message' => 'Appointment updated successfully.',
+        ]);
+    }
+
     public function checkConflicts(Request $request)
     {
         $request->validate([

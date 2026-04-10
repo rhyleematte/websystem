@@ -8,9 +8,35 @@
             <h3>Messages</h3>
             <button id="close-messenger-drawer" class="icon-btn"><i data-lucide="x"></i></button>
         </div>
-        <div class="drawer-search">
-            <i data-lucide="search"></i>
-            <input type="text" id="messenger-user-search" placeholder="Search people...">
+        <div class="drawer-search-row">
+            <div class="search-input-wrapper">
+                <i data-lucide="search"></i>
+                <input type="text" id="messenger-user-search" placeholder="Search people...">
+            </div>
+            <button id="messenger-settings-btn" class="messenger-settings-btn" title="Chat Settings">
+                <i data-lucide="more-vertical"></i>
+            </button>
+
+            <!-- Settings Dropdown -->
+            <div id="messenger-settings-dropdown" class="messenger-settings-dropdown">
+                <div class="settings-item" id="toggle-active-status-item">
+                    <div class="settings-item-label">
+                        <i data-lucide="eye"></i>
+                        <span>Active Status</span>
+                    </div>
+                    <button id="active-status-toggle-btn" class="status-toggle-pill {{ Auth::user()->messenger_active_status ? 'on' : 'off' }}">
+                        {{ Auth::user()->messenger_active_status ? 'ON' : 'OFF' }}
+                    </button>
+                </div>
+                <div class="settings-item" id="view-archived-chats">
+                    <div class="settings-item-label">
+                        <i data-lucide="archive"></i>
+                        <span>Archived Chats</span>
+                    </div>
+                    <i data-lucide="chevron-right" style="width:14px; height:14px; color:var(--muted);"></i>
+                </div>
+            </div>
+
             <div id="messenger-search-results" class="search-results-popover"></div>
         </div>
         <div id="conversation-list" class="conversation-list">

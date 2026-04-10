@@ -183,13 +183,13 @@
                     </div>
 
                     <div class="visual-placeholder-ios"
-                        style="height: 320px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                        style="height: 320px; display: flex; align-items: center; justify-content: center;">
                         <img src="<?php echo e($appointment->cover_image ? asset($appointment->cover_image) : asset('assets/img/appointment_default.jpg')); ?>"
                             alt="Studio Visual" class="ios-visual-img" style="opacity: 1;">
                     </div>
                     <div class="editorial-notes-wrap <?php echo e($isDeleted ? 'deleted-opaque' : ''); ?>">
                         <div class="section-label">Editorial Notes</div>
-                        <div class="editorial-textarea-ios" style="background: #f8f9fa; min-height: 150px;">
+                        <div class="editorial-textarea-ios" style="min-height: 150px;">
                             <?php echo nl2br(e($appointment->description)); ?>
 
                         </div>
@@ -199,13 +199,13 @@
                 <!-- Sidebar -->
                 <div class="create-sidebar">
                     <div id="aptActionError" class="ios-btn-link-red"
-                        style="display: none; background: #fff5f5; padding: 1rem; border-radius: 12px; margin-bottom: 1rem; text-align: center; border: 1px solid #ff000020; font-weight: 600; font-size: 0.9rem;">
+                        style="display: none; margin-bottom: 1rem;">
                         <!-- Error messages appear here -->
                     </div>
 
                     <div class="action-card-ios">
                         <?php if($isCreator): ?>
-                            <button type="button" onclick="alert('Inline editing coming soon!')"
+                            <button type="button" onclick="openEditModal()"
                                 class="btn-create-apt-red">Update Appointment</button>
                             <button type="button" onclick="deleteApt()" class="btn-decline-ios"
                                 style="margin-top: 1rem; width: 100%;">Delete Appointment</button>
@@ -272,10 +272,151 @@
             </div>
         </div>
     </div>
+
+    
+    <div id="editAptModal" style="display:none; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center;">
+        <div style="position:absolute; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px);" onclick="closeEditModal()"></div>
+        <div id="editAptBox" style="position:relative; background:var(--panel); border:1px solid var(--border); border-radius:24px; padding:2.5rem; width:95%; max-width:560px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+                <h2 style="font-size:1.4rem; font-weight:800; color:var(--text); margin:0;">Edit Appointment</h2>
+                <button onclick="closeEditModal()" style="background:none; border:none; cursor:pointer; color:var(--muted); padding:4px;">
+                    <i data-lucide="x" style="width:22px; height:22px;"></i>
+                </button>
+            </div>
+
+            <div id="editAptError" style="display:none; background:rgba(220,53,69,0.08); border:1px solid rgba(220,53,69,0.25); color:#dc3545; border-radius:12px; padding:0.9rem 1rem; margin-bottom:1.2rem; font-size:0.9rem; font-weight:600;"></div>
+
+            
+            <div style="margin-bottom:1.2rem;">
+                <label style="display:block; font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:6px;">Title</label>
+                <input id="editSubject" type="text" value="<?php echo e($appointment->subject); ?>"
+                    style="width:100%; background:var(--input-bg); border:1px solid var(--border); border-radius:12px; padding:12px 16px; font-size:1rem; color:var(--text); outline:none; transition:border-color 0.2s;"
+                    onfocus="this.style.borderColor='#dc3545'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+
+            
+            <div style="margin-bottom:1.2rem;">
+                <label style="display:block; font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:6px;">Location</label>
+                <input id="editLocation" type="text" value="<?php echo e($appointment->location); ?>"
+                    placeholder="Add a location"
+                    style="width:100%; background:var(--input-bg); border:1px solid var(--border); border-radius:12px; padding:12px 16px; font-size:1rem; color:var(--text); outline:none; transition:border-color 0.2s;"
+                    onfocus="this.style.borderColor='#dc3545'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:1.2rem;">
+                <div>
+                    <label style="display:block; font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:6px;">Start</label>
+                    <input id="editStart" type="datetime-local" value="<?php echo e($appointment->start_at->format('Y-m-d\TH:i')); ?>"
+                        style="width:100%; background:var(--input-bg); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:0.9rem; color:var(--text); outline:none; transition:border-color 0.2s;"
+                        onfocus="this.style.borderColor='#dc3545'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:6px;">End</label>
+                    <input id="editEnd" type="datetime-local" value="<?php echo e($appointment->end_at->format('Y-m-d\TH:i')); ?>"
+                        style="width:100%; background:var(--input-bg); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:0.9rem; color:var(--text); outline:none; transition:border-color 0.2s;"
+                        onfocus="this.style.borderColor='#dc3545'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+            </div>
+
+            
+            <div style="margin-bottom:1.8rem;">
+                <label style="display:block; font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:6px;">Notes / Description</label>
+                <textarea id="editDescription" rows="4"
+                    style="width:100%; background:var(--input-bg); border:1px solid var(--border); border-radius:12px; padding:12px 16px; font-size:0.95rem; color:var(--text); outline:none; resize:none; line-height:1.6; transition:border-color 0.2s;"
+                    onfocus="this.style.borderColor='#dc3545'" onblur="this.style.borderColor='var(--border)'"><?php echo e($appointment->description); ?></textarea>
+            </div>
+
+            
+            <div style="margin-bottom:1.8rem;">
+                <label style="display:block; font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:6px;">Cover Image <span style="font-weight:400; text-transform:none;">(optional)</span></label>
+                <input id="editCoverImage" type="file" accept="image/*"
+                    style="width:100%; background:var(--input-bg); border:1px solid var(--border); border-radius:12px; padding:10px 14px; font-size:0.85rem; color:var(--muted); cursor:pointer;">
+            </div>
+
+            
+            <div style="display:flex; gap:12px;">
+                <button id="editSaveBtn" onclick="submitEditApt()" style="flex:1; background:linear-gradient(135deg,#dc3545,#b02a37); color:white; border:none; padding:1rem; border-radius:14px; font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; box-shadow:0 6px 20px rgba(220,53,69,0.3);">Save Changes</button>
+                <button onclick="closeEditModal()" style="padding:1rem 1.5rem; background:var(--hover); color:var(--text); border:1px solid var(--border); border-radius:14px; font-size:1rem; font-weight:600; cursor:pointer;">Cancel</button>
+            </div>
+        </div>
+    </div>
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
     <script>
+        const APT_UPDATE_URL = "<?php echo e(route('appointments.update', $appointment->id)); ?>";
+        const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        function openEditModal() {
+            const modal = document.getElementById('editAptModal');
+            modal.style.display = 'flex';
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function closeEditModal() {
+            document.getElementById('editAptModal').style.display = 'none';
+            document.getElementById('editAptError').style.display = 'none';
+        }
+
+        async function submitEditApt() {
+            const btn = document.getElementById('editSaveBtn');
+            const errBox = document.getElementById('editAptError');
+            errBox.style.display = 'none';
+
+            const subject = document.getElementById('editSubject').value.trim();
+            if (!subject) {
+                errBox.innerText = 'Title is required.';
+                errBox.style.display = 'block';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('subject',     subject);
+            formData.append('location',    document.getElementById('editLocation').value.trim());
+            formData.append('description', document.getElementById('editDescription').value.trim());
+            formData.append('start_at',    document.getElementById('editStart').value);
+            formData.append('end_at',      document.getElementById('editEnd').value);
+
+            const coverFile = document.getElementById('editCoverImage').files[0];
+            if (coverFile) formData.append('cover_image', coverFile);
+
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            try {
+                const res = await fetch(APT_UPDATE_URL, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+                    body: formData,
+                });
+
+                const data = await res.json();
+
+                if (data.ok) {
+                    closeEditModal();
+                    location.reload();
+                } else {
+                    const msg = data.errors
+                        ? Object.values(data.errors)[0][0]
+                        : (data.message || 'Failed to update.');
+                    errBox.innerText = msg;
+                    errBox.style.display = 'block';
+                }
+            } catch (e) {
+                errBox.innerText = 'Network error. Please try again.';
+                errBox.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Save Changes';
+            }
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeEditModal();
+        });
         async function respondToInvite(status) {
             if (!confirm(`Are you sure you want to ${status} this invitation?`)) return;
 

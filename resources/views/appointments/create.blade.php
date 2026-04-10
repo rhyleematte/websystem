@@ -167,10 +167,7 @@
                     </div>
 
 
-                    <div id="aptActionError" class="ios-btn-link-red"
-                        style="display: none; background: #fff5f5; padding: 1rem; border-radius: 12px; margin-bottom: 1rem; text-align: center; border: 1px solid #ff000020; font-weight: 600; font-size: 0.9rem;">
-                        <!-- Error messages will appear here -->
-                    </div>
+                    <div id="aptActionError" class="ios-error-box" style="margin-bottom: 1.5rem;"></div>
 
                     <div id="aptConflictAlert" class="ios-conflict-alert-v2"></div>
                 </div>

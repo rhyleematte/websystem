@@ -19,14 +19,18 @@ document.addEventListener('DOMContentLoaded', function() {
     let openChats = new Map(); // conversationId -> { element, lastMsgId, pollInterval, typingInterval, isTyping }
     let convPollInterval = null;
 
+    let isArchivedMode = false;
+
     // Toggle Drawer
     if (messengerToggle) {
         messengerToggle.addEventListener('click', () => {
             messengerDrawer.classList.toggle('open');
             if (messengerDrawer.classList.contains('open')) {
+                // When opening, reset to normal mode
+                exitArchivedMode();
                 loadConversations();
                 if (!convPollInterval) {
-                    convPollInterval = setInterval(loadConversations, 5000);
+                    convPollInterval = setInterval(() => loadConversations(isArchivedMode), 5000);
                 }
             } else {
                 clearInterval(convPollInterval);
@@ -44,16 +48,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Load Conversations
-    async function loadConversations() {
+    async function loadConversations(archived = false) {
         if (document.activeElement && (document.activeElement.id === 'messenger-user-search')) return;
         if (document.querySelector('.conv-menu-popover.open')) return;
+        if (document.querySelector('.messenger-settings-dropdown.open')) return;
 
         try {
-            const response = await fetch('/api/messenger/conversations');
+            const response = await fetch(`/api/messenger/conversations?archived=${archived ? 1 : 0}`);
             if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) {
                 if (response.status === 401) return; // Silent on unauthorized
                 const text = await response.text();
-                console.error('Messenger Load Error:', response.status, text.substring(0, 100));
                 return;
             }
             const conversations = await response.json();
@@ -87,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="chat-avatar-wrapper">
                         <img src="${conv.other_user.avatar}" class="chat-avatar">
                         ${isMutual ? '<div class="mutual-dot" title="Mutual Follower"></div>' : ''}
+                        ${conv.other_user.is_online ? '<div class="presence-dot" title="Online"></div>' : ''}
                     </div>
                     <div class="conv-info">
                         <div class="conv-name">
@@ -100,8 +105,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="conv-actions">
                         <button class="conv-menu-btn" type="button"><i data-lucide="more-vertical"></i></button>
                         <div class="conv-menu-popover">
-                            <div class="conv-menu-item danger delete-conv" data-id="${conv.id}">
-                                Archive
+                            <div class="conv-menu-item ${archived ? 'unarchive-conv' : 'archive-conv'}" data-id="${conv.id}">
+                                ${archived ? 'Unarchive' : 'Archive'}
                             </div>
                         </div>
                     </div>
@@ -116,35 +121,59 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (isConversation) {
                     const menuBtn = item.querySelector('.conv-menu-btn');
                     const popover = item.querySelector('.conv-menu-popover');
-                    const deleteBtn = item.querySelector('.delete-conv');
+                    const archiveBtn = item.querySelector('.archive-conv');
+                    const unarchiveBtn = item.querySelector('.unarchive-conv');
 
-                    menuBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        document.querySelectorAll('.conv-menu-popover.open').forEach(p => {
-                            if (p !== popover) p.classList.remove('open');
-                        });
-                        popover.classList.toggle('open');
-                    });
-
-                    deleteBtn.addEventListener('click', async (e) => {
-                        e.stopPropagation();
-                        if (!confirm('Are you sure you want to archive this conversation? It will hide for you but re-appear if you send a new message.')) return;
-                        
-                        try {
-                            const response = await fetch(`/api/messenger/conversations/${conv.id}`, {
-                                method: 'DELETE',
-                                headers: {
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                                }
+                    if (menuBtn) {
+                        menuBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            // Close any other open menus
+                            document.querySelectorAll('.conv-menu-popover.open').forEach(p => {
+                                if (p !== popover) p.classList.remove('open');
                             });
-                            if (response.ok) {
-                                item.remove();
-                                // Logic update: Archive only removes from list, doesn't close box
-                            }
-                        } catch (err) {
-                            console.error('Archive failed:', err);
-                        }
-                    });
+                            if (popover) popover.classList.toggle('open');
+                        });
+                    }
+
+                    if (archiveBtn) {
+                        archiveBtn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            if (popover) popover.classList.remove('open');
+                            
+                            try {
+                                const response = await fetch(`/api/messenger/conversations/${conv.id}/archive`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                        'Accept': 'application/json'
+                                    }
+                                });
+                                if (response.ok) {
+                                    loadConversations(isArchivedMode);
+                                }
+                            } catch (err) { console.error(err); }
+                        });
+                    }
+
+                    if (unarchiveBtn) {
+                        unarchiveBtn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            if (popover) popover.classList.remove('open');
+                            
+                            try {
+                                const response = await fetch(`/api/messenger/conversations/${conv.id}/unarchive`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                        'Accept': 'application/json'
+                                    }
+                                });
+                                if (response.ok) {
+                                    loadConversations(isArchivedMode);
+                                }
+                            } catch (err) { console.error(err); }
+                        });
+                    }
                 }
 
                 conversationList.appendChild(item);
@@ -242,7 +271,28 @@ document.addEventListener('DOMContentLoaded', function() {
         chatBox.dataset.receiverId = conv.other_user.id;
 
         chatBox.querySelector('.chat-user-name').textContent = conv.other_user.name;
-        chatBox.querySelector('.chat-avatar').src = conv.other_user.avatar;
+
+        // Avatar with presence dot
+        const chatAvatarWrapper = chatBox.querySelector('.chat-avatar-wrapper') || chatBox.querySelector('.chat-box-header');
+        const chatAvatar = chatBox.querySelector('.chat-avatar');
+        chatAvatar.src = conv.other_user.avatar;
+
+        // Add presence dot to chat header avatar
+        const existingPresenceDot = chatBox.querySelector('.chat-header-presence');
+        if (existingPresenceDot) existingPresenceDot.remove();
+        if (conv.other_user.is_online) {
+            const dot = document.createElement('div');
+            dot.className = 'chat-header-presence';
+            dot.title = 'Online';
+            chatAvatar.insertAdjacentElement('afterend', dot);
+        }
+
+        // Update status label
+        const statusLabel = chatBox.querySelector('.chat-user-status');
+        if (statusLabel) {
+            statusLabel.textContent = conv.other_user.is_online ? 'Online' : '';
+            statusLabel.style.color = conv.other_user.is_online ? '#22c55e' : '';
+        }
 
         if (conv.other_user.is_doctor) {
             const badge = document.createElement('i');
@@ -638,4 +688,98 @@ document.addEventListener('DOMContentLoaded', function() {
 
     updateMessengerBadge();
     setInterval(updateMessengerBadge, 10000);
+
+    // ── Messenger Settings Logic ──────────────────────────────────
+    const settingsBtn = document.querySelector('#messenger-settings-btn');
+    const settingsDropdown = document.querySelector('#messenger-settings-dropdown');
+    const activeStatusBtn = document.querySelector('#active-status-toggle-btn');
+    const viewArchivedBtn = document.querySelector('#view-archived-chats');
+
+    if (settingsBtn && settingsDropdown) {
+        settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsDropdown.style.display = settingsDropdown.style.display === 'block' ? 'none' : 'block';
+            settingsBtn.classList.toggle('active');
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!settingsDropdown.contains(e.target) && e.target !== settingsBtn) {
+                settingsDropdown.style.display = 'none';
+                settingsBtn.classList.remove('active');
+            }
+        });
+    }
+
+    if (activeStatusBtn) {
+        activeStatusBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const isOn = activeStatusBtn.classList.contains('on');
+            const newStatus = !isOn;
+            
+            // UI Feedback
+            activeStatusBtn.classList.toggle('on', newStatus);
+            activeStatusBtn.classList.toggle('off', !newStatus);
+            activeStatusBtn.textContent = newStatus ? 'ON' : 'OFF';
+
+            try {
+                const response = await fetch('/api/messenger/settings/active-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                if (response.ok) {
+                    console.log('Stealth Mode toggled:', newStatus);
+                }
+            } catch (err) { console.error('Error toggling active status:', err); }
+        });
+    }
+
+    if (viewArchivedBtn) {
+        viewArchivedBtn.addEventListener('click', () => {
+            settingsDropdown.style.display = 'none';
+            settingsBtn.classList.remove('active');
+            enterArchivedMode();
+        });
+    }
+
+    function enterArchivedMode() {
+        isArchivedMode = true;
+        messengerDrawer.classList.add('archived-mode');
+        
+        // Inject Archived Header
+        const header = document.createElement('div');
+        header.className = 'archived-header';
+        header.id = 'archived-view-header';
+        header.innerHTML = `
+            <button class="back-to-chats-btn">
+                <i data-lucide="chevron-left"></i> Back
+            </button>
+            <span style="font-weight: 700; font-size: 14px; opacity: 0.8;">Archived Chats</span>
+        `;
+        
+        const existingHeader = document.querySelector('#archived-view-header');
+        if (!existingHeader) {
+            messengerDrawer.insertBefore(header, conversationList);
+            lucide.createIcons();
+            
+            header.querySelector('.back-to-chats-btn').addEventListener('click', () => {
+                exitArchivedMode();
+            });
+        }
+        
+        loadConversations(true);
+    }
+
+    function exitArchivedMode() {
+        isArchivedMode = false;
+        messengerDrawer.classList.remove('archived-mode');
+        const header = document.querySelector('#archived-view-header');
+        if (header) header.remove();
+        loadConversations(false);
+    }
 });

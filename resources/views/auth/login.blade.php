@@ -86,7 +86,7 @@
         <div class="badge"><i data-lucide="heart-handshake"></i></div>
         <div>
           <h3>Join Our Community</h3>
-          <p>Share experiences and find support.</p>
+          <p>Share experiences and find support in a safe space.</p>
         </div>
       </div>
 
@@ -94,12 +94,41 @@
         <div class="badge"><i data-lucide="shield-check"></i></div>
         <div>
           <h3>Safe & Confidential</h3>
-          <p>Your privacy and security are our priority.</p>
+          <p>Your privacy and security are our top priority.</p>
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="badge"><i data-lucide="brain"></i></div>
+        <div>
+          <h3>AI-Powered Guidance</h3>
+          <p>Get instant support and smart doctor referrals anytime.</p>
+        </div>
+      </div>
+
+      {{-- Platform Stats --}}
+      <div style="display:flex; gap:20px; margin-top:28px; background:rgba(255,255,255,0.12); border-radius:14px; padding:18px 22px;">
+        <div style="text-align:center; flex:1;">
+          <div style="font-size:22px; font-weight:800;">500+</div>
+          <div style="font-size:12px; opacity:0.8; margin-top:2px;">Verified Doctors</div>
+        </div>
+        <div style="width:1px; background:rgba(255,255,255,0.2);"></div>
+        <div style="text-align:center; flex:1;">
+          <div style="font-size:22px; font-weight:800;">10K+</div>
+          <div style="font-size:12px; opacity:0.8; margin-top:2px;">Users Helped</div>
+        </div>
+        <div style="width:1px; background:rgba(255,255,255,0.2);"></div>
+        <div style="text-align:center; flex:1;">
+          <div style="font-size:22px; font-weight:800;">24/7</div>
+          <div style="font-size:12px; opacity:0.8; margin-top:2px;">AI Support</div>
         </div>
       </div>
     </div>
 
-    <div style="margin-top: auto; text-align: center; padding-top: 40px;">
+    <div style="margin-top: auto; text-align: center; padding-top: 32px; display:flex; flex-direction:column; gap:10px; align-items:center;">
+        <a href="{{ route('about') }}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size:13px; display:inline-flex; align-items:center; gap:5px; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">
+          <i data-lucide="info" style="width:14px;height:14px;"></i> Learn more about AskDocPH
+        </a>
         <a href="{{ route('doctor.apply') }}" style="color: rgba(255, 255, 255, 0.8); text-decoration: underline; font-size: 14px; transition: color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'">Apply for medical staff privileges</a>
     </div>
   </section>

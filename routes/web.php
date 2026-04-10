@@ -7,8 +7,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationController;
 
 Route::get('/', function () {
-    return redirect()->route('login');
-});
+    return view('about');
+})->name('home');
 
 // Pages
 Route::view('/about', 'about')->name('about');
@@ -82,6 +82,9 @@ Route::middleware('auth')->group(function () {
     // Messenger API
     Route::get('/api/messenger/conversations', [\App\Http\Controllers\ChatController::class, 'getConversations']);
     Route::delete('/api/messenger/conversations/{conversation}', [\App\Http\Controllers\ChatController::class, 'deleteConversation']);
+    Route::post('/api/messenger/conversations/{id}/archive', [\App\Http\Controllers\ChatController::class, 'archiveConversation']);
+    Route::post('/api/messenger/conversations/{id}/unarchive', [\App\Http\Controllers\ChatController::class, 'unarchiveConversation']);
+    Route::post('/api/messenger/settings/active-status', [\App\Http\Controllers\ChatController::class, 'toggleActiveStatus']);
     Route::get('/api/messenger/messages/{conversation}', [\App\Http\Controllers\ChatController::class, 'getMessages']);
     Route::post('/api/messenger/send', [\App\Http\Controllers\ChatController::class, 'sendMessage']);
     Route::get('/api/messenger/search', [\App\Http\Controllers\ChatController::class, 'searchUsers']);
@@ -112,6 +115,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{appointment}', [App\Http\Controllers\AppointmentController::class, 'show'])->name('appointments.show');
         Route::get('/api/events', [App\Http\Controllers\AppointmentController::class, 'getEvents'])->name('appointments.events');
         Route::post('/api/store', [App\Http\Controllers\AppointmentController::class, 'store'])->name('appointments.store');
+        Route::post('/api/update/{appointment}', [App\Http\Controllers\AppointmentController::class, 'update'])->name('appointments.update');
         Route::post('/api/respond/{invitation}', [App\Http\Controllers\AppointmentController::class, 'respond'])->name('appointments.respond');
         Route::delete('/api/destroy/{appointment}', [App\Http\Controllers\AppointmentController::class, 'destroy'])->name('appointments.destroy');
         Route::get('/api/check-conflicts', [App\Http\Controllers\AppointmentController::class, 'checkConflicts'])->name('appointments.check-conflicts');
