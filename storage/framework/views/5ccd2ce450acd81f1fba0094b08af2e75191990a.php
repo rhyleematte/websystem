@@ -138,7 +138,7 @@ window.MY_PROFILE_URL = "<?php echo e(route('profile.show', Auth::id())); ?>";
 
 <div id="dash-toast" class="dash-toast" aria-live="polite"></div>
 
-<?php echo $__env->make('partials.ai_chat_modal', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+
 
 <?php $__env->stopSection(); ?>
 

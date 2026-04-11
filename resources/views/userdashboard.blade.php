@@ -140,6 +140,6 @@ window.MY_PROFILE_URL = "{{ route('profile.show', Auth::id()) }}";
 {{-- Toast --}}
 <div id="dash-toast" class="dash-toast" aria-live="polite"></div>
 
-@include('partials.ai_chat_modal')
+
 
 @endsection

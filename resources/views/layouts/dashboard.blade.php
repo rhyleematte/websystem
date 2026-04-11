@@ -78,6 +78,8 @@
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
 <script src="{{ asset('assets/js/appointments.js') }}" defer></script>
 
+@include('partials.ai_chat_modal')
+
 @stack('scripts')
 </body>
 </html>

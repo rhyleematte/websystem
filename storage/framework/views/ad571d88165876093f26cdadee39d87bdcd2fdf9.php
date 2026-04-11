@@ -78,6 +78,8 @@
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
 <script src="<?php echo e(asset('assets/js/appointments.js')); ?>" defer></script>
 
+<?php echo $__env->make('partials.ai_chat_modal', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+
 <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 </html>
