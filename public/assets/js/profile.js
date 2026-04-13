@@ -586,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
         linkToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const isOpen = linkRow.style.display === 'flex' || linkRow.classList.contains('open');
-            
+
             if (!isOpen) {
                 linkRow.style.display = 'flex';
                 linkRow.classList.add('open');
@@ -626,7 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const startPos = postText.selectionStart;
             const endPos = postText.selectionEnd;
             const currentVal = postText.value;
-            
+
             postText.value = currentVal.substring(0, startPos) + mdLink + currentVal.substring(endPos);
             postText.focus();
             postText.selectionStart = startPos + mdLink.length;
@@ -664,7 +664,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (linkNameInput) linkNameInput.value = '';
                 if (linkUrlInput) linkUrlInput.value = '';
                 if (linkRow) linkRow.style.display = 'none';
-                
+
                 if (hashtagInput) hashtagInput.value = '';
                 if (hashtagRow) hashtagRow.style.display = 'none';
                 if (moodBar) moodBar.style.display = 'none';
@@ -721,6 +721,8 @@ function buildPostEl(post) {
           <button class="post-menu-item edit-post-btn" type="button"
               data-post-id="${post.id}"
               data-text="${escapeHtml(post.text_content ?? '')}"
+              data-mood="${escapeHtml(post.mood ?? '')}"
+              data-hashtags="${escapeHtml(post.hashtags ? post.hashtags.join(', ') : '')}"
               data-media="${escapeHtml(JSON.stringify(post.media || []))}">
             <i data-lucide="pencil"></i> Edit
           </button>
@@ -733,16 +735,20 @@ function buildPostEl(post) {
         : '';
 
     const tagsHtml = post.hashtags && post.hashtags.length
-      ? `<div class="post-tags">${post.hashtags.map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>`
-      : '';
+        ? `<div class="post-tags">${post.hashtags.map(t => `<a href="/posts/${post.id}" class="tag-link"><span class="tag">#${escapeHtml(t)}</span></a>`).join('')}</div>`
+        : '';
+
+    const moodHtml = post.mood
+        ? `<a href="/posts/${post.id}" class="post-mood-link"><div class="post-mood"><i data-lucide="smile"></i><span>${escapeHtml(post.mood)}</span></div></a>`
+        : '';
 
     const isVerified = post.user && post.user.role === 'doctor' && post.user.doctor_status === 'approved';
     const verifiedBadge = isVerified
-      ? `<i data-lucide="badge-check" class="doctor-badge" title="Verified Doctor"></i>`
-      : '';
+        ? `<i data-lucide="badge-check" class="doctor-badge" title="Verified Doctor"></i>`
+        : '';
     const profTitleHtml = (isVerified && post.user.professional_titles && post.user.professional_titles.trim())
-      ? `<div class="post-prof-title">${escapeHtml(post.user.professional_titles.trim())}</div>`
-      : '';
+        ? `<div class="post-prof-title">${escapeHtml(post.user.professional_titles.trim())}</div>`
+        : '';
 
     article.innerHTML = `
     <div class="post-head">
@@ -754,12 +760,13 @@ function buildPostEl(post) {
           ${verifiedBadge}
         </div>
         ${profTitleHtml}
-        <div class="post-sub">${post.created_at}</div>
+        <div class="post-sub"><a href="/posts/${post.id}" class="post-detail-link">${post.created_at}</a></div>
       </div>
       ${menuHtml}
     </div>
     ${post.text_content ? `<div class="post-body post-text-content js-collapsible">${parseMarkdownLinks(escapeHtml(post.text_content))}</div>` : ''}
     ${tagsHtml}
+    ${moodHtml}
     ${post.resource ? `
       <a href="${post.resource.url}" class="post-resource-card" style="margin-bottom:12px;">
         <div class="res-mini-thumb"><img src="${post.resource.thumbnail_url}"></div>
@@ -801,7 +808,7 @@ function buildPostEl(post) {
     // Let shared UI scripts enhance newly-rendered posts
     try {
         document.dispatchEvent(new CustomEvent('post:rendered', { detail: { root: article } }));
-    } catch (e) {}
+    } catch (e) { }
 
     return article;
 }
@@ -820,22 +827,22 @@ function renderSharedPostCard(sp) {
       </a>` : '';
 
     const spMediaGrid = (sp.media && sp.media.length)
-      ? `<div class="post-media-grid shared-post-media-grid media-count-${Math.min(sp.media.length, 4)}" data-media="${escapeHtml(JSON.stringify(sp.media))}">
+        ? `<div class="post-media-grid shared-post-media-grid media-count-${Math.min(sp.media.length, 4)}" data-media="${escapeHtml(JSON.stringify(sp.media))}">
           ${sp.media.slice(0, 4).map(m => m.media_type === 'video'
             ? `<video src="${m.url}" controls class="post-media-item"></video>`
             : `<img src="${m.url}" alt="Shared media" class="post-media-item">`
-          ).join('')}
+        ).join('')}
           ${sp.media.length > 4 ? `<div class="media-more">+${sp.media.length - 4}</div>` : ''}
         </div>`
-      : '';
+        : '';
 
     const isVerified = sp.user && sp.user.doctor_status === 'approved' && (!sp.user.role || sp.user.role === 'doctor');
     const verifiedBadge = isVerified
-      ? `<i data-lucide="badge-check" class="doctor-badge" title="Verified Doctor"></i>`
-      : '';
+        ? `<i data-lucide="badge-check" class="doctor-badge" title="Verified Doctor"></i>`
+        : '';
     const profTitle = (isVerified && sp.user.professional_titles && sp.user.professional_titles.trim())
-      ? `<div class="post-prof-title">${escapeHtml(sp.user.professional_titles.trim())}</div>`
-      : '';
+        ? `<div class="post-prof-title">${escapeHtml(sp.user.professional_titles.trim())}</div>`
+        : '';
 
     return `
       <div class="shared-post-card">
@@ -848,7 +855,13 @@ function renderSharedPostCard(sp) {
               ${verifiedBadge}
             </div>
             ${profTitle}
-            <div class="post-sub">${sp.created_at}</div>
+            <div class="post-sub">
+               <a href="/posts/${sp.id}" class="post-detail-link">${sp.created_at}</a>
+               ${sp.group ? `
+                 <span class="post-group-label" style="margin-left:5px; font-size:0.9em; color:var(--muted);">
+                   in <a href="${sp.group.url}" style="color:var(--brand); font-weight:600; text-decoration:none;">${escapeHtml(sp.group.name)}</a>
+                 </span>` : ''}
+            </div>
           </div>
         </div>
         ${sp.text_content ? `<div class="post-body js-collapsible">${parseMarkdownLinks(escapeHtml(sp.text_content))}</div>` : ''}
@@ -891,7 +904,7 @@ function escapeHtml(str) {
 function parseMarkdownLinks(text) {
     if (!text) return '';
     // We match \[([^\]]+)\]\(([^)]+)\)
-    return text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, name, url) {
+    return text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function (match, name, url) {
         return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="post-link" style="color:var(--brand);text-decoration:underline;">' + name + '</a>';
     });
 }
@@ -1180,6 +1193,8 @@ document.addEventListener('click', async (e) => {
     if (editBtn) {
         const postId = editBtn.dataset.postId;
         const text = editBtn.dataset.text;
+        const mood = editBtn.dataset.mood || '';
+        const hashtags = editBtn.dataset.hashtags || '';
         const mediaData = editBtn.dataset.media ? JSON.parse(editBtn.dataset.media) : [];
         let newFiles = [];
         let deletedMediaIds = [];
@@ -1259,8 +1274,21 @@ document.addEventListener('click', async (e) => {
         // Build inline editor
         const editorWrap = document.createElement('div');
         editorWrap.className = 'post-edit-area';
+        const moodOptions = ['😊 Happy', '😢 Sad', '😡 Angry', '😴 Tired', '🤔 Thinking', '😌 Relieved', '🤩 Excited'];
+        const moodHtml = `<option value="">None</option>` + moodOptions.map(m => `<option value="${m}" ${mood === m ? 'selected' : ''}>${m}</option>`).join('');
+
         editorWrap.innerHTML = `
       <textarea class="post-edit-textarea" style="width:100%; min-height:80px; padding:10px 14px; border:1px solid var(--brand); border-radius:12px; background:var(--input-bg); color:var(--text); font-size:14px; resize:vertical; outline:none; margin-bottom:8px;">${escapeHtml(text)}</textarea>
+      <div class="edit-extra-row" style="display:flex; gap:8px; margin-bottom:12px;">
+        <div class="edit-mood-wrap" style="flex:1;">
+          <label style="display:block; font-size:11px; font-weight:800; color:var(--muted); margin-bottom:4px; text-transform:uppercase;">Mood</label>
+          <select class="post-edit-mood" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13px; outline:none;">${moodHtml}</select>
+        </div>
+        <div class="edit-hashtags-wrap" style="flex:2;">
+          <label style="display:block; font-size:11px; font-weight:800; color:var(--muted); margin-bottom:4px; text-transform:uppercase;">Hashtags</label>
+          <input type="text" class="post-edit-hashtags" value="${escapeHtml(hashtags)}" placeholder="e.g. news, health" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13px; outline:none;">
+        </div>
+      </div>
       <div class="edit-media-grid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;"></div>
       <div class="post-edit-actions" style="display:flex; gap:8px; justify-content:space-between; align-items:center;">
         <label class="btn-cancel" style="padding:6px 12px; font-size:13px; border-radius:8px; border:1px solid var(--border); background:var(--chip-bg); color:var(--text); cursor:pointer; display:flex; align-items:center; gap:4px;"><i data-lucide="image" style="width:14px;height:14px;"></i> Add Photo/Video<input type="file" multiple accept="image/*,video/*" class="edit-media-input" style="display:none;"></label>
@@ -1316,6 +1344,8 @@ document.addEventListener('click', async (e) => {
             const fd = new FormData();
             fd.append('_method', 'PUT');
             fd.append('text_content', newText);
+            fd.append('mood', editorWrap.querySelector('.post-edit-mood').value);
+            fd.append('hashtags', editorWrap.querySelector('.post-edit-hashtags').value.trim());
             deletedMediaIds.forEach(id => fd.append('deleted_media[]', id));
             newFiles.forEach(f => fd.append('media[]', f));
 

@@ -77,7 +77,7 @@ class GroupController extends Controller
 
         // Fetch posts exactly like the user feed, but scoped to this group
         $posts = $group->posts()
-            ->with(['user.doctorApplication', 'media', 'likes', 'comments.user'])
+            ->with(['user.doctorApplication', 'media', 'likes', 'comments.user', 'sharedPost.user', 'sharedPost.media', 'sharedPost.resource', 'sharedPost.group'])
             ->latest()
             ->get();
 
@@ -246,6 +246,14 @@ class GroupController extends Controller
             'text_content' => $request->text_content ?: ("Recommended Support Group: " . $group->name),
             'hashtags' => $request->hashtags,
         ]);
+
+        $actor = Auth::user();
+        if ($group->creator_id !== $actor->id) {
+            \App\Services\NotificationService::create($group->creator, $actor, 'group_share', [
+                'message' => $actor->full_name . ' shared your group: ' . $group->name,
+                'url' => route('posts.show', $post->id),
+            ]);
+        }
 
         return response()->json([
             'ok' => true,

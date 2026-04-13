@@ -24,7 +24,7 @@ class ProfileController extends Controller
         $profileUser = User::with('doctorApplication')->findOrFail($id);
         $me = Auth::user();
         $posts = Post::where('user_id', $id)
-            ->with(['user', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource', 'sharedPost.user', 'sharedPost.media', 'sharedPost.resource'])
+            ->with(['user', 'likes', 'comments.user', 'comments.replies.user', 'media', 'resource', 'sharedPost.user', 'sharedPost.media', 'sharedPost.resource', 'sharedPost.group'])
             ->latest()
             ->get();
 
@@ -104,6 +104,7 @@ class ProfileController extends Controller
             'sharedPost.user',
             'sharedPost.media',
             'sharedPost.resource',
+            'sharedPost.group',
         ]);
 
         $group = null;
@@ -404,6 +405,8 @@ class ProfileController extends Controller
             'media.*' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,gif,mp4,mov', 'max:20480'],
             'deleted_media' => ['nullable', 'array'],
             'deleted_media.*' => ['integer', 'exists:post_media,id'],
+            'mood' => ['nullable', 'string', 'max:64'],
+            'hashtags' => ['nullable', 'string', 'max:500'],
         ]);
 
         // Delete specified media
@@ -441,6 +444,18 @@ class ProfileController extends Controller
             }
         }
 
+        // Normalize hashtags
+        $hashtagsStr = null;
+        if ($request->has('hashtags')) {
+            $rawTags = $request->input('hashtags', '');
+            $tags = array_values(array_filter(
+                array_map(function ($t) {
+                    return ltrim(trim($t), '#');
+                }, preg_split('/[\s,]+/', $rawTags))
+            ));
+            $hashtagsStr = count($tags) ? implode(',', $tags) : null;
+        }
+
         $post->refresh();
         $hasText = filled($request->text_content);
         $hasMedia = $post->media()->exists();
@@ -455,6 +470,8 @@ class ProfileController extends Controller
         $post->update([
             'text_content' => $request->text_content,
             'post_type' => $postType,
+            'mood' => $request->input('mood') ?: null,
+            'hashtags' => $hashtagsStr,
         ]);
 
         $post->load(['user', 'likes', 'comments.user', 'media']);

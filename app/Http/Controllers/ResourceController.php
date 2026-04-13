@@ -172,6 +172,14 @@ class ResourceController extends Controller
             'hashtags' => $request->hashtags ?: $resource->hashtags,
         ]);
 
+        $actor = Auth::user();
+        if ($resource->user_id !== $actor->id) {
+            \App\Services\NotificationService::create($resource->user, $actor, 'resource_share', [
+                'message' => $actor->full_name . ' shared your article: ' . $resource->title,
+                'url' => route('posts.show', $post->id),
+            ]);
+        }
+
         return response()->json(['ok' => true, 'message' => 'Shared to feed!', 'post_id' => $post->id]);
     }
 

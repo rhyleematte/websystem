@@ -285,7 +285,7 @@
                 </button>
             </div>
 
-            <div id="editAptError" style="display:none; background:rgba(220,53,69,0.08); border:1px solid rgba(220,53,69,0.25); color:#dc3545; border-radius:12px; padding:0.9rem 1rem; margin-bottom:1.2rem; font-size:0.9rem; font-weight:600;"></div>
+            <div id="editAptError" class="ios-error-box" style="margin-bottom: 1.2rem;"></div>
 
             
             <div style="margin-bottom:1.2rem;">

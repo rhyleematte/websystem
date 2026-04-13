@@ -22,15 +22,12 @@
     : ('Posted by @' . $post->user->username);
 @endphp
 
-<main class="dash single-post-page">
+<main class="dash">
 
-  <div class="dash-body single-post-body">
+  <div class="dash-body">
+    @include('partials.sidebar', ['active' => ''])
     <section class="dash-main single-post-main">
       <div class="panel single-post-header">
-        <a class="back-link" href="{{ $backUrl }}">
-          <i data-lucide="arrow-left"></i>
-          <span>{{ $backLabel }}</span>
-        </a>
 
         @if($post->group_id && $group)
           <a class="context-link" href="{{ route('groups.show', $group->id) }}">{{ $contextLabel }}</a>

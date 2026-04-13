@@ -27,28 +27,28 @@ document.addEventListener('DOMContentLoaded', function () {
         ? { 'X-CSRF-TOKEN': CSRF }
         : { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
       body: isFormData ? body : JSON.stringify(body),
-    }).then(function (r) { 
-        if (!r.ok || !r.headers.get('content-type')?.includes('application/json')) {
-            return r.text().then(function(t) {
-                console.error("API POST Error (" + url + "):", r.status, t.substring(0, 200));
-                throw new Error("HTTP " + r.status);
-            });
-        }
-        return r.json(); 
+    }).then(function (r) {
+      if (!r.ok || !r.headers.get('content-type')?.includes('application/json')) {
+        return r.text().then(function (t) {
+          console.error("API POST Error (" + url + "):", r.status, t.substring(0, 200));
+          throw new Error("HTTP " + r.status);
+        });
+      }
+      return r.json();
     });
   }
 
   function apiGet(url) {
     return fetch(url, {
       headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-    }).then(function (r) { 
-        if (!r.ok || !r.headers.get('content-type')?.includes('application/json')) {
-            return r.text().then(function(t) {
-                console.error("API GET Error (" + url + "):", r.status, t.substring(0, 200));
-                throw new Error("HTTP " + r.status);
-            });
-        }
-        return r.json(); 
+    }).then(function (r) {
+      if (!r.ok || !r.headers.get('content-type')?.includes('application/json')) {
+        return r.text().then(function (t) {
+          console.error("API GET Error (" + url + "):", r.status, t.substring(0, 200));
+          throw new Error("HTTP " + r.status);
+        });
+      }
+      return r.json();
     });
   }
 
@@ -185,13 +185,13 @@ document.addEventListener('DOMContentLoaded', function () {
   ================================================================ */
   var postText = document.getElementById('dashPostText');
   var mediaUpload = document.getElementById('mediaUpload');
-  var previewArea = document.getElementById('mediaPreviewArea');
-  var hashtagRow = document.getElementById('hashtagRow');
-  var hashtagInput = document.getElementById('hashtagInput');
-  var hashtagToggleBtn = document.getElementById('hashtagToggleBtn');
-  var moodBar = document.getElementById('moodBar');
-  var moodToggleBtn = document.getElementById('moodToggleBtn');
-  var selectedMoodDisplay = document.getElementById('selectedMoodDisplay');
+  var previewArea = document.getElementById('dashMediaPreviewArea');
+  var hashtagRow = document.getElementById('dashHashtagRow');
+  var hashtagInput = document.getElementById('dashHashtagInput');
+  var hashtagToggleBtn = document.getElementById('dashHashtagToggleBtn');
+  var moodBar = document.getElementById('dashMoodBar');
+  var moodToggleBtn = document.getElementById('dashMoodToggleBtn');
+  var selectedMoodDisplay = document.getElementById('dashSelectedMoodDisplay');
   var shareBtn = document.getElementById('dashShareBtn');
   var composerFeedback = document.getElementById('composerFeedback');
   var feed = document.getElementById('dashFeed');
@@ -235,31 +235,31 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ── Link toggle & apply ────────────────────────────────── */
-  var linkRow = document.getElementById('linkRow');
-  var linkToggleBtn = document.getElementById('linkToggleBtn');
-  var linkNameInput = document.getElementById('linkNameInput');
-  var linkUrlInput = document.getElementById('linkUrlInput');
-  var applyLinkBtn = document.getElementById('applyLinkBtn');
+  var linkRow = document.getElementById('dashLinkRow');
+  var linkToggleBtn = document.getElementById('dashLinkToggleBtn');
+  var linkNameInput = document.getElementById('dashLinkNameInput');
+  var linkUrlInput = document.getElementById('dashLinkUrlInput');
+  var applyLinkBtn = document.getElementById('dashApplyLinkBtn');
 
   if (linkToggleBtn && linkRow) {
     linkToggleBtn.addEventListener('click', function (e) {
       e.stopPropagation();
       var isOpen = linkRow.style.display === 'flex' || linkRow.classList.contains('open');
-      
+
       if (hashtagRow) hashtagRow.style.display = 'none';
       if (moodBar) moodBar.style.display = 'none';
 
       if (!isOpen) {
         linkRow.style.display = 'flex';
         linkRow.classList.add('open');
-        setTimeout(function() { if (linkNameInput) linkNameInput.focus(); }, 50);
+        setTimeout(function () { if (linkNameInput) linkNameInput.focus(); }, 50);
       } else {
         linkRow.style.display = 'none';
         linkRow.classList.remove('open');
       }
     });
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
       if ((linkRow.style.display === 'flex' || linkRow.classList.contains('open')) && !linkRow.contains(e.target) && !linkToggleBtn.contains(e.target)) {
         linkRow.style.display = 'none';
         linkRow.classList.remove('open');
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var startPos = postText.selectionStart;
       var endPos = postText.selectionEnd;
       var currentVal = postText.value;
-      
+
       postText.value = currentVal.substring(0, startPos) + mdLink + currentVal.substring(endPos);
       postText.focus();
       postText.selectionStart = startPos + mdLink.length;
@@ -474,15 +474,17 @@ document.addEventListener('DOMContentLoaded', function () {
       mediaHtml += '</div>';
     }
 
-    /* mood (match profile UI: hidden) */
-    var moodHtml = '';
+    /* mood */
+    var moodHtml = post.mood
+      ? '<a href="/posts/' + post.id + '" class="post-mood-link"><div class="post-mood"><i data-lucide="smile"></i><span>' + esc(post.mood) + '</span></div></a>'
+      : '';
 
     /* hashtags */
     var tagsHtml = '';
     if (post.hashtags && post.hashtags.length) {
       tagsHtml = '<div class="post-tags">';
       post.hashtags.forEach(function (t) {
-        tagsHtml += '<span class="tag">#' + esc(t) + '</span>';
+        tagsHtml += '<a href="/posts/' + post.id + '" class="tag-link"><span class="tag">#' + esc(t) + '</span></a>';
       });
       tagsHtml += '</div>';
     }
@@ -495,6 +497,8 @@ document.addEventListener('DOMContentLoaded', function () {
         + '<div class="post-menu hidden">'
         + '<button class="post-menu-item edit-post-btn" type="button" data-post-id="' + post.id + '"'
         + ' data-text="' + esc(post.text_content || '') + '"'
+        + ' data-mood="' + esc(post.mood || '') + '"'
+        + ' data-hashtags="' + esc(post.hashtags ? post.hashtags.join(', ') : '') + '"'
         + ' data-media="' + esc(JSON.stringify(post.media || [])) + '">'
         + '<i data-lucide="pencil"></i> Edit</button>'
         + '<button class="post-menu-item delete-post-btn danger" type="button" data-post-id="' + post.id + '">'
@@ -519,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function () {
     /* resource card (for resource_share type) */
     var resourceHtml = '';
     if (post.resource) {
-      resourceHtml = 
+      resourceHtml =
         '<a href="' + post.resource.url + '" class="post-resource-card">' +
         '<div class="res-mini-thumb"><img src="' + esc(post.resource.thumbnail_url) + '"></div>' +
         '<div class="res-mini-info">' +
@@ -532,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function () {
     /* group card (for group_share type) */
     var groupHtml = '';
     if (post.group) {
-      groupHtml = 
+      groupHtml =
         '<a href="' + post.group.url + '" class="post-resource-card group-share-card">' +
         '<div class="res-mini-thumb"><img src="' + esc(post.group.cover_url) + '"></div>' +
         '<div class="res-mini-info">' +
@@ -598,7 +602,13 @@ document.addEventListener('DOMContentLoaded', function () {
         spVerifiedBadge +
         '</div>' +
         spProfTitleHtml +
-        '<div class="post-sub">' + esc(sp.created_at) + '</div>' +
+        '<div class="post-sub">' +
+        '<a href="/posts/' + sp.id + '" class="post-detail-link">' + esc(sp.created_at) + '</a>' +
+        (sp.group ?
+          '<span class="post-group-label" style="margin-left:5px; font-size:0.9em; color:var(--muted);">' +
+          'in <a href="' + sp.group.url + '" style="color:var(--brand); font-weight:600; text-decoration:none;">' + esc(sp.group.name) + '</a>' +
+          '</span>' : '') +
+        '</div>' +
         '</div></div>' +
         (sp.text_content ? '<div class="post-body js-collapsible">' + parseMarkdownLinks(esc(sp.text_content)) + '</div>' : '') +
         spResourceHtml +
@@ -618,7 +628,7 @@ document.addEventListener('DOMContentLoaded', function () {
       + verifiedBadge
       + '</div>'
       + profTitleHtml
-      + '<div class="post-sub">' + esc(post.created_at) + '</div>'
+      + '<div class="post-sub"><a href="/posts/' + post.id + '" class="post-detail-link">' + esc(post.created_at) + '</a></div>'
       + '</div>'
       + menuHtml
       + '</div>'
@@ -659,7 +669,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Let shared UI scripts enhance newly-rendered posts
     try {
       document.dispatchEvent(new CustomEvent('post:rendered', { detail: { root: article } }));
-    } catch (e) {}
+    } catch (e) { }
 
     return article;
   }
@@ -715,8 +725,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!text) return '';
     // Use an un-escaped regex since `text` here has already been passed through `esc()`
     // We match \[([^\]]+)\]\(([^)]+)\)
-    return text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, name, url) {
-        return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="post-link" style="color:var(--brand);text-decoration:underline;">' + name + '</a>';
+    return text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function (match, name, url) {
+      return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="post-link" style="color:var(--brand);text-decoration:underline;">' + name + '</a>';
     });
   }
 
@@ -822,6 +832,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (editBtn && inDashFeed) {
       var postId = editBtn.dataset.postId;
       var text = editBtn.dataset.text;
+      var mood = editBtn.dataset.mood || '';
+      var hashtags = editBtn.dataset.hashtags || '';
       var mediaData = editBtn.dataset.media ? JSON.parse(editBtn.dataset.media) : [];
       var newFiles = [];
       var deletedMediaIds = [];
@@ -900,8 +912,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
       var editorWrap = document.createElement('div');
       editorWrap.className = 'post-edit-area';
+
+      var moodOptions = ['😊 Happy', '😢 Sad', '😡 Angry', '😴 Tired', '🤔 Thinking', '😌 Relieved', '🤩 Excited'];
+      var moodHtml = '<option value="">None</option>';
+      moodOptions.forEach(function (m) {
+        moodHtml += '<option value="' + m + '"' + (mood === m ? ' selected' : '') + '>' + m + '</option>';
+      });
+
       editorWrap.innerHTML =
         '<textarea class="post-edit-textarea" style="width:100%; min-height:80px; padding:10px 14px; border:1px solid var(--brand); border-radius:12px; background:var(--input-bg); color:var(--text); font-size:14px; resize:vertical; outline:none; margin-bottom:8px;">' + esc(text) + '</textarea>' +
+        '<div class="edit-extra-row" style="display:flex; gap:8px; margin-bottom:12px;">' +
+        '  <div class="edit-mood-wrap" style="flex:1;">' +
+        '    <label style="display:block; font-size:11px; font-weight:800; color:var(--muted); margin-bottom:4px; text-transform:uppercase;">Mood</label>' +
+        '    <select class="post-edit-mood" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13px; outline:none;">' + moodHtml + '</select>' +
+        '  </div>' +
+        '  <div class="edit-hashtags-wrap" style="flex:2;">' +
+        '    <label style="display:block; font-size:11px; font-weight:800; color:var(--muted); margin-bottom:4px; text-transform:uppercase;">Hashtags</label>' +
+        '    <input type="text" class="post-edit-hashtags" value="' + esc(hashtags) + '" placeholder="e.g. news, health" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13px; outline:none;">' +
+        '  </div>' +
+        '</div>' +
         '<div class="edit-media-grid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;"></div>' +
         '<div class="post-edit-actions" style="display:flex; gap:8px; justify-content:space-between; align-items:center;">' +
         '  <label class="btn-cancel" style="padding:6px 12px; font-size:13px; border-radius:8px; border:1px solid var(--border); background:var(--chip-bg); color:var(--text); cursor:pointer; display:flex; align-items:center; gap:4px;"><i data-lucide="image" style="width:14px;height:14px;"></i> Add Photo/Video<input type="file" multiple accept="image/*,video/*" class="edit-media-input" style="display:none;"></label>' +
@@ -944,6 +973,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       editorWrap.querySelector('.btn-edit-save').addEventListener('click', async function () {
         var newText = ta.value.trim();
+        var newMood = editorWrap.querySelector('.post-edit-mood').value;
+        var newHashtags = editorWrap.querySelector('.post-edit-hashtags').value.trim();
         var hasExistingMedia = mediaData.filter(function (m) { return !deletedMediaIds.includes(m.id); }).length > 0;
 
         if (!newText && newFiles.length === 0 && !hasExistingMedia) {
@@ -958,6 +989,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var fd = new FormData();
         fd.append('_method', 'PUT');
         fd.append('text_content', newText);
+        fd.append('mood', newMood);
+        fd.append('hashtags', newHashtags);
         deletedMediaIds.forEach(function (id) { fd.append('deleted_media[]', id); });
         newFiles.forEach(function (f) { fd.append('media[]', f); });
 

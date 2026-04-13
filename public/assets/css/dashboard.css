@@ -592,23 +592,31 @@ html.theme-dark .nav-panel .nav-item.active svg {
 label[for="mediaUpload"] i,
 label[for="mediaUpload"] svg,
 label[for="postMedia"] i,
-label[for="postMedia"] svg {
+label[for="postMedia"] svg,
+label[for="dashMediaUpload"] i,
+label[for="dashMediaUpload"] svg {
   color: #3b82f6;
   stroke: #3b82f6;
 }
 
+#dashMoodToggleBtn i,
+#dashMoodToggleBtn svg,
 #moodToggleBtn i,
 #moodToggleBtn svg {
   color: #f59e0b;
   stroke: #f59e0b;
 }
 
+#dashHashtagToggleBtn i,
+#dashHashtagToggleBtn svg,
 #hashtagToggleBtn i,
 #hashtagToggleBtn svg {
   color: #22c55e;
   stroke: #22c55e;
 }
 
+#dashLinkToggleBtn i,
+#dashLinkToggleBtn svg,
 #linkToggleBtn i,
 #linkToggleBtn svg {
   color: #0ea5e9;
@@ -908,7 +916,7 @@ label[for="postMedia"] svg {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin: 8px 0 4px;
+  margin: 6px 0 4px;
   font-size: 13px;
   font-weight: 700;
   color: var(--brand);
@@ -916,6 +924,18 @@ label[for="postMedia"] svg {
   border: 1px solid var(--tag-border);
   border-radius: 999px;
   padding: 5px 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.post-mood:hover {
+  background: rgba(124, 58, 237, 0.15);
+  transform: translateY(-1px);
+}
+
+.post-mood-link {
+  text-decoration: none;
+  display: inline-block;
 }
 
 .post-mood svg {
@@ -2283,4 +2303,19 @@ html.theme-dark .post-btn.like-btn.liked svg {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
   box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+}
+
+.post-detail-link {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.post-detail-link:hover {
+  color: var(--brand);
+  text-decoration: underline;
+}
+
+.tag-link {
+  text-decoration: none;
 }

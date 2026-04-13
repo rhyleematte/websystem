@@ -1,6 +1,12 @@
-.single-post-body {
-  grid-template-columns: 1fr;
-  max-width: 900px;
+.dash-body {
+  max-width: 1100px;
+  grid-template-columns: 260px 1fr !important;
+}
+
+@media (max-width: 940px) {
+  .dash-body {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 .single-post-main {

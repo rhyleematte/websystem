@@ -91,8 +91,8 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
             </button>
           @endif
           
-          <button class="chip-btn js-share-group" type="button" data-group-id="{{ $group->id }}" data-preview="{{ $group->name }}" title="Share Group">
-            <i data-lucide="share-2"></i>
+          <button class="chip-btn js-share-group" type="button" data-group-id="{{ $group->id }}" data-preview="{{ $group->name }}" title="Share Group" style="background: #ffffff; border: 1px solid var(--border); width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.2s ease;">
+            <i data-lucide="share-2" style="width: 20px; height: 20px; color: #2563eb;"></i>
           </button>
         </div>
       </div>
@@ -166,13 +166,13 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
               </div>
               <textarea id="dashPostText" placeholder="Share your thoughts with the group..."></textarea>
             </div>
-            <div id="mediaPreviewArea" class="media-preview-grid" style="display:none;"></div>
-            <div class="hashtag-row" id="hashtagRow" style="display:none;">
+            <div id="dashMediaPreviewArea" class="media-preview-grid" style="display:none;"></div>
+            <div class="hashtag-row" id="dashHashtagRow" style="display:none;">
               <i data-lucide="hash"></i>
-              <input type="text" id="hashtagInput" placeholder="anxiety, hope, recovery (comma-separated)" />
+              <input type="text" id="dashHashtagInput" placeholder="anxiety, hope, recovery (comma-separated)" />
             </div>
-
-            <div class="mood-bar" id="moodBar" style="display:none;">
+ 
+            <div class="mood-bar" id="dashMoodBar" style="display:none;">
               <span class="mood-label">How are you feeling?</span>
               <div class="mood-options">
                 <button class="mood-btn" type="button" data-mood="😊 Happy">😊 Happy</button>
@@ -184,7 +184,7 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
                 <button class="mood-btn" type="button" data-mood="💪 Motivated">💪 Motivated</button>
                 <button class="mood-btn" type="button" data-mood="😌 Calm">😌 Calm</button>
               </div>
-              <div id="selectedMoodDisplay" class="selected-mood" style="display:none;"></div>
+              <div id="dashSelectedMoodDisplay" class="selected-mood" style="display:none;"></div>
             </div>
 
             <div class="composer-bottom">
@@ -192,24 +192,24 @@ window.MY_PROFILE_URL = "{{ route('profile.show', $me->id ?? 0) }}";
                 <i data-lucide="image"></i> Photo
               </label>
               <input type="file" id="mediaUpload" accept="image/*,video/*" multiple style="display:none;" />
-              <button class="chip-btn" type="button" id="moodToggleBtn" title="Add mood"><i data-lucide="smile"></i> Mood</button>
-              <button class="chip-btn" type="button" id="hashtagToggleBtn" title="Add hashtags"><i data-lucide="hash"></i> Tags</button>
-              <div class="link-popup-wrap" id="linkWrap">
-                <button class="chip-btn" type="button" id="linkToggleBtn" title="Add link">
+              <button class="chip-btn" type="button" id="dashMoodToggleBtn" title="Add mood"><i data-lucide="smile"></i> Mood</button>
+              <button class="chip-btn" type="button" id="dashHashtagToggleBtn" title="Add hashtags"><i data-lucide="hash"></i> Tags</button>
+              <div class="link-popup-wrap" id="dashLinkWrap">
+                <button class="chip-btn" type="button" id="dashLinkToggleBtn" title="Add link">
                   <i data-lucide="link"></i> Link
                 </button>
-                <div class="link-popup-card" id="linkRow" onclick="event.stopPropagation()">
+                <div class="link-popup-card" id="dashLinkRow" onclick="event.stopPropagation()">
                   <div class="link-popup-inputs">
                     <div class="link-popup-row">
                       <i data-lucide="type" class="link-popup-icon" style="width:16px;height:16px;"></i>
-                      <input type="text" id="linkNameInput" placeholder="Text">
+                      <input type="text" id="dashLinkNameInput" placeholder="Text">
                     </div>
                     <div class="link-popup-row">
                       <i data-lucide="link" class="link-popup-icon" style="width:16px;height:16px;"></i>
-                      <input type="url" id="linkUrlInput" placeholder="Type or paste a link" onkeydown="if(event.key==='Enter'){document.getElementById('applyLinkBtn').click();event.preventDefault();}">
+                      <input type="url" id="dashLinkUrlInput" placeholder="Type or paste a link" onkeydown="if(event.key==='Enter'){document.getElementById('dashApplyLinkBtn').click();event.preventDefault();}">
                     </div>
                   </div>
-                  <button type="button" class="link-popup-apply" id="applyLinkBtn">Apply</button>
+                  <button type="button" class="link-popup-apply" id="dashApplyLinkBtn">Apply</button>
                 </div>
               </div>
               <div id="composerFeedback" class="composer-feedback"></div>

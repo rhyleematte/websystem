@@ -20,15 +20,12 @@
     : ('Posted by @' . $post->user->username);
 ?>
 
-<main class="dash single-post-page">
+<main class="dash">
 
-  <div class="dash-body single-post-body">
+  <div class="dash-body">
+    <?php echo $__env->make('partials.sidebar', ['active' => ''], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     <section class="dash-main single-post-main">
       <div class="panel single-post-header">
-        <a class="back-link" href="<?php echo e($backUrl); ?>">
-          <i data-lucide="arrow-left"></i>
-          <span><?php echo e($backLabel); ?></span>
-        </a>
 
         <?php if($post->group_id && $group): ?>
           <a class="context-link" href="<?php echo e(route('groups.show', $group->id)); ?>"><?php echo e($contextLabel); ?></a>
