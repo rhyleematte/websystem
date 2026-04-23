@@ -68,10 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  /* ── Theme toggle ───────────────────────────────────────── */
   var root = document.documentElement;
-  var savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'dark') root.classList.add('theme-dark');
 
   var themeBtn = document.getElementById('themeToggleBtn');
 

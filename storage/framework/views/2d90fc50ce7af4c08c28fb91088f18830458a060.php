@@ -4,49 +4,411 @@
     <link rel="stylesheet" href="<?php echo e(asset('assets/css/appointments_ios.css')); ?>">
     <!-- Trendy Pickers (Flatpickr) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/light.css">
-    <!-- Custom styling to make the creation page feel full-screen and primary -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
     <style>
-        .creation-page-wrapper {
-            padding-top: 80px;
-            /* Account for fixed header */
-            background: var(--bg);
-            min-height: 100vh;
+        @keyframes  floatInCreate {
+            0% { opacity: 0; transform: translateY(24px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* Override modal-specific constraints if any */
+        .creation-page-wrapper {
+            padding-top: 88px;
+            background: linear-gradient(135deg, #0a0f1d 0%, #0f172a 50%, #1a0a2e 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Ambient background orbs */
+        .creation-page-wrapper::before {
+            content: '';
+            position: fixed;
+            top: -200px; right: -200px;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .creation-page-wrapper::after {
+            content: '';
+            position: fixed;
+            bottom: -200px; left: -200px;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .apt-view-container {
             height: auto !important;
-            min-height: calc(100vh - 80px);
+            min-height: calc(100vh - 88px);
+            position: relative;
+            z-index: 1;
         }
 
-        /* Edit Visual Overlay */
-        .visual-placeholder-ios {
+        /* ── Layout ── */
+        .create-body {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 28px;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 24px 60px;
+            align-items: start;
+        }
+
+        /* ── Main Column ── */
+        .create-main {
+            animation: floatInCreate 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .discard-draft {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
             cursor: pointer;
-            transition: transform 0.2s;
+            margin-bottom: 28px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.2s;
+        }
+        .discard-draft:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        .discard-draft i { width: 14px; height: 14px; }
+
+        /* ── Title Area ── */
+        .title-section { margin-bottom: 36px; }
+
+        .massive-title-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 900;
+            color: #fff;
+            resize: none;
+            line-height: 1.15;
+            letter-spacing: -1px;
+            caret-color: #8b5cf6;
+            overflow: hidden;
+        }
+        .massive-title-input::placeholder { color: rgba(255,255,255,0.2); }
+
+        .title-underline {
+            height: 2px;
+            margin-top: 10px;
+            background: linear-gradient(90deg, #8b5cf6, #3b82f6, transparent);
+            border-radius: 2px;
         }
 
-        .visual-placeholder-ios:hover {
-            transform: scale(1.01);
+        /* ── Section Label ── */
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 10px;
+            display: block;
         }
+
+        /* ── Hero Pills (Date/Time) ── */
+        .hero-inputs-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .hero-pill-wrap { display: flex; flex-direction: column; }
+
+        .hero-pill {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .hero-pill:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(139, 92, 246, 0.4);
+            transform: translateX(4px);
+        }
+
+        .pill-icon-red {
+            width: 22px; height: 22px;
+            color: #ef4444;
+            flex-shrink: 0;
+        }
+
+        .hero-pill-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .selection-suite-ios {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s;
+            background: rgba(0,0,0,0.3);
+            border-radius: 0 0 16px 16px;
+            border: 0 solid rgba(255,255,255,0.08);
+        }
+        .selection-suite-ios.expanded {
+            max-height: 400px;
+            padding: 12px;
+            border-width: 0 1px 1px 1px;
+        }
+
+        /* ── Location Pill ── */
+        .location-pill-wrap { margin-bottom: 28px; }
+
+        .hero-pill-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            width: 100%;
+        }
+        .hero-pill-input::placeholder { color: rgba(255,255,255,0.3); }
+
+        /* ── Studio Visual (Cover Image) ── */
+        .visual-placeholder-ios {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: pointer;
+            margin-bottom: 28px;
+            border: 2px dashed rgba(139, 92, 246, 0.3);
+            transition: all 0.3s;
+        }
+        .visual-placeholder-ios:hover {
+            border-color: rgba(139, 92, 246, 0.6);
+            transform: scale(1.005);
+        }
+
+        .ios-visual-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        .visual-placeholder-ios:hover .ios-visual-img { opacity: 0.5; }
 
         .visual-edit-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0,0,0,0.4);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             color: white;
-            font-weight: 700;
-            font-size: 0.9rem;
+            gap: 8px;
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.3s;
             backdrop-filter: blur(4px);
         }
+        .visual-placeholder-ios:hover .visual-edit-overlay { opacity: 1; }
+        .visual-edit-overlay .overlay-title {
+            font-weight: 800;
+            font-size: 1rem;
+            letter-spacing: 1px;
+        }
+        .visual-edit-overlay .overlay-sub {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+        }
 
-        .visual-placeholder-ios:hover .visual-edit-overlay {
-            opacity: 1;
+        /* ── Editorial Notes ── */
+        .editorial-textarea-ios {
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 18px 20px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+        .editorial-textarea-ios::placeholder { color: rgba(255,255,255,0.3); }
+        .editorial-textarea-ios:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+            background: rgba(255,255,255,0.07);
+        }
+
+        /* ── Right Sidebar ── */
+        .create-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: sticky;
+            top: 100px;
+            animation: floatInCreate 0.5s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        /* Action Card */
+        .action-card-ios {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+        .btn-create-apt-red {
+            width: 100%;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+            letter-spacing: 0.3px;
+        }
+        .btn-create-apt-red:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(239, 68, 68, 0.5);
+        }
+
+        .workspace-label-mini {
+            margin-top: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.3);
+            text-align: center;
+        }
+
+        /* Participants Section */
+        .participants-section-ios {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+        .sidebar-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .ios-btn-link-red {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 6px 12px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            transition: all 0.2s;
+        }
+        .ios-btn-link-red:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .ios-search-minimal {
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .ios-search-minimal::placeholder { color: rgba(255,255,255,0.3); }
+        .ios-search-minimal:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            background: rgba(0,0,0,0.3);
+        }
+
+        .search-dropdown-ios {
+            position: absolute;
+            z-index: 100;
+            left: 0; right: 0;
+            top: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        /* Error / Conflict boxes */
+        .ios-error-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        .ios-conflict-alert-v2 {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        .participants-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .create-body { grid-template-columns: 1fr; padding: 20px 16px 60px; }
+            .create-sidebar { position: static; }
         }
     </style>
 <?php $__env->stopPush(); ?>
@@ -127,9 +489,11 @@
 
                     <div class="visual-placeholder-ios" onclick="document.getElementById('aptCoverInput').click()">
                         <img id="aptCoverPreview" src="<?php echo e(asset('assets/img/appointment_default.jpg')); ?>"
-                            alt="Default Placeholder" class="ios-visual-img">
+                            alt="Appointment Cover Photo" class="ios-visual-img">
                         <div class="visual-edit-overlay">
-                            <i data-lucide="camera" style="margin-right: 8px;"></i> EDIT STUDIO VISUAL
+                            <i data-lucide="camera" style="width:28px;height:28px;"></i>
+                            <span class="overlay-title">Change Cover Photo</span>
+                            <span class="overlay-sub">Click to upload a custom image</span>
                         </div>
                     </div>
                     <input type="file" id="aptCoverInput" style="display:none;" accept="image/*">
@@ -165,10 +529,7 @@
                     </div>
 
 
-                    <div id="aptActionError" class="ios-btn-link-red"
-                        style="display: none; background: #fff5f5; padding: 1rem; border-radius: 12px; margin-bottom: 1rem; text-align: center; border: 1px solid #ff000020; font-weight: 600; font-size: 0.9rem;">
-                        <!-- Error messages will appear here -->
-                    </div>
+                    <div id="aptActionError" class="ios-error-box" style="margin-bottom: 1.5rem;"></div>
 
                     <div id="aptConflictAlert" class="ios-conflict-alert-v2"></div>
                 </div>

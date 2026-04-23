@@ -1,64 +1,135 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# AskDocPH: Mental Health & Professional Care Platform
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## 1. System Philosophy
+**AskDocPH** is built as a highly secure, empathetic mental health ecosystem. It follows a "Safety-First" architecture, where AI serves as a protective layer (filtering for self-harm and crisis) and a bridge to verified human professionals.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 2. Core Technical Flows
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### A. AI-Driven Care & Crisis Mitigation
+The "Help Chat" is the entrance to the platform's care services.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```mermaid
+graph TD
+    A[User Message] --> B{Sensitive Keyword Scan}
+    B -- Match --> C[Emergency Protocol Intercept]
+    B -- No Match --> D[RAG Knowledge Fetch]
+    D --> E[Groq Llama-3 Inference]
+    E --> F[Empathetic JSON Response]
+    F --> G{Doctor Match Needed?}
+    G -- Yes --> H[Specialist Discovery]
+```
 
-## Learning Laravel
+*   **Technology**: Uses the `llama-3.3-70b-versatile` model via Groq for sub-second inference.
+*   **Safety Layer**: A hard-coded whitelist of 30+ crisis keywords triggers a `crisisSupportMessage()` immediately, bypassing AI logic to ensure 100% reliable crisis intervention.
+*   **Knowledge Bank**: Periodically fetches local `ai_knowledge.json` (Mental Health Database) to ground AI responses in factual, regional (Philippines) context.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### B. Biometric Onboarding & Governance
+The doctor onboarding process uses "High-Fidelity Verification" to prevent impersonation.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+*   **Workflow**:
+    1.  **Identity Capture**: Users submit professional ID documents.
+    2.  **Liveness Verification**: A video upload requirement for biometric analysis.
+    3.  **Reference Indexing**: Base64 biometric payloads are hashed into a `biometric_reference_hash` for secure, non-reversible identity anchoring.
+*   **State Management**: Users can transition from `none` -> `applying` -> `pending` -> `approved`. If `rejected`, users must explicitly "Re-apply" to clear their previous petition state.
 
-## Laravel Sponsors
+### C. Real-Time Presence & Communication
+The messenger system is optimized for reliability and user safety.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+*   **Presence Tracking**: Middleware updates a user's `last_active_at` timestamp at most every 60 seconds. This drives the "Online Now" indicators for doctors.
+*   **Messenger Architecture**:
+    *   **Conversations**: Supports `direct` and `group` types.
+    *   **Archivability**: Users can archive conversations to declutter their view.
+    *   **Active Status**: Users can toggle their visibility and "Free to Talk" status.
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+## 3. User Capability & Lifecycle Flow
 
-## Contributing
+### Capability Matrix (Can vs. Can't)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+| Status | social Feed / groups | messenger (Peer-to-Peer) | AI companion Chat | apply to Medical Panel | Handle Help Requests |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Guest** | 👁️ View Only | ❌ | ❌ | ✅ | ❌ |
+| **User** (`none`) | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **User** (`applying`) | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **User** (`pending`) | ❌ | ❌ | ❌ | 🔄 (Waiting) | ❌ |
+| **User** (`rejected`) | ✅ | ✅ | ✅ | ✅ (Via Petition) | ❌ |
+| **Doctor** (`approved`) | ✅ | ✅ | ✅ | ❌ (Already Verified) | ✅ |
 
-## Code of Conduct
+### The Onboarding Lifecycle
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```mermaid
+graph TD
+    A[Guest / New User] -->|Signup + Apply| B(Status: pending)
+    C[Existing User] -->|Apply| B
+    B -->|Admin Approval| D(Role: doctor / Status: approved)
+    B -->|Admin Rejection| E(Status: rejected)
+    E -->|Click 'Re-apply'| F(Status: applying)
+    F -->|Submit Form| B
+```
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 4. Consultation & Help Flow
 
-## License
+How users move from seeking help to a doctor's care:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant AI as AI Companion
+    participant D as Doctor
+    U->>AI: "I need to talk to someone..."
+    AI->>U: Suggests "Psychologist" + Finds Online Doctors
+    U->>D: Sends Help Request
+    D-->>U: Receives Notification
+    D->>D: Toggles "Accept" in Dashboard
+    D->>U: System creates Direct Conversation
+    D->>U: "Hello! I have accepted your request..."
+```
+
+---
+
+## 5. Database Architecture (Key Entities)
+
+| Table | High-Level Purpose | Key Relations |
+| :--- | :--- | :--- |
+| **`users`** | Core identities, roles, and status. | `-> doctor_applications`, `-> posts` |
+| **`doctor_applications`** | Verification data & biometric hashes. | `user_id`, `professional_titles` |
+| **`doctor_requirements`** | Master list of mandatory documents. | System-wide config. |
+| **`help_requests`** | Bridges users and doctors for consultation. | `user_id`, `doctor_id` |
+| **`posts`** | Social content, mood hashtags, and media. | `user_id`, `group_id`, `resource_id` |
+| **`conversations`** | Messaging containers for 2+ users. | `-> messages`, `-> participants` |
+| **`daily_affirmations`** | Scheduled motivational content. | Admin-driven content. |
+
+---
+
+## 6. Security Hardening & Privacy
+
+### A. Administrative Hardening
+Admin sessions are protected by:
+*   **Idle Timeout**: Forces logout after 15 minutes of inactivity.
+*   **Hijack Protection**: Validates IP address and User-Agent on every request.
+
+### B. Response Security (CSP)
+Strict Content Security Policy (CSP) headers are injected to:
+*   **Prevent Clickjacking**: `X-Frame-Options: SAMEORIGIN`.
+*   **MIME Locking**: `X-Content-Type-Options: nosniff`.
+*   **Origin Locking**: Restricting script/style execution to authorized CDNs and same-origin.
+
+---
+
+## 7. Administrative Oversight
+Admins have granular control over:
+*   **Analytics Dashboard**: Visualizes submission trends and specialist demographic splits.
+*   **Content Management**: Defining the `ProfessionalTitle` master list.
+*   **Application Triage**: Reviewing high-resolution proofs of ID and biometrics.
+
+---
+
+## 8. Developer Guidelines
+*   **Environment**: Requires `GROQ_API_KEY` for AI features.
+*   **Migrations**: Uses Laravel migrations for schema evolution.
+*   **Throttling**: Login and signup endpoints are rate-limited.

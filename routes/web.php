@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PasswordResetController;
 
 Route::get('/', function () {
     return view('about');
@@ -22,6 +23,12 @@ Route::post('/login', [AuthController::class, 'login'])->middleware(['login.thro
 Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/signup', [AuthController::class, 'signup'])->name('signup.submit');
 Route::post('/signup-ajax', [AuthController::class, 'signupAjax'])->middleware('throttle:10,1')->name('signup.ajax');
+
+// Password Reset Routes
+Route::get('/forgot-password', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
 
 // Doctor Apply (Guest or Auth)
 Route::get('/doctor/apply', [\App\Http\Controllers\DoctorApplicationController::class, 'create'])->name('doctor.apply');
@@ -164,9 +171,6 @@ Route::group(['prefix' => 'admin'], function () {
         function () {
             Route::get('/login', [\App\Http\Controllers\AdminAuthController::class, 'showLogin'])->name('admin.login');
             Route::post('/login', [\App\Http\Controllers\AdminAuthController::class, 'login'])->middleware('login.throttle')->name('admin.login.submit');
-
-            Route::get('/signup', [\App\Http\Controllers\AdminAuthController::class, 'showSignup'])->name('admin.signup');
-            Route::post('/signup', [\App\Http\Controllers\AdminAuthController::class, 'signup'])->name('admin.signup.submit');
         }
     );
 
@@ -176,6 +180,8 @@ Route::group(['prefix' => 'admin'], function () {
     Route::middleware(['auth:admin', 'admin.security'])->group(
         function () {
             // Dashboard/Applications
+            // Dashboard & Analytics
+            Route::get('/analytics', [\App\Http\Controllers\Admin\AdminAnalyticsController::class, 'index'])->name('admin.analytics');
             Route::get('/applications', [\App\Http\Controllers\AdminApplicationController::class, 'index'])->name('admin.applications.index');
             Route::get('/applications/{id}', [\App\Http\Controllers\AdminApplicationController::class, 'show'])->name('admin.applications.show');
             Route::post('/applications/{id}/approve', [\App\Http\Controllers\AdminApplicationController::class, 'approve'])->name('admin.applications.approve');
@@ -208,10 +214,10 @@ Route::group(['prefix' => 'admin'], function () {
             Route::post('/api/messenger/send', [\App\Http\Controllers\Admin\AdminMessageController::class, 'apiSend'])->name('admin.messages.api.send');
 
 
-            // Admin Notifications
-            Route::get('/notifications', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'index'])->name('admin.notifications.index');
-            Route::get('/notifications/unread-count', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'unreadCount'])->name('admin.notifications.unread');
-            Route::post('/notifications/{id}/read', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'markRead'])->name('admin.notifications.read');
+            // Admin Notifications (Dropdown AJAX)
+            Route::get('/api/notifications', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'apiIndex'])->name('admin.notifications.api.index');
+            Route::post('/api/notifications/read-all', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'apiReadAll'])->name('admin.notifications.api.read-all');
+            Route::post('/api/notifications/{id}/read', [\App\Http\Controllers\Admin\AdminNotificationController::class, 'apiRead'])->name('admin.notifications.api.read');
         }
     );
 });

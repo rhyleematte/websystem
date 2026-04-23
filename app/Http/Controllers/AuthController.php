@@ -35,6 +35,13 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate(); // prevents session fixation
             Log::info('User logged in', ['user_id' => Auth::id(), 'ip' => $request->ip()]);
+            
+            // Avoid redirecting to API endpoints that might have been stored as 'intended'
+            $intended = session()->get('url.intended');
+            if ($intended && str_contains($intended, '/api/')) {
+                session()->forget('url.intended');
+            }
+
             return redirect()->intended(route('user.dashboard'));
         }
 

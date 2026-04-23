@@ -53,7 +53,7 @@ html.theme-dark {
 }
 
 /* ==========================
-   GLOBAL RESET
+   GLOBAL RESET & ANIMATIONS
 ========================== */
 *,
 *::before,
@@ -75,6 +75,10 @@ body {
   overflow-x: hidden;
 }
 
+@keyframes floatInGlobal {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
 
 .dash {
   min-height: 100vh;
@@ -82,11 +86,32 @@ body {
   overflow-x: hidden;
 }
 
+.dash-main > *, .feed-container > *, .group-card, .resource-card {
+  animation: floatInGlobal 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.dash-main > *:nth-child(1) { animation-delay: 0.1s; }
+.dash-main > *:nth-child(2) { animation-delay: 0.15s; }
+.dash-main > *:nth-child(3) { animation-delay: 0.2s; }
+.dash-main > *:nth-child(4) { animation-delay: 0.25s; }
+.dash-main > *:nth-child(5) { animation-delay: 0.3s; }
+
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: var(--shadow);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
+}
+
+.panel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.1);
+}
+
+html.theme-dark .panel:hover {
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 /* ==========================
@@ -1322,10 +1347,13 @@ html.theme-dark .post-menu {
   display: none;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-backdrop.open {
   display: flex;
+  opacity: 1;
 }
 
 .modal-box {

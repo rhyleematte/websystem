@@ -259,12 +259,16 @@ body {
           <input type="password" id="password" name="password" class="admin-form-control" required placeholder="••••••••">
         </div>
 
+        <div class="admin-form-group" style="margin-bottom: 1.5rem;">
+          <label style="display: flex; align-items: center; gap: 10px; color: #94a3b8; font-size: 0.9rem; cursor: pointer; font-weight: 400;">
+            <input type="checkbox" name="remember" <?php echo e(old('remember') ? 'checked' : ''); ?> style="accent-color: #38bdf8; width: 18px; height: 18px; border-radius: 4px; cursor: pointer;">
+            Remember this device
+          </label>
+        </div>
+
         <button type="submit" class="admin-btn">Secure Login</button>
       </form>
 
-      <div class="admin-auth-footer">
-        No account? <a href="<?php echo e(route('admin.signup')); ?>">Sign up here</a>
-      </div>
     </div>
   </div>
 </div>

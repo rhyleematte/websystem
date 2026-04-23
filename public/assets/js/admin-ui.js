@@ -5,10 +5,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     if (window.lucide) lucide.createIcons();
 
-    /* ── Theme toggle ───────────────────────────────────────── */
     var root = document.documentElement;
-    var savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') root.classList.add('theme-dark');
 
     var themeBtn = document.getElementById('themeToggleBtn');
 

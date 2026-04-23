@@ -10,8 +10,8 @@
         </div>
         <div class="drawer-search-row">
             <div class="search-input-wrapper">
-                <i data-lucide="search"></i>
                 <input type="text" id="messenger-user-search" placeholder="Search people...">
+                <span class="search-icon-wrap"><i data-lucide="search"></i></span>
             </div>
             <button id="messenger-settings-btn" class="messenger-settings-btn" title="Chat Settings">
                 <i data-lucide="more-vertical"></i>

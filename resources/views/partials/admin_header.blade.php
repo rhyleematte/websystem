@@ -54,6 +54,9 @@
       </button>
 
       <div class="dropdown-menu" id="profileDropdown" aria-labelledby="profileToggle">
+        <a href="{{ route('admin.analytics') }}" class="dropdown-item" style="text-decoration: none; color: inherit;">
+          <i data-lucide="bar-chart-2"></i><span>Analytics</span>
+        </a>
         <a href="{{ route('admin.applications.index') }}" class="dropdown-item" style="text-decoration: none; color: inherit;">
           <i data-lucide="users"></i><span>Applications</span>
         </a>

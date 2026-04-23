@@ -19,7 +19,6 @@ class DoctorApplication extends Model
         'professional_titles',
         'biometric_consent',
         'liveness_verified',
-        'face_match_score',
         'biometric_verified_at',
         'biometric_reference_hash',
     ];

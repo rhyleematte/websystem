@@ -198,9 +198,6 @@
                 <button type="button" id="startBioCamera" style="background: white; border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; color: var(--text); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                     <i data-lucide="camera" style="width: 16px; height: 16px;"></i> Start Face Match Camera
                 </button>
-                <button type="button" id="simulateBioCamera" style="background: rgba(243, 156, 18, 0.1); border: 1px solid #f39c12; padding: 8px 16px; border-radius: 8px; color: #f39c12; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-left: 10px;">
-                    <i data-lucide="bot" style="width: 16px; height: 16px;"></i> Simulate Scanner (Testing)
-                </button>
                 <button type="button" id="captureBioPhoto" style="background: var(--teal); border: none; padding: 8px 16px; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; display: none; align-items: center; gap: 8px; margin: 0 auto;">
                     <i data-lucide="scan-face" style="width: 16px; height: 16px;"></i> Capture & Verify
                 </button>
@@ -279,13 +276,7 @@
     btnStart.addEventListener('click', async () => {
         try {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                // Fallback for HTTP / Insecure contexts during local development
-                console.warn('getUserMedia is not supported or context is not secure. Simulating camera access.');
-                if(confirm('Camera access is blocked (likely because you are not on HTTPS). Do you want to simulate a successful biometric scan for testing?')) {
-                    simulateSuccess();
-                } else {
-                    alert('Biometric verification cancelled.');
-                }
+                alert('Camera access is not supported or your connection is not secure (requires HTTPS).');
                 return;
             }
 
@@ -303,13 +294,7 @@
             inpFaceScore.value = "";
             inpPayload.value = "";
         } catch (err) {
-            if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
-                if(confirm('Camera access was denied by your system settings. Do you want to simulate a successful biometric scan to bypass this requirement for testing?')) {
-                    simulateSuccess();
-                    return;
-                }
-            }
-            alert('Unable to access camera: ' + err.name + ' - ' + err.message + '\n\nPlease ensure you have a webcam plugged in, and no other app (like Zoom) is currently using it.');
+            alert('Unable to access camera: ' + err.name + ' - ' + err.message);
             console.error(err);
         }
     });

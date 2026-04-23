@@ -16,6 +16,15 @@
 
 
 
+  <!-- Blocking Theme Check (Prevents White Flash) -->
+  <script>
+    (function() {
+      const theme = localStorage.getItem('theme');
+      if (theme === 'dark') {
+        document.documentElement.classList.add('theme-dark');
+      }
+    })();
+  </script>
 </head>
 <body>
 

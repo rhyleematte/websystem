@@ -85,7 +85,7 @@ unset($__errorArgs, $__bag); ?>
             <input type="checkbox" name="remember" <?php echo e(old('remember') ? 'checked' : ''); ?>>
             Remember me
           </label>
-          <a href="#" class="link">Forgot password?</a>
+          <a href="<?php echo e(route('password.request')); ?>" class="link">Forgot password?</a>
         </div>
 
         <button type="submit" class="btn primary">Sign In</button>

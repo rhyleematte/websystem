@@ -71,7 +71,6 @@ class DoctorApplicationController extends Controller
                 'professional_titles' => ['required', 'string', 'exists:professional_titles,name'],
                 'biometric_consent' => ['required', 'accepted'],
                 'liveness_verified' => ['required', 'in:1'],
-                'face_match_score' => ['required', 'numeric', 'min:0', 'max:100'],
                 'biometric_payload' => ['required', 'string']
             ];
 
@@ -93,7 +92,6 @@ class DoctorApplicationController extends Controller
                 'professional_titles' => ['required', 'string', 'exists:professional_titles,name'],
                 'biometric_consent' => ['required', 'accepted'],
                 'liveness_verified' => ['required', 'in:1'],
-                'face_match_score' => ['required', 'numeric', 'min:0', 'max:100'],
                 'biometric_payload' => ['required', 'string']
             ];
             $messages = [
@@ -160,7 +158,6 @@ class DoctorApplicationController extends Controller
             'professional_titles' => $request->input('professional_titles'),
             'biometric_consent' => $request->boolean('biometric_consent'),
             'liveness_verified' => true,
-            'face_match_score' => $request->input('face_match_score'),
             'biometric_verified_at' => now(),
             'biometric_reference_hash' => $referenceHash,
         ]);

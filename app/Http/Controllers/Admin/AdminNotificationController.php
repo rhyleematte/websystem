@@ -19,7 +19,7 @@ class AdminNotificationController extends Controller
                 'id' => $n->id,
                 'is_read' => $isRead,
                 'url' => route('admin.applications.show', $n->data['application_id'] ?? 0),
-                'message' => $n->data['message'] ?? 'New Notification',
+                'message' => $n->data['message'] ?? ($n->data['applicant_name'] ? "New application from " . $n->data['applicant_name'] : 'New Notification'),
                 'created_at' => $n->created_at->diffForHumans(),
                 'actor' => [
                     'name' => 'Doctor Profile', // It's usually a doctor applying
