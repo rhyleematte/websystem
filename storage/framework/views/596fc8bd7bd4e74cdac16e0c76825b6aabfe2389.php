@@ -1,11 +1,9 @@
-﻿@extends('layouts.admin')
+<?php $__env->startSection('title', 'Admin – My Profile'); ?>
 
-@section('title', 'Admin – My Profile')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 /* ── Admin Profile Page ─────────────────────────────────────── */
-@keyframes floatIn {
+@keyframes  floatIn {
   0%   { opacity: 0; transform: translateY(16px); }
   100% { opacity: 1; transform: translateY(0); }
 }
@@ -13,7 +11,7 @@
 .profile-shell {
   padding: 40px 24px 80px;
   min-height: 100vh;
-  background: var(--adm-bg);
+  background: var(--bg);
 }
 
 .profile-inner {
@@ -35,7 +33,7 @@
 .profile-heading-icon {
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, var(--adm-header-from), var(--adm-header-to));
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -44,26 +42,26 @@
   box-shadow: 0 4px 12px rgba(124,58,237,0.3);
 }
 .profile-heading-icon svg { width: 20px; height: 20px; color: #fff; }
-.profile-heading h1 { font-size: 1.6rem; font-weight: 800; color: var(--adm-text); margin: 0; letter-spacing: -0.3px; }
-.profile-heading p  { font-size: 0.88rem; color: var(--adm-muted); margin: 2px 0 0; }
+.profile-heading h1 { font-size: 1.6rem; font-weight: 800; color: var(--text); margin: 0; letter-spacing: -0.3px; }
+.profile-heading p  { font-size: 0.88rem; color: var(--muted); margin: 2px 0 0; }
 
 /* Card base */
 .prof-card {
-  background: var(--adm-panel);
-  border: 1px solid var(--adm-border);
+  background: var(--panel);
+  border: 1px solid var(--border);
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(15,23,42,0.06);
   overflow: hidden;
 }
 .prof-card-header {
   padding: 18px 24px 16px;
-  border-bottom: 1px solid var(--adm-border);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.prof-card-header svg { width: 17px; height: 17px; color: var(--adm-grad-a); flex-shrink: 0; }
-.prof-card-header h2 { font-size: 0.95rem; font-weight: 700; color: var(--adm-text); margin: 0; }
+.prof-card-header svg { width: 17px; height: 17px; color: var(--brand); flex-shrink: 0; }
+.prof-card-header h2 { font-size: 0.95rem; font-weight: 700; color: var(--text); margin: 0; }
 .prof-card-body { padding: 24px; }
 
 /* Photo section */
@@ -82,12 +80,12 @@
   height: 100px;
   border-radius: 18px;
   object-fit: cover;
-  border: 3px solid var(--adm-border);
+  border: 3px solid var(--border);
   box-shadow: 0 4px 14px rgba(15,23,42,0.1);
   display: block;
 }
-.photo-info h3 { font-size: 1.05rem; font-weight: 700; color: var(--adm-text); margin: 0 0 4px; }
-.photo-info p  { font-size: 0.83rem; color: var(--adm-muted); margin: 0 0 16px; }
+.photo-info h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); margin: 0 0 4px; }
+.photo-info p  { font-size: 0.83rem; color: var(--muted); margin: 0 0 16px; }
 .photo-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .btn-photo {
@@ -99,13 +97,13 @@
   font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
-  border: 1.5px solid var(--adm-border);
-  background: var(--adm-hover);
-  color: var(--adm-text);
+  border: 1.5px solid var(--border);
+  background: var(--hover);
+  color: var(--text);
   transition: all 0.2s;
   text-decoration: none;
 }
-.btn-photo:hover { background: var(--adm-thead-bg); border-color: rgba(15,23,42,0.2); }
+.btn-photo:hover { background: var(--search-bg); border-color: rgba(15,23,42,0.2); }
 .btn-photo svg  { width: 15px; height: 15px; }
 
 .btn-photo-danger {
@@ -118,14 +116,14 @@
 .btn-photo-save {
   border-color: rgba(124,58,237,0.35);
   background: rgba(124,58,237,0.08);
-  color: var(--adm-grad-a);
+  color: var(--brand);
   display: none;
 }
 .btn-photo-save:hover { background: rgba(124,58,237,0.14); border-color: rgba(124,58,237,0.5); }
 
 .photo-filename {
   font-size: 0.8rem;
-  color: var(--adm-grad-a);
+  color: var(--brand);
   margin-top: 8px;
   font-weight: 600;
   display: none;
@@ -144,7 +142,7 @@
 .form-group label {
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--adm-muted);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -152,16 +150,16 @@
   width: 100%;
   padding: 11px 14px;
   border-radius: 10px;
-  border: 1.5px solid var(--adm-border);
-  background: var(--adm-input-bg);
-  color: var(--adm-text);
+  border: 1.5px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
   font-size: 0.93rem;
   font-family: inherit;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.form-control::placeholder { color: var(--adm-muted); opacity: 0.7; }
+.form-control::placeholder { color: var(--muted); opacity: 0.7; }
 .form-control:focus {
-  border-color: var(--adm-grad-a);
+  border-color: var(--brand);
   outline: none;
   box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
 }
@@ -175,7 +173,7 @@ select.form-control { cursor: pointer; }
   padding: 11px 26px;
   border-radius: 12px;
   border: none;
-  background: linear-gradient(135deg, var(--adm-header-from), var(--adm-header-to));
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
   color: #fff;
   font-size: 0.93rem;
   font-weight: 700;
@@ -201,14 +199,14 @@ select.form-control { cursor: pointer; }
 .alert-success { background: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.3); }
 .alert-error   { background: rgba(239,68,68,0.08);  color: #dc2626; border: 1px solid rgba(239,68,68,0.25); }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <main class="dash">
 <div class="profile-shell">
 <div class="profile-inner">
 
-  {{-- Page heading --}}
+  
   <div class="profile-heading">
     <div class="profile-heading-icon">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -221,28 +219,30 @@ select.form-control { cursor: pointer; }
     </div>
   </div>
 
-  {{-- Flash messages --}}
-  @if(session('success'))
+  
+  <?php if(session('success')): ?>
     <div class="alert alert-success">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-      {{ session('success') }}
+      <?php echo e(session('success')); ?>
+
     </div>
-  @endif
-  @if(session('error'))
+  <?php endif; ?>
+  <?php if(session('error')): ?>
     <div class="alert alert-error">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      {{ session('error') }}
-    </div>
-  @endif
-  @if($errors->any())
-    <div class="alert alert-error" style="flex-direction:column;align-items:flex-start;gap:4px;">
-      @foreach($errors->all() as $err)
-        <span>• {{ $err }}</span>
-      @endforeach
-    </div>
-  @endif
+      <?php echo e(session('error')); ?>
 
-  {{-- ── Profile Photo Card ──────────────────────────────────── --}}
+    </div>
+  <?php endif; ?>
+  <?php if($errors->any()): ?>
+    <div class="alert alert-error" style="flex-direction:column;align-items:flex-start;gap:4px;">
+      <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $err): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <span>• <?php echo e($err); ?></span>
+      <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </div>
+  <?php endif; ?>
+
+  
   <div class="prof-card">
     <div class="prof-card-header">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -251,15 +251,15 @@ select.form-control { cursor: pointer; }
     <div class="prof-card-body">
       <div class="photo-row">
         <div class="photo-avatar">
-          <img src="{{ $avatarUrl }}" alt="Admin Avatar" id="avatarPreview">
+          <img src="<?php echo e($avatarUrl); ?>" alt="Admin Avatar" id="avatarPreview">
         </div>
         <div class="photo-info">
-          <h3>{{ $admin->fname }} {{ $admin->lname }}</h3>
+          <h3><?php echo e($admin->fname); ?> <?php echo e($admin->lname); ?></h3>
           <p>Administrator · PNG, JPG or GIF — max 2 MB</p>
           <div class="photo-actions">
-            <form action="{{ route('admin.profile.update.photo') }}" method="POST"
+            <form action="<?php echo e(route('admin.profile.update.photo')); ?>" method="POST"
                   enctype="multipart/form-data" id="photoUploadForm" style="margin:0;display:contents;">
-              @csrf
+              <?php echo csrf_field(); ?>
               <input type="file" name="profile_photo" id="profile_photo"
                      accept="image/png,image/jpeg,image/gif" style="display:none;">
               <button type="button" class="btn-photo" id="choosePhotoBtn">
@@ -271,15 +271,15 @@ select.form-control { cursor: pointer; }
                 Save Photo
               </button>
             </form>
-            @if($admin->avatar_url)
-            <form action="{{ route('admin.profile.delete.photo') }}" method="POST" style="margin:0;">
-              @csrf
+            <?php if($admin->avatar_url): ?>
+            <form action="<?php echo e(route('admin.profile.delete.photo')); ?>" method="POST" style="margin:0;">
+              <?php echo csrf_field(); ?>
               <button type="submit" class="btn-photo btn-photo-danger">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                 Remove
               </button>
             </form>
-            @endif
+            <?php endif; ?>
           </div>
           <div class="photo-filename" id="photoFilename"></div>
         </div>
@@ -287,27 +287,27 @@ select.form-control { cursor: pointer; }
     </div>
   </div>
 
-  {{-- ── Personal Information Card ──────────────────────────── --}}
+  
   <div class="prof-card">
     <div class="prof-card-header">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <h2>Personal Information</h2>
     </div>
     <div class="prof-card-body">
-      <form action="{{ route('admin.profile.update') }}" method="POST">
-        @csrf
+      <form action="<?php echo e(route('admin.profile.update')); ?>" method="POST">
+        <?php echo csrf_field(); ?>
 
-        {{-- Name row --}}
+        
         <div class="form-grid" style="margin-bottom:18px;">
           <div class="form-group">
             <label for="fname">First Name</label>
             <input type="text" id="fname" name="fname" class="form-control"
-                   value="{{ old('fname', $admin->fname) }}" placeholder="First name" required>
+                   value="<?php echo e(old('fname', $admin->fname)); ?>" placeholder="First name" required>
           </div>
           <div class="form-group">
             <label for="mname">Middle Name</label>
             <input type="text" id="mname" name="mname" class="form-control"
-                   value="{{ old('mname', $admin->mname) }}" placeholder="Middle name (optional)">
+                   value="<?php echo e(old('mname', $admin->mname)); ?>" placeholder="Middle name (optional)">
           </div>
         </div>
 
@@ -315,34 +315,34 @@ select.form-control { cursor: pointer; }
           <div class="form-group">
             <label for="lname">Last Name</label>
             <input type="text" id="lname" name="lname" class="form-control"
-                   value="{{ old('lname', $admin->lname) }}" placeholder="Last name" required>
+                   value="<?php echo e(old('lname', $admin->lname)); ?>" placeholder="Last name" required>
           </div>
         </div>
 
-        {{-- Email --}}
+        
         <div class="form-grid full" style="margin-bottom:18px;">
           <div class="form-group">
             <label for="email">Email Address</label>
             <input type="email" id="email" name="email" class="form-control"
-                   value="{{ old('email', $admin->email) }}" placeholder="admin@example.com" required>
+                   value="<?php echo e(old('email', $admin->email)); ?>" placeholder="admin@example.com" required>
           </div>
         </div>
 
-        {{-- Gender + Birthday --}}
+        
         <div class="form-grid" style="margin-bottom:26px;">
           <div class="form-group">
             <label for="gender">Gender</label>
             <select id="gender" name="gender" class="form-control">
               <option value="">Select gender</option>
-              <option value="male"   {{ old('gender', $admin->gender) === 'male'   ? 'selected' : '' }}>Male</option>
-              <option value="female" {{ old('gender', $admin->gender) === 'female' ? 'selected' : '' }}>Female</option>
-              <option value="other"  {{ old('gender', $admin->gender) === 'other'  ? 'selected' : '' }}>Other</option>
+              <option value="male"   <?php echo e(old('gender', $admin->gender) === 'male'   ? 'selected' : ''); ?>>Male</option>
+              <option value="female" <?php echo e(old('gender', $admin->gender) === 'female' ? 'selected' : ''); ?>>Female</option>
+              <option value="other"  <?php echo e(old('gender', $admin->gender) === 'other'  ? 'selected' : ''); ?>>Other</option>
             </select>
           </div>
           <div class="form-group">
             <label for="bday">Birthday</label>
             <input type="date" id="bday" name="bday" class="form-control"
-                   value="{{ old('bday', $admin->bday ? $admin->bday->format('Y-m-d') : '') }}">
+                   value="<?php echo e(old('bday', $admin->bday ? $admin->bday->format('Y-m-d') : '')); ?>">
           </div>
         </div>
 
@@ -356,7 +356,7 @@ select.form-control { cursor: pointer; }
     </div>
   </div>
 
-  {{-- ── Account Info (read-only) ──────────────────────────── --}}
+  
   <div class="prof-card">
     <div class="prof-card-header">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -374,7 +374,8 @@ select.form-control { cursor: pointer; }
         <div class="form-group">
           <label>Member Since</label>
           <div class="form-control" style="cursor:default;">
-            {{ $admin->created_at ? $admin->created_at->format('M d, Y') : '—' }}
+            <?php echo e($admin->created_at ? $admin->created_at->format('M d, Y') : '—'); ?>
+
           </div>
         </div>
       </div>
@@ -385,7 +386,7 @@ select.form-control { cursor: pointer; }
 </div>
 </main>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -418,5 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.admin', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\websystem\resources\views/admin/profile.blade.php ENDPATH**/ ?>

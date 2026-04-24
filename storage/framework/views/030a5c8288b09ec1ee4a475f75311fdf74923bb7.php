@@ -12,6 +12,7 @@
 
   <!-- Base + Dashboard CSS -->
   <link rel="stylesheet" href="<?php echo e(asset('assets/css/dashboard.css')); ?>">
+  <link rel="stylesheet" href="<?php echo e(asset('assets/css/admin.css')); ?>?v=<?php echo e(filemtime(public_path('assets/css/admin.css'))); ?>">
   <link rel="stylesheet" href="<?php echo e(asset('assets/css/messenger.css')); ?>">
 
   <!-- Lucide Icons -->

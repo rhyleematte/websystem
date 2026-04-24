@@ -1,353 +1,190 @@
-<?php $__env->startSection('title', 'Admin - Doctor Applications'); ?>
+<?php $__env->startSection('title', 'Admin – Doctor Applications'); ?>
 
 <?php $__env->startPush('styles'); ?>
 <style>
-/* Premium Dark Mode Glassmorphism Theme */
-:root {
-    --glass-bg: rgba(25, 30, 45, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-hover-border: rgba(255, 255, 255, 0.2);
-    --neon-blue: #3b82f6;
-    --neon-green: #10b981;
-    --neon-orange: #f59e0b;
-    --neon-red: #ef4444;
+@keyframes  floatIn { 0% { opacity:0; transform:translateY(16px); } 100% { opacity:1; transform:translateY(0); } }
+
+.apps-page  { max-width: 1100px; margin: 0 auto; }
+.apps-panel { animation: floatIn 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* ── Filter widget ──────────────────────────────────────────── */
+.filter-card {
+  background: var(--adm-panel);
+  border: 1px solid var(--adm-border);
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: var(--adm-shadow);
+  margin-bottom: 18px;
+  animation: floatIn 0.45s cubic-bezier(0.16,1,0.3,1) 0.05s both;
+  transition: background 0.3s, border-color 0.3s;
+}
+.filter-form {
+  display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;
+}
+.filter-search-box {
+  flex: 1; min-width: 260px; position: relative;
+}
+.filter-search-box i {
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  color: var(--adm-muted); width: 17px; height: 17px; pointer-events: none;
+  transition: color 0.2s;
+}
+.filter-search-box input {
+  width: 100%; padding: 11px 14px 11px 40px;
+  border-radius: 11px; border: 1.5px solid var(--adm-border);
+  background: var(--adm-input-bg); color: var(--adm-text);
+  font-size: 0.92rem; font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.filter-search-box input::placeholder { color: var(--adm-muted); opacity: 0.7; }
+.filter-search-box input:focus {
+  border-color: var(--adm-grad-a); outline: none;
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+  background: var(--adm-input-focus);
 }
 
-@keyframes  floatIn {
-    0% { opacity: 0; transform: translateY(20px); }
-    100% { opacity: 1; transform: translateY(0); }
+.date-filters { display: flex; gap: 14px; }
+.date-grp     { display: flex; flex-direction: column; gap: 5px; }
+.date-grp label {
+  font-size: 0.7rem; font-weight: 800; color: var(--adm-muted);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.date-grp input[type="date"] {
+  background: var(--adm-input-bg); border: 1.5px solid var(--adm-border);
+  padding: 10px 13px; border-radius: 11px; color: var(--adm-text);
+  font-size: 0.88rem; font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.date-grp input[type="date"]:focus {
+  border-color: var(--adm-grad-a); outline: none;
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+  background: var(--adm-input-focus);
 }
 
-.admin-body {
-    padding: 40px 24px;
-    background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05), transparent 40%),
-                radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.05), transparent 40%);
-    min-height: 100vh;
+/* ── Tabs ───────────────────────────────────────────────────── */
+.app-tabs { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 16px; }
+.app-tabs a {
+  text-decoration: none; color: var(--adm-muted); font-weight: 600;
+  padding: 8px 16px; border-radius: 9px; font-size: 0.86rem;
+  background: var(--adm-panel); border: 1.5px solid var(--adm-border);
+  transition: all 0.2s;
+}
+.app-tabs a:hover { background: var(--adm-hover); color: var(--adm-grad-a); border-color: rgba(124,58,237,0.3); }
+.app-tabs a.active {
+  background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(79,70,229,0.08));
+  color: var(--adm-grad-a); border-color: rgba(124,58,237,0.38); font-weight: 800;
+  box-shadow: 0 2px 8px rgba(124,58,237,0.1);
 }
 
-.admin-header h1 {
-    font-size: 1.8rem;
-    font-weight: 800;
-    margin: 0 0 20px;
-    background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
-    -webkit-background-clip: text;
-    color: transparent;
-    letter-spacing: 0.5px;
-}
-
-.glass-widget {
-    background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    animation: floatIn 0.6s ease-out forwards;
-    margin-bottom: 24px;
-}
-
-.admin-filters form {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    align-items: flex-end;
-}
-
-.admin-search-box {
-    flex: 1;
-    min-width: 300px;
-    position: relative;
-}
-.admin-search-box i {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: rgba(255,255,255,0.4);
-    width: 20px;
-    height: 20px;
-    pointer-events: none;
-    transition: color 0.3s;
-}
-.admin-search-box input {
-    width: 100%;
-    padding: 14px 16px 14px 46px;
-    border-radius: 12px;
-    border: 1px solid var(--glass-border);
-    background: rgba(0, 0, 0, 0.2);
-    color: #fff;
-    font-size: 0.95rem;
-    transition: all 0.3s;
-}
-.admin-search-box input:focus {
-    border-color: var(--neon-blue);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-.admin-search-box input:focus + i {
-    color: var(--neon-blue);
-}
-
-.admin-date-filters {
-    display: flex;
-    gap: 16px;
-}
-.date-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.date-input-group label {
-    font-size: 0.75rem;
-    font-weight: 800;
-    color: rgba(255,255,255,0.5);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-.date-input-group input[type="date"] {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--glass-border);
-    padding: 12px 16px;
-    border-radius: 12px;
-    color: #fff;
-    font-size: 0.95rem;
-    font-family: inherit;
-    color-scheme: dark;
-    transition: all 0.3s;
-}
-.date-input-group input[type="date"]:focus {
-    border-color: var(--neon-blue);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-
-.admin-tabs {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
-}
-.admin-tabs a {
-    text-decoration: none;
-    color: rgba(255,255,255,0.6);
-    font-weight: 600;
-    padding: 10px 20px;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--glass-border);
-    transition: all 0.3s;
-}
-.admin-tabs a:hover {
-    background: rgba(255,255,255,0.08);
-    color: #fff;
-}
-.admin-tabs a.active {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
-    color: #3b82f6;
-    border-color: rgba(59, 130, 246, 0.3);
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
-}
-
-.glass-table-wrap {
-    overflow-x: auto;
-    border-radius: 16px;
-}
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 18px 24px; text-align: left; border-bottom: 1px solid var(--glass-border); }
-th { background: rgba(255,255,255,0.02); font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; }
-td { color: #fff; font-size: 0.95rem; vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tr { transition: background 0.2s, transform 0.2s; }
-tr:hover { background: rgba(255,255,255,0.03); }
-
-.badge {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    letter-spacing: 0.5px;
-}
-.badge.pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
-.badge.approved { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
-.badge.rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
-
-.btn-sm {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 18px;
-    border-radius: 10px;
-    text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #fff;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    transition: all 0.3s;
-}
-.btn-sm:hover {
-    background: rgba(59, 130, 246, 0.15);
-    border-color: rgba(59, 130, 246, 0.3);
-    color: #3b82f6;
-    transform: translateY(-2px);
-}
-
+/* ── Table footer ───────────────────────────────────────────── */
 .table-footer {
-    padding: 24px;
-    color: rgba(255,255,255,0.5);
-    font-size: 0.9rem;
-    font-weight: 600;
+  padding: 16px 22px; color: var(--adm-muted);
+  font-size: 0.85rem; font-weight: 600;
+  border-top: 1px solid var(--adm-border-2);
 }
 </style>
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
-
 <main class="dash">
+<div class="adm-page">
+<div class="apps-page">
 
-  <div class="admin-body">
-    <div class="admin-header">
-        <h1>Doctor Applications Overview</h1>
-    </div>
+  
+  <h1 style="font-size:1.7rem;font-weight:800;margin:0 0 20px;color:var(--adm-text);letter-spacing:-0.3px;">
+    Doctor Applications Overview
+  </h1>
 
-    
-    <div class="glass-widget admin-filters" style="animation-delay: 0.1s;">
-        <form action="<?php echo e(route('admin.applications.index')); ?>" method="GET">
-            <input type="hidden" name="tab" value="<?php echo e($tab); ?>">
-            
-            <div class="admin-search-box">
-                <i data-lucide="search"></i>
-                <input type="text" name="search" value="<?php echo e($search ?? ''); ?>" placeholder="Search by name or email..." autocomplete="off">
-            </div>
+  
+  <div class="filter-card">
+    <form action="<?php echo e(route('admin.applications.index')); ?>" method="GET" class="filter-form">
+      <input type="hidden" name="tab" value="<?php echo e($tab); ?>">
 
-            <div class="admin-date-filters">
-                <div class="date-input-group">
-                    <label>From Date</label>
-                    <input type="date" name="from_date" value="<?php echo e($fromDate ?? ''); ?>" onchange="this.form.submit()">
-                </div>
-                <div class="date-input-group">
-                    <label>To Date</label>
-                    <input type="date" name="to_date" value="<?php echo e($toDate ?? ''); ?>" onchange="this.form.submit()">
-                </div>
-            </div>
-        </form>
-    </div>
+      <div class="filter-search-box">
+        <i data-lucide="search"></i>
+        <input type="text" name="search" value="<?php echo e($search ?? ''); ?>"
+               placeholder="Search by name or email…" autocomplete="off">
+      </div>
 
-    
-    <div class="admin-tabs" style="animation-delay: 0.2s;">
-        <a href="<?php echo e(route('admin.applications.index', ['tab' => 'all', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate])); ?>" class="<?php echo e($tab === 'all' ? 'active' : ''); ?>">
-            All <?php echo e($counts['all'] > 0 ? '('.$counts['all'].')' : ''); ?>
-
-        </a>
-        <a href="<?php echo e(route('admin.applications.index', ['tab' => 'pending', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate])); ?>" class="<?php echo e($tab === 'pending' ? 'active' : ''); ?>">
-            Pending <?php echo e($counts['pending'] > 0 ? '('.$counts['pending'].')' : ''); ?>
-
-        </a>
-        <a href="<?php echo e(route('admin.applications.index', ['tab' => 'approved', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate])); ?>" class="<?php echo e($tab === 'approved' ? 'active' : ''); ?>">
-            Approved <?php echo e($counts['approved'] > 0 ? '('.$counts['approved'].')' : ''); ?>
-
-        </a>
-        <a href="<?php echo e(route('admin.applications.index', ['tab' => 'rejected', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate])); ?>" class="<?php echo e($tab === 'rejected' ? 'active' : ''); ?>">
-            Rejected <?php echo e($counts['rejected'] > 0 ? '('.$counts['rejected'].')' : ''); ?>
-
-        </a>
-    </div>
-
-    <?php if(session('success')): ?>
-        <div style="padding: 16px 20px; background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; margin-bottom: 24px; font-weight: 600;">
-            <i data-lucide="check-circle" style="width:18px; margin-right:8px; vertical-align:middle;"></i> <?php echo e(session('success')); ?>
-
+      <div class="date-filters">
+        <div class="date-grp">
+          <label>From Date</label>
+          <input type="date" name="from_date" value="<?php echo e($fromDate ?? ''); ?>" onchange="this.form.submit()">
         </div>
-    <?php endif; ?>
-
-    
-    <div class="glass-widget" style="padding: 0; animation-delay: 0.3s;">
-        <?php if($applications->isEmpty()): ?>
-            <div style="text-align: center; color: rgba(255,255,255,0.4); padding: 60px 20px; font-weight: 600;">
-                <i data-lucide="folder-open" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
-                <p>No doctor applications found.</p>
-            </div>
-        <?php else: ?>
-            <div class="glass-table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>User Name</th>
-                            <th>Email</th>
-                            <th>Status</th>
-                            <th>Submitted At</th>
-                            <th style="text-align: right;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php $__currentLoopData = $applications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $app): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <tr>
-                                <td style="font-weight: 800; color: rgba(255,255,255,0.5);">#<?php echo e($app->id); ?></td>
-                                <td style="font-weight: 700;"><?php echo e($app->user->fname); ?> <?php echo e($app->user->lname); ?></td>
-                                <td style="color: rgba(255,255,255,0.6);"><?php echo e($app->user->email); ?></td>
-                                <td>
-                                    <span class="badge <?php echo e(strtolower($app->status)); ?>">
-                                        <?php echo e($app->status); ?>
-
-                                    </span>
-                                </td>
-                                <td>
-                                    <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;"><?php echo e($app->submitted_at->format('M d, Y')); ?></div>
-                                    <div style="color: rgba(255,255,255,0.4); font-size: 0.8rem;"><?php echo e($app->submitted_at->format('h:i A')); ?></div>
-                                </td>
-                                <td style="text-align: right;">
-                                    <a href="<?php echo e(route('admin.applications.show', ['id' => $app->id, 'tab' => $tab, 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate])); ?>" class="btn-sm">
-                                        <i data-lucide="eye"></i> View Details
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="table-footer">
-                Showing <?php echo e($applications->count()); ?> applications
-            </div>
-        <?php endif; ?>
-    </div>
+        <div class="date-grp">
+          <label>To Date</label>
+          <input type="date" name="to_date" value="<?php echo e($toDate ?? ''); ?>" onchange="this.form.submit()">
+        </div>
+      </div>
+    </form>
   </div>
 
+  
+  <div class="app-tabs">
+    <?php $__currentLoopData = ['all' => 'All', 'pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+      <?php $count = $counts[$key] ?? 0; ?>
+      <a href="<?php echo e(route('admin.applications.index', ['tab' => $key, 'search' => $search ?? '', 'from_date' => $fromDate ?? '', 'to_date' => $toDate ?? ''])); ?>"
+         class="<?php echo e($tab === $key ? 'active' : ''); ?>">
+        <?php echo e($label); ?> <?php if($count > 0): ?><span style="opacity:0.65;">(<?php echo e($count); ?>)</span><?php endif; ?>
+      </a>
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+  </div>
+
+  
+  <div class="adm-card apps-panel">
+    <div class="adm-table-wrap">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User Name</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Submitted At</th>
+            <th style="text-align:right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php $__empty_1 = true; $__currentLoopData = $applications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $app): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <tr>
+              <td style="color:var(--adm-muted);font-weight:700;">#<?php echo e($app->id); ?></td>
+              <td style="font-weight:600;"><?php echo e($app->user->name ?? '—'); ?></td>
+              <td style="color:var(--adm-muted);"><?php echo e($app->user->email ?? '—'); ?></td>
+              <td>
+                <span class="badge <?php echo e(strtolower($app->status)); ?>">
+                  <?php echo e(ucfirst($app->status)); ?>
+
+                </span>
+              </td>
+              <td style="color:var(--adm-muted);font-size:0.84rem;">
+                <?php echo e($app->created_at->format('h:i A')); ?><br>
+                <span style="font-size:0.78rem;opacity:0.7;"><?php echo e($app->created_at->format('M d, Y')); ?></span>
+              </td>
+              <td style="text-align:right;">
+                <a href="<?php echo e(route('admin.applications.show', ['id' => $app->id, 'tab' => $tab])); ?>"
+                   class="btn-view">
+                  <i data-lucide="eye" style="width:13px;"></i> View Details
+                </a>
+              </td>
+            </tr>
+          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+            <tr><td colspan="6" class="adm-empty">No applications found.</td></tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer">Showing <?php echo e($applications->count()); ?> application<?php echo e($applications->count() !== 1 ? 's' : ''); ?></div>
+  </div>
+
+</div>
+</div>
 </main>
+<?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-
-    // Debounced Search Submission
-    const searchInput = document.querySelector('input[name="search"]');
-    const filterForm = searchInput ? searchInput.closest('form') : null;
-    let searchTimeout;
-
-    if (searchInput && filterForm) {
-        searchInput.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                filterForm.submit();
-            }, 500); 
-        });
-
-        if (searchInput.value) {
-            searchInput.focus();
-            searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
-        }
-    }
-});
+document.addEventListener('DOMContentLoaded', () => { if (typeof lucide !== 'undefined') lucide.createIcons(); });
 </script>
 <?php $__env->stopPush(); ?>
-<?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.admin', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\websystem\resources\views/admin/applications/index.blade.php ENDPATH**/ ?>

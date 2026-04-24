@@ -1,605 +1,498 @@
-
-
 <?php $__env->startSection('title', 'Admin - Application Details'); ?>
 
 <?php $__env->startPush('styles'); ?>
 <style>
-.admin-container {
-    width: 100%;
-    margin: 0 auto;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+/* ── Admin Application Detail – Light Mode ─────────────────── */
+@keyframes  floatIn {
+    0%   { opacity: 0; transform: translateY(18px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
+
+.admin-body { padding: 32px 24px; min-height: 100vh; background: var(--adm-bg); }
+
+/* Main panel */
+.glass-panel {
+    background: var(--adm-panel);
+    border: 1px solid var(--adm-border);
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: var(--adm-shadow-sm);
+    animation: floatIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
 .header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 25px 30px;
-    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--adm-border-2);
 }
 .header-top h1 {
-    font-size: 1.6rem;
-    font-weight: 600;
+    font-size: 1.7rem;
+    font-weight: 800;
     margin: 0;
-    color: var(--text);
+    color: var(--adm-text);
+    letter-spacing: -0.3px;
 }
+
+/* Badges */
 .badge {
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 700;
+    padding: 5px 13px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 800;
     text-transform: uppercase;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     letter-spacing: 0.5px;
 }
-.badge.pending {
-    background: rgba(251, 191, 36, 0.15);
-    color: #d97706;
-    border: 1px solid rgba(251, 191, 36, 0.4);
-}
-.badge.approved {
-    background: rgba(16, 185, 129, 0.1);
-    color: #059669;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-}
-.badge.rejected {
-    background: rgba(239, 68, 68, 0.1);
-    color: #dc2626;
-    border: 1px solid rgba(239, 68, 68, 0.3);
-}
+.badge.pending  { background: rgba(245,158,11,0.12); color: #d97706; border: 1px solid rgba(245,158,11,0.35); }
+.badge.approved { background: rgba(16,185,129,0.12); color: #059669; border: 1px solid rgba(16,185,129,0.35); }
+.badge.rejected { background: rgba(239,68,68,0.10);  color: #dc2626; border: 1px solid rgba(239,68,68,0.3);  }
 
-.details-wrapper {
-    padding: 30px;
-}
-
+/* Section label */
 .section-title {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--adm-muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 20px;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
     display: block;
 }
 
-.detail-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 25px;
-    margin-bottom: 40px;
+/* Info cards */
+.glass-card {
+    background: var(--adm-thead-bg);
+    border: 1px solid var(--adm-border);
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 32px;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
+.glass-card:hover { border-color: rgba(124,58,237,0.25); box-shadow: var(--adm-shadow-row); }
+
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 22px; }
 .detail-item strong {
     display: block;
-    color: var(--muted);
-    font-size: 0.75rem;
-    margin-bottom: 5px;
+    color: var(--adm-muted);
+    font-size: 0.72rem;
+    margin-bottom: 6px;
     text-transform: uppercase;
     font-weight: 700;
+    letter-spacing: 0.5px;
 }
-.detail-item span {
-    font-size: 1rem;
-    color: var(--text);
-    font-weight: 500;
-}
+.detail-item span { font-size: 1rem; color: var(--adm-text); font-weight: 600; }
 
-.document-list {
-    margin-top: 20px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-}
+/* Document list items */
 .document-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid var(--border);
-    background: var(--panel);
+    padding: 18px 20px;
+    background: var(--adm-panel);
+    border: 1.5px solid var(--adm-border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
-.document-item:last-child {
-    border-bottom: none;
-}
-.doc-name {
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 4px;
-}
-.doc-desc {
-    font-size: 0.85rem;
-    color: var(--muted);
-}
+.document-item:hover { border-color: rgba(124,58,237,0.25); box-shadow: 0 3px 12px rgba(15,23,42,0.05); }
+.doc-name  { font-weight: 700; color: var(--adm-text); margin-bottom: 5px; font-size: 1rem; }
+.doc-desc  { font-size: 0.84rem; color: var(--adm-muted); }
+
+/* View file button */
 .btn-outline {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 6px;
+    gap: 7px;
+    padding: 9px 15px;
+    border-radius: 10px;
     text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--primary);
-    background: transparent;
-    border: 1px solid rgba(59, 130, 246, 0.4);
-    transition: all 0.2s ease;
-}
-.btn-outline:hover {
-    background: rgba(59, 130, 246, 0.05);
-    border-color: var(--primary);
-}
-
-.review-actions {
-    margin-top: 40px;
-    padding-top: 30px;
-    border-top: 1px solid var(--border);
-}
-.review-form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-}
-.review-card {
-    background: var(--bg);
-    padding: 25px;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-}
-.review-card textarea {
-    width: 100%;
-    min-height: 100px;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--input-bg);
-    color: var(--text);
-    font-family: inherit;
-    font-size: 0.95rem;
-    margin-bottom: 15px;
-    resize: vertical;
-}
-.btn-solid {
-    padding: 12px 24px;
-    border-radius: 8px;
-    border: none;
+    font-size: 0.84rem;
     font-weight: 700;
-    font-size: 0.95rem;
+    color: #2563eb;
+    background: rgba(37,99,235,0.08);
+    border: 1.5px solid rgba(37,99,235,0.25);
+    transition: all 0.2s;
+}
+.btn-outline:hover { background: rgba(37,99,235,0.15); transform: translateY(-1px); }
+
+/* Action bar */
+.action-bar {
+    display: flex;
+    gap: 14px;
+    justify-content: flex-end;
+    margin-top: 36px;
+    padding-top: 28px;
+    border-top: 1px solid var(--adm-border);
+}
+
+.btn-solid {
+    padding: 12px 26px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 800;
+    font-size: 0.94rem;
     cursor: pointer;
-    color: white;
-    transition: opacity 0.2s;
+    color: #fff;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
-.btn-approve { background: #059669; }
-.btn-reject { background: #dc2626; }
-.btn-solid:hover { opacity: 0.9; }
+.btn-approve { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 14px rgba(16,185,129,0.28); }
+.btn-approve:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(16,185,129,0.38); }
+.btn-reject  { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 14px rgba(239,68,68,0.28); }
+.btn-reject:hover  { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(239,68,68,0.38); }
 
+/* Notes box – Review history card */
 .notes-box {
-    background: var(--bg);
-    padding: 20px;
-    border-radius: 8px;
-    border-left: 4px solid var(--primary);
+    background: var(--adm-panel);
+    border: 1px solid var(--adm-border);
+    padding: 20px 22px;
+    border-radius: 14px;
+    border-left: 4px solid var(--adm-border);
+    box-shadow: var(--adm-shadow);
+    transition: background 0.25s, border-color 0.25s;
+}
+.notes-box-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--adm-text);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.notes-box-date {
+    font-size: 0.82rem;
+    color: var(--adm-muted);
+    font-weight: 600;
+}
+.notes-box-body {
+    white-space: pre-wrap;
+    margin: 12px 0 0;
+    color: var(--adm-text);
+    line-height: 1.7;
+    font-size: 0.94rem;
+    padding: 14px 16px;
+    background: var(--adm-hover);
+    border-radius: 10px;
+    border: 1px solid var(--adm-border-2);
 }
 
+/* Back link */
 .back-link {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: var(--muted);
+    color: var(--adm-muted);
     text-decoration: none;
     font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 20px;
+    font-size: 0.88rem;
+    margin-bottom: 22px;
+    transition: color 0.2s;
 }
-.back-link:hover {
-    color: var(--primary);
-}
-/* Search & Filter Styles */
-.admin-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    align-items: flex-end;
-}
-.admin-search-box {
-    flex: 1;
-    min-width: 300px;
-    position: relative;
-    display: flex;
+.back-link:hover { color: var(--adm-grad-a); }
+
+/* ── Modals ─────────────────────────────────────────────────── */
+.glass-modal-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15,23,42,0.5);
+    backdrop-filter: blur(6px);
+    z-index: 2000;
+    display: none;
     align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s;
 }
-.admin-search-box i,
-.admin-search-box svg {
-    position: absolute !important;
-    left: 15px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    width: 18px !important;
-    height: 18px !important;
-    color: var(--muted);
-    pointer-events: none;
-    z-index: 5;
-}
-.admin-search-box input {
+.glass-modal-backdrop.open { display: flex; opacity: 1; }
+
+.glass-modal {
+    background: var(--adm-panel);
+    border: 1px solid var(--adm-border);
+    border-radius: 20px;
     width: 100%;
-    padding: 12px 15px 12px 42px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--input-bg);
-    color: var(--text);
-    font-size: 0.95rem;
+    max-width: 500px;
+    padding: 30px;
+    box-shadow: 0 20px 50px rgba(15,23,42,0.18);
+    transform: scale(0.96) translateY(14px);
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.glass-modal-backdrop.open .glass-modal { transform: scale(1) translateY(0); }
+
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h2 { font-size: 1.35rem; font-weight: 800; color: var(--adm-text); margin: 0; }
+.modal-close { background: none; border: none; color: var(--adm-muted); cursor: pointer; transition: color 0.2s; padding: 4px; border-radius: 6px; }
+.modal-close:hover { color: var(--adm-text); background: var(--adm-hover); }
+
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; margin-bottom: 7px; font-weight: 700; color: var(--adm-text); font-size: 0.88rem; }
+.form-control {
+    width: 100%;
+    background: var(--adm-input-bg);
+    border: 1.5px solid var(--adm-border);
+    padding: 13px 15px;
+    border-radius: 12px;
+    color: var(--adm-text);
+    font-size: 0.93rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+}
+.form-control::placeholder { color: var(--adm-muted); }
+.form-control:focus { outline: none; border-color: var(--adm-grad-a); box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
+textarea.form-control { resize: vertical; min-height: 100px; }
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 26px; }
+.btn-cancel {
+    background: var(--adm-hover);
+    color: var(--adm-text);
+    border: 1.5px solid var(--adm-border);
+    padding: 11px 22px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
     transition: all 0.2s;
 }
-.admin-search-box input:focus {
-    border-color: var(--primary);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-.admin-date-filters {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-.date-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.date-input-group label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text);
-}
-.date-input-group input[type="date"] {
-    padding: 10px 15px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--input-bg);
-    color: var(--text);
-    font-family: inherit;
-    font-size: 0.9rem;
-    cursor: pointer;
-}
-.admin-tabs {
-    display: flex;
-    gap: 25px;
-    border-bottom: 1px solid var(--border);
-}
-.admin-tabs a {
-    text-decoration: none;
-    color: var(--muted);
-    font-weight: 500;
-    padding: 12px 10px;
-    font-size: 0.95rem;
-    transition: color 0.2s;
-    border-bottom: 2px solid transparent;
-}
-.admin-tabs a:hover {
-    color: var(--text);
-}
-.admin-tabs a.active {
-    color: var(--primary);
-    border-bottom: 2px solid var(--primary);
-    font-weight: 600;
-}
-
-.admin-body {
-    padding: 24px;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
-}
-.admin-main {
-    width: 100%;
-}
+.btn-cancel:hover { background: var(--adm-thead-bg); border-color: rgba(15,23,42,0.2); }
 </style>
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
 
 <main class="dash">
-
   <div class="admin-body">
-    <section class="admin-main">
-        
-        <div class="admin-filters" style="padding: 0 0 20px 0;">
-            <form action="<?php echo e(route('admin.applications.index')); ?>" method="GET" style="display: flex; gap: 20px; flex-wrap: wrap; width: 100%; align-items: flex-end;">
-                <input type="hidden" name="tab" value="<?php echo e($tab); ?>">
-                
-                <div class="admin-search-box">
-                    <i data-lucide="search"></i>
-                    <input type="text" name="search" value="<?php echo e($search ?? ''); ?>" placeholder="Search by name or email..." autocomplete="off">
-                </div>
+    
+    <a href="<?php echo e(route('admin.applications.index', ['tab' => $tab, 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate])); ?>" class="back-link">
+        <i data-lucide="arrow-left" style="width:16px;"></i> Back to Applications
+    </a>
 
-                <div class="admin-date-filters">
-                    <div class="date-input-group">
-                        <label>From Date</label>
-                        <input type="date" name="from_date" value="<?php echo e($fromDate ?? ''); ?>" onchange="this.form.submit()">
-                    </div>
-                    <div class="date-input-group">
-                        <label>To Date</label>
-                        <input type="date" name="to_date" value="<?php echo e($toDate ?? ''); ?>" onchange="this.form.submit()">
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        
-        <div class="admin-tabs" style="padding: 0 0 20px 0; margin-bottom: 20px;">
-            <a href="<?php echo e(route('admin.applications.index', ['tab' => 'all', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate])); ?>" class="<?php echo e($tab === 'all' ? 'active' : ''); ?>">All</a>
-            <a href="<?php echo e(route('admin.applications.index', ['tab' => 'pending', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate])); ?>" class="<?php echo e($tab === 'pending' ? 'active' : ''); ?>">Pending</a>
-            <a href="<?php echo e(route('admin.applications.index', ['tab' => 'approved', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate])); ?>" class="<?php echo e($tab === 'approved' ? 'active' : ''); ?>">Approved</a>
-            <a href="<?php echo e(route('admin.applications.index', ['tab' => 'rejected', 'search' => $search, 'from_date' => $fromDate, 'to_date' => $toDate])); ?>" class="<?php echo e($tab === 'rejected' ? 'active' : ''); ?>">Rejected</a>
-        </div>
-
-        <div class="admin-container">
-            <div class="header-top">
-                <div style="display: flex; flex-direction: column; gap: 5px;">
-                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Doctor Application Review</span>
-                    <h1>Application #<?php echo e($application->id); ?></h1>
-                </div>
-                <span class="badge <?php echo e($application->status); ?>"><?php echo e($application->status); ?></span>
+    <div class="glass-panel">
+        <div class="header-top">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <span style="font-size: 0.8rem; font-weight: 800; color: var(--adm-muted); text-transform: uppercase; letter-spacing: 1px;">Doctor Application Review</span>
+                <h1>Application #<?php echo e($application->id); ?></h1>
             </div>
+            <span class="badge <?php echo e($application->status); ?>"><?php echo e($application->status); ?></span>
+        </div>
 
-            <div class="details-wrapper">
+        
+        <span class="section-title">1. Personal Information</span>
+        <?php
+            $bday = $application->user->bday ? \Carbon\Carbon::parse($application->user->bday) : null;
+            $age   = $bday ? $bday->age : null;
+            $genderMap = ['male' => 'Male', 'female' => 'Female', 'other' => 'Other', 'prefer_not_say' => 'Prefer not to say'];
+        ?>
+        <div class="glass-card detail-grid">
+            <div class="detail-item"><strong>First Name</strong><span><?php echo e($application->user->fname ?? '—'); ?></span></div>
+            <div class="detail-item"><strong>Middle Name</strong><span><?php echo e($application->user->mname ?? '—'); ?></span></div>
+            <div class="detail-item"><strong>Last Name</strong><span><?php echo e($application->user->lname ?? '—'); ?></span></div>
+            <div class="detail-item"><strong>Gender</strong><span><?php echo e($genderMap[$application->user->gender] ?? ucfirst($application->user->gender ?? '—')); ?></span></div>
+            <div class="detail-item"><strong>Birthday</strong><span><?php echo e($bday ? $bday->format('M d, Y') : '—'); ?></span></div>
+            <div class="detail-item"><strong>Age</strong><span><?php echo e($age !== null ? $age . ' years old' : '—'); ?></span></div>
+        </div>
 
-                
-                <span class="section-title">1. Personal Information</span>
-                <?php
-                    $bday = $application->user->bday ? \Carbon\Carbon::parse($application->user->bday) : null;
-                    $age   = $bday ? $bday->age : null;
-                    $genderMap = ['male' => 'Male', 'female' => 'Female', 'other' => 'Other', 'prefer_not_say' => 'Prefer not to say'];
-                ?>
-                <div class="detail-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 30px;">
-                    <div class="detail-item">
-                        <strong>First Name</strong>
-                        <span><?php echo e($application->user->fname ?? '—'); ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Middle Name</strong>
-                        <span><?php echo e($application->user->mname ?? '—'); ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Last Name</strong>
-                        <span><?php echo e($application->user->lname ?? '—'); ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Gender</strong>
-                        <span><?php echo e($genderMap[$application->user->gender] ?? ucfirst($application->user->gender ?? '—')); ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Birthday</strong>
-                        <span><?php echo e($bday ? $bday->format('M d, Y') : '—'); ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Age</strong>
-                        <span><?php echo e($age !== null ? $age . ' years old' : '—'); ?></span>
-                    </div>
-                </div>
+        
+        <span class="section-title">2. Account Credentials</span>
+        <div class="glass-card detail-grid">
+            <div class="detail-item"><strong>Username</strong><span><?php echo e('@' . ($application->user->username ?? '—')); ?></span></div>
+            <div class="detail-item"><strong>Email Address</strong><span><?php echo e($application->user->email ?? '—'); ?></span></div>
+            <div class="detail-item"><strong>Account Role</strong><span style="text-transform: capitalize;"><?php echo e($application->user->role ?? '—'); ?></span></div>
+            <div class="detail-item"><strong>Doctor Status</strong><span class="badge <?php echo e($application->status); ?>"><?php echo e(ucfirst($application->status)); ?></span></div>
+        </div>
 
-                <hr style="border: none; border-top: 1px solid var(--border); margin-bottom: 30px;">
+        
+        <span class="section-title">3. Professional Information</span>
+        <div class="glass-card detail-grid">
+            <div class="detail-item"><strong>Professional Title</strong><span><?php echo e($application->professional_titles ?? 'Not specified'); ?></span></div>
+            <div class="detail-item"><strong>Submitted On</strong><span><?php echo e($application->submitted_at->format('M d, Y')); ?></span></div>
+            <div class="detail-item"><strong>Time Submitted</strong><span><?php echo e($application->submitted_at->format('h:i A')); ?></span></div>
+        </div>
 
-                
-                <span class="section-title">2. Account Credentials</span>
-                <div class="detail-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 30px;">
-                    <div class="detail-item">
-                        <strong>Username</strong>
-                        <span><?php echo e('@' . ($application->user->username ?? '—')); ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Email Address</strong>
-                        <span><?php echo e($application->user->email ?? '—'); ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Account Role</strong>
-                        <span style="text-transform: capitalize;"><?php echo e($application->user->role ?? '—'); ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Doctor Status</strong>
-                        <span class="badge <?php echo e($application->status); ?>" style="font-size: 0.7rem;"><?php echo e(ucfirst($application->status)); ?></span>
-                    </div>
-                </div>
+        
+        <span class="section-title">4. Biometric Verification</span>
+        <div class="glass-card detail-grid">
+            <div class="detail-item">
+                <strong>Biometric Consent</strong>
+                <?php if($application->biometric_consent): ?>
+                    <span style="color: #10b981;">✓ Agreed</span>
+                <?php else: ?>
+                    <span style="color: #ef4444;">✗ Not Given</span>
+                <?php endif; ?>
+            </div>
+            <div class="detail-item">
+                <strong>Liveness Verified</strong>
+                <?php if($application->liveness_verified): ?>
+                    <span style="color: #10b981;">✓ Verified</span>
+                <?php else: ?>
+                    <span style="color: #ef4444;">✗ Not Verified</span>
+                <?php endif; ?>
+            </div>
+            <div class="detail-item"><strong>Verified At</strong><span><?php echo e($application->biometric_verified_at ? \Carbon\Carbon::parse($application->biometric_verified_at)->format('M d, Y h:i A') : '—'); ?></span></div>
+        </div>
 
-                <hr style="border: none; border-top: 1px solid var(--border); margin-bottom: 30px;">
+        
+        <span class="section-title">5. Submitted Documents</span>
+        <?php
+            $submittedDocs = $application->documents->keyBy('doctor_requirement_id');
+        ?>
 
-                
-                <span class="section-title">3. Professional Information</span>
-                <div class="detail-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 30px;">
-                    <div class="detail-item">
-                        <strong>Professional Title</strong>
-                        <span><?php echo e($application->professional_titles ?? 'Not specified'); ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Submitted On</strong>
-                        <span><?php echo e($application->submitted_at->format('M d, Y')); ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Time Submitted</strong>
-                        <span><?php echo e($application->submitted_at->format('h:i A')); ?></span>
-                    </div>
-                </div>
+        <?php if(isset($requirements) && $requirements->isNotEmpty()): ?>
+            <div class="document-list" style="margin-bottom: 40px;">
+                <?php $__currentLoopData = $requirements; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $req): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php $doc = $submittedDocs->get($req->id); ?>
+                    <div class="document-item" style="<?php echo e(!$doc && $req->is_required ? 'border-left: 4px solid #ef4444;' : (!$doc ? 'border-left: 4px solid #f59e0b;' : 'border-left: 4px solid #10b981;')); ?>">
+                        <div style="flex: 1; min-width: 200px;">
+                            <div class="doc-name">
+                                <?php echo e($req->name); ?>
 
-                <hr style="border: none; border-top: 1px solid var(--border); margin-bottom: 30px;">
+                                <?php if($req->is_required): ?>
+                                    <span style="background: rgba(239,68,68,0.1); color:#ef4444; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; margin-left: 8px;">Required</span>
+                                <?php else: ?>
+                                    <span style="background: rgba(255,255,255,0.05); color: var(--adm-muted); padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; margin-left: 8px;">Optional</span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="doc-desc"><?php echo e($req->description ?? 'No description provided.'); ?></div>
 
-                
-                <span class="section-title">4. Biometric Verification</span>
-                <div class="detail-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 30px;">
-                    <div class="detail-item">
-                        <strong>Biometric Consent</strong>
-                        <?php if($application->biometric_consent): ?>
-                            <span style="color: #059669; font-weight: 600;">✓ Agreed</span>
-                        <?php else: ?>
-                            <span style="color: #dc2626;">✗ Not Given</span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Liveness Verified</strong>
-                        <?php if($application->liveness_verified): ?>
-                            <span style="color: #059669; font-weight: 600;">✓ Verified</span>
-                        <?php else: ?>
-                            <span style="color: #dc2626;">✗ Not Verified</span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Verified At</strong>
-                        <span><?php echo e($application->biometric_verified_at ? \Carbon\Carbon::parse($application->biometric_verified_at)->format('M d, Y h:i A') : '—'); ?></span>
-                    </div>
-                </div>
+                            <?php if(!$doc): ?>
+                                <div style="margin-top: 12px; padding: 10px 16px; background: rgba(0,0,0,0.2); border: 1px solid <?php echo e($req->is_required ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)'); ?>; border-radius: 8px; font-size: 0.85rem; color: <?php echo e($req->is_required ? '#ef4444' : '#f59e0b'); ?>;">
+                                    <i data-lucide="alert-triangle" style="width:14px; margin-right:4px;"></i> 
+                                    <strong>Not Submitted</strong> — <?php echo e($req->is_required ? 'This required document is missing.' : 'This optional document was not provided.'); ?>
 
-                <hr style="border: none; border-top: 1px solid var(--border); margin-bottom: 30px;">
-
-                
-                <span class="section-title">5. Requirements Verification — Submitted Documents</span>
-
-                <?php
-                    // Key submitted docs by requirement_id for easy lookup
-                    $submittedDocs = $application->documents->keyBy('doctor_requirement_id');
-                    // Docs without a linked requirement (orphaned)
-                    $orphanedDocs = $application->documents->filter(fn($d) => !$d->requirement);
-                ?>
-
-                <?php if(isset($requirements) && $requirements->isNotEmpty()): ?>
-                    <div class="document-list">
-                        <?php $__currentLoopData = $requirements; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $req): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <?php $doc = $submittedDocs->get($req->id); ?>
-                            <div class="document-item" style="flex-wrap: wrap; gap: 10px; <?php echo e(!$doc && $req->is_required ? 'border-left: 4px solid #ef4444;' : (!$doc ? 'border-left: 4px solid #d97706;' : 'border-left: 4px solid #059669;')); ?>">
-                                <div style="flex: 1; min-width: 200px;">
-                                    <div class="doc-name">
-                                        <?php echo e($req->name); ?>
-
-                                        <?php if($req->is_required): ?>
-                                            <span style="background: rgba(239,68,68,0.1); color:#ef4444; padding: 2px 7px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 6px;">Required</span>
-                                        <?php else: ?>
-                                            <span style="background: var(--input-bg); color: var(--muted); padding: 2px 7px; border-radius: 4px; font-size: 0.7rem; margin-left: 6px;">Optional</span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="doc-desc"><?php echo e($req->description ?? 'No description provided.'); ?></div>
-
-                                    <?php if(!$doc): ?>
-                                        <?php if($req->is_required): ?>
-                                            <div style="margin-top: 8px; padding: 8px 12px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; font-size: 0.82rem; color: #dc2626;">
-                                                ⚠ <strong>Not Submitted</strong> — This required document was not uploaded. The application may be incomplete.
-                                            </div>
-                                        <?php else: ?>
-                                            <div style="margin-top: 8px; padding: 8px 12px; background: rgba(217,119,6,0.08); border: 1px solid rgba(217,119,6,0.25); border-radius: 6px; font-size: 0.82rem; color: #b45309;">
-                                                ℹ <strong>Not Submitted</strong> — This optional document was not provided by the applicant.
-                                            </div>
-                                        <?php endif; ?>
-                                    <?php else: ?>
-                                        <?php
-                                            $ext = $doc->file_path ? strtoupper(pathinfo($doc->file_path, PATHINFO_EXTENSION)) : null;
-                                            $isVideo = in_array(strtolower($ext ?? ''), ['mp4', 'webm', 'mov', 'avi']);
-                                        ?>
-                                        <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                            <?php if($ext): ?>
-                                                <span style="background: rgba(59,130,246,0.1); color:#3b82f6; padding: 2px 8px; border-radius: 4px; font-size:0.75rem; font-weight:700;">
-                                                    <?php echo e($isVideo ? '🎥' : '📄'); ?> <?php echo e($ext); ?>
-
-                                                </span>
-                                            <?php endif; ?>
-                                            <span style="font-size: 0.8rem; color: var(--muted);"><?php echo e(basename($doc->file_path ?? '—')); ?></span>
-                                        </div>
-                                    <?php endif; ?>
                                 </div>
-
-                                <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
-                                    <?php if($doc): ?>
-                                        <span style="font-size: 0.8rem; color: <?php echo e($doc->status === 'accepted' ? '#059669' : ($doc->status === 'rejected' ? '#dc2626' : '#d97706')); ?>; font-weight: 600; text-transform: capitalize; min-width: 65px; text-align: right;">
-                                            <?php echo e(ucfirst($doc->status ?? 'submitted')); ?>
+                            <?php else: ?>
+                                <?php
+                                    $ext = $doc->file_path ? strtoupper(pathinfo($doc->file_path, PATHINFO_EXTENSION)) : null;
+                                    $isVideo = in_array(strtolower($ext ?? ''), ['mp4', 'webm', 'mov', 'avi']);
+                                ?>
+                                <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
+                                    <?php if($ext): ?>
+                                        <span style="background: rgba(59,130,246,0.15); color:#3b82f6; padding: 4px 10px; border-radius: 6px; font-size:0.75rem; font-weight:800; border: 1px solid rgba(59,130,246,0.3);">
+                                            <?php echo e($isVideo ? '🎥' : '📄'); ?> <?php echo e($ext); ?>
 
                                         </span>
-                                        <?php if($doc->file_path): ?>
-                                            <a href="<?php echo e(asset('storage/' . $doc->file_path)); ?>" target="_blank" class="btn-outline">
-                                                <i data-lucide="external-link" style="width: 16px; height: 16px;"></i>
-                                                View
-                                            </a>
-                                        <?php endif; ?>
-                                    <?php else: ?>
-                                        <span style="font-size: 0.8rem; color: var(--muted); font-style: italic;">No file</span>
                                     <?php endif; ?>
+                                    <span style="font-size: 0.85rem; color: var(--adm-muted);"><?php echo e(basename($doc->file_path ?? '—')); ?></span>
                                 </div>
-                            </div>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            <?php endif; ?>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 16px; flex-shrink: 0; margin-left: 20px;">
+                            <?php if($doc): ?>
+                                <span style="font-size: 0.85rem; color: <?php echo e($doc->status === 'accepted' ? '#10b981' : ($doc->status === 'rejected' ? '#ef4444' : '#f59e0b')); ?>; font-weight: 700; text-transform: uppercase;">
+                                    <?php echo e($doc->status ?? 'submitted'); ?>
+
+                                </span>
+                                <?php if($doc->file_path): ?>
+                                    <a href="<?php echo e(asset('storage/' . $doc->file_path)); ?>" target="_blank" class="btn-outline">
+                                        <i data-lucide="external-link" style="width: 14px;"></i> View File
+                                    </a>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <span style="font-size: 0.85rem; color: var(--adm-muted); font-style: italic;">No file attached</span>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                <?php else: ?>
-                    <p style="color: var(--muted); padding: 20px; text-align: center; background: var(--bg); border-radius: 8px;">No requirement definitions found.</p>
-                <?php endif; ?>
-
-                
-                <div class="review-actions">
-                    <?php if($application->status === 'pending'): ?>
-                        <span class="section-title">Review Decision</span>
-                        <div class="review-form-grid">
-                            <div class="review-card" style="border-top: 4px solid #059669;">
-                                <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: #059669;">Approve Application</h3>
-                                <form action="<?php echo e(route('admin.applications.approve', $application->id)); ?>" method="POST">
-                                    <?php echo csrf_field(); ?>
-                                    <textarea name="admin_notes" placeholder="Add approval notes for the doctor (optional)..."></textarea>
-                                    <button type="submit" class="btn-solid btn-approve" style="width: 100%;">
-                                        Approve &amp; Verify Doctor
-                                    </button>
-                                </form>
-                            </div>
-                            <div class="review-card" style="border-top: 4px solid #dc2626;">
-                                <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: #dc2626;">Reject Application</h3>
-                                <form action="<?php echo e(route('admin.applications.reject', $application->id)); ?>" method="POST">
-                                    <?php echo csrf_field(); ?>
-                                    <textarea name="admin_notes" placeholder="Explain the reason for rejection (required)..." required></textarea>
-                                    <button type="submit" class="btn-solid btn-reject" style="width: 100%;">
-                                        Reject Application
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    <?php else: ?>
-                        <span class="section-title">Review History</span>
-                        <div class="notes-box" style="border-left-color: <?php echo e($application->status === 'approved' ? '#059669' : '#dc2626'); ?>;">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                                <strong style="font-size: 1rem; color: var(--text);">Administrator Feedback</strong>
-                                <span style="font-size: 0.8rem; color: var(--muted);"><?php echo e($application->reviewed_at->format('M d, Y h:i A')); ?></span>
-                            </div>
-                            <p style="white-space: pre-wrap; margin: 0; color: var(--text); line-height: 1.6;"><?php echo e($application->admin_notes ?? 'No additional notes provided by the administrator.'); ?></p>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
-        </div>
-    </section>
+        <?php else: ?>
+            <p style="color: var(--adm-muted); padding: 30px; text-align: center; background: rgba(0,0,0,0.2); border-radius: 12px; font-weight: 600;">No requirement definitions found.</p>
+        <?php endif; ?>
+
+        
+        <?php if($application->status === 'pending'): ?>
+            <div class="action-bar">
+                <button type="button" class="btn-solid btn-reject" onclick="openRejectModal()">
+                    <i data-lucide="x-circle"></i> Reject Application
+                </button>
+                <button type="button" class="btn-solid btn-approve" onclick="openApproveModal()">
+                    <i data-lucide="check-circle"></i> Approve & Verify
+                </button>
+            </div>
+        <?php else: ?>
+            <span class="section-title">Review History</span>
+            <div class="notes-box" style="border-left-color: <?php echo e($application->status === 'approved' ? '#10b981' : '#ef4444'); ?>;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+                    <div class="notes-box-title">
+                        <?php if($application->status === 'approved'): ?>
+                            <i data-lucide="check-circle" style="width:16px;color:#10b981;"></i>
+                        <?php else: ?>
+                            <i data-lucide="x-circle" style="width:16px;color:#ef4444;"></i>
+                        <?php endif; ?>
+                        Administrator Feedback
+                    </div>
+                    <span class="notes-box-date">Reviewed on <?php echo e($application->reviewed_at ? $application->reviewed_at->format('M d, Y h:i A') : '—'); ?></span>
+                </div>
+                <div class="notes-box-body"><?php echo e($application->admin_notes ?? 'No additional notes provided by the administrator.'); ?></div>
+            </div>
+        <?php endif; ?>
+
+    </div>
   </div>
 </main>
-<?php $__env->stopSection(); ?>
+
+<!-- Approve Modal -->
+<div class="glass-modal-backdrop" id="approveModal">
+    <div class="glass-modal" style="border-top: 4px solid #10b981;">
+        <div class="modal-header">
+            <h2>Approve Application</h2>
+            <button class="modal-close" onclick="closeApproveModal()"><i data-lucide="x"></i></button>
+        </div>
+        <p style="color: var(--adm-text); font-size: 0.95rem; margin-bottom: 24px;">You are about to approve <strong><?php echo e($application->user->fname); ?> <?php echo e($application->user->lname); ?></strong> as a Verified Doctor. They will gain access to the Doctor Portal.</p>
+        <form action="<?php echo e(route('admin.applications.approve', $application->id)); ?>" method="POST">
+            <?php echo csrf_field(); ?>
+            <div class="form-group">
+                <label>Admin Notes (Optional)</label>
+                <textarea name="admin_notes" class="form-control" placeholder="Add approval notes or feedback for the doctor..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeApproveModal()">Cancel</button>
+                <button type="submit" class="btn-solid btn-approve">Confirm Approval</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="glass-modal-backdrop" id="rejectModal">
+    <div class="glass-modal" style="border-top: 4px solid #ef4444;">
+        <div class="modal-header">
+            <h2>Reject Application</h2>
+            <button class="modal-close" onclick="closeRejectModal()"><i data-lucide="x"></i></button>
+        </div>
+        <p style="color: var(--adm-text); font-size: 0.95rem; margin-bottom: 24px;">You are rejecting the application for <strong><?php echo e($application->user->fname); ?> <?php echo e($application->user->lname); ?></strong>. Please provide a reason so they can correct it and reapply.</p>
+        <form action="<?php echo e(route('admin.applications.reject', $application->id)); ?>" method="POST">
+            <?php echo csrf_field(); ?>
+            <div class="form-group">
+                <label>Reason for Rejection <span style="color:#ef4444;">*</span></label>
+                <textarea name="admin_notes" class="form-control" placeholder="Explain what is missing or invalid..." required></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeRejectModal()">Cancel</button>
+                <button type="submit" class="btn-solid btn-reject">Confirm Rejection</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <?php $__env->startPush('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize Lucide icons
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-
-    // Debounced Search Submission
-    const searchInput = document.querySelector('input[name="search"]');
-    const filterForm = searchInput ? searchInput.closest('form') : null;
-    let searchTimeout;
-
-    if (searchInput && filterForm) {
-        searchInput.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                filterForm.submit();
-            }, 500);
-        });
-
-        if (searchInput.value && document.activeElement !== searchInput) {
-            // Only refocus if the search input had a value (implies we just returned or changed it)
-            // But be careful not to trigger it unnecessarily
-        }
-    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 });
+
+function openApproveModal() { document.getElementById('approveModal').classList.add('open'); }
+function closeApproveModal() { document.getElementById('approveModal').classList.remove('open'); }
+
+function openRejectModal() { document.getElementById('rejectModal').classList.add('open'); }
+function closeRejectModal() { document.getElementById('rejectModal').classList.remove('open'); }
 </script>
 <?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.admin', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\websystem\resources\views/admin/applications/show.blade.php ENDPATH**/ ?>

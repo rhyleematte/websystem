@@ -4,38 +4,22 @@
 
 @push('styles')
 <style>
-/* Premium Dark Mode Glassmorphism Theme */
-:root {
-    --glass-bg: rgba(25, 30, 45, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-hover-border: rgba(255, 255, 255, 0.2);
-    --neon-blue: #3b82f6;
-    --neon-green: #10b981;
-    --neon-orange: #f59e0b;
-    --neon-red: #ef4444;
-}
-
+/* ── Admin Application Detail – Light Mode ─────────────────── */
 @keyframes floatIn {
-    0% { opacity: 0; transform: translateY(20px); }
+    0%   { opacity: 0; transform: translateY(18px); }
     100% { opacity: 1; transform: translateY(0); }
 }
 
-.admin-body {
-    padding: 40px 24px;
-    background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05), transparent 40%),
-                radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.05), transparent 40%);
-    min-height: 100vh;
-}
+.admin-body { padding: 32px 24px; min-height: 100vh; background: var(--adm-bg); }
 
+/* Main panel */
 .glass-panel {
-    background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
+    background: var(--adm-panel);
+    border: 1px solid var(--adm-border);
     border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    animation: floatIn 0.6s ease-out forwards;
+    padding: 32px;
+    box-shadow: var(--adm-shadow-sm);
+    animation: floatIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
     margin: 0 auto;
     max-width: 1200px;
 }
@@ -44,25 +28,23 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 28px;
     padding-bottom: 20px;
-    border-bottom: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--adm-border-2);
 }
-
 .header-top h1 {
-    font-size: 1.8rem;
+    font-size: 1.7rem;
     font-weight: 800;
     margin: 0;
-    background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
-    -webkit-background-clip: text;
-    color: transparent;
-    letter-spacing: 0.5px;
+    color: var(--adm-text);
+    letter-spacing: -0.3px;
 }
 
+/* Badges */
 .badge {
-    padding: 6px 14px;
+    padding: 5px 13px;
     border-radius: 20px;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 800;
     text-transform: uppercase;
     display: inline-flex;
@@ -70,213 +52,216 @@
     justify-content: center;
     letter-spacing: 0.5px;
 }
-.badge.pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
-.badge.approved { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
-.badge.rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+.badge.pending  { background: rgba(245,158,11,0.12); color: #d97706; border: 1px solid rgba(245,158,11,0.35); }
+.badge.approved { background: rgba(16,185,129,0.12); color: #059669; border: 1px solid rgba(16,185,129,0.35); }
+.badge.rejected { background: rgba(239,68,68,0.10);  color: #dc2626; border: 1px solid rgba(239,68,68,0.3);  }
 
+/* Section label */
 .section-title {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 800;
-    color: rgba(255,255,255,0.5);
+    color: var(--adm-muted);
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     display: block;
 }
 
+/* Info cards */
 .glass-card {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--glass-border);
+    background: var(--adm-thead-bg);
+    border: 1px solid var(--adm-border);
     border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 40px;
-    transition: all 0.3s;
+    padding: 22px;
+    margin-bottom: 32px;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
-.glass-card:hover {
-    border-color: rgba(255,255,255,0.15);
-    background: rgba(0,0,0,0.25);
-}
+.glass-card:hover { border-color: rgba(124,58,237,0.25); box-shadow: var(--adm-shadow-row); }
 
-.detail-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 25px;
-}
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 22px; }
 .detail-item strong {
     display: block;
-    color: rgba(255,255,255,0.5);
-    font-size: 0.75rem;
-    margin-bottom: 8px;
+    color: var(--adm-muted);
+    font-size: 0.72rem;
+    margin-bottom: 6px;
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 0.5px;
 }
-.detail-item span {
-    font-size: 1.05rem;
-    color: #fff;
-    font-weight: 600;
-}
+.detail-item span { font-size: 1rem; color: var(--adm-text); font-weight: 600; }
 
+/* Document list items */
 .document-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    background: rgba(255,255,255,0.02);
-    border: 1px solid var(--glass-border);
+    padding: 18px 20px;
+    background: var(--adm-panel);
+    border: 1.5px solid var(--adm-border);
     border-radius: 12px;
-    margin-bottom: 12px;
-    transition: all 0.3s;
+    margin-bottom: 10px;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
-.document-item:hover {
-    background: rgba(255,255,255,0.05);
-    border-color: rgba(255,255,255,0.15);
-}
-.doc-name {
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 6px;
-    font-size: 1.05rem;
-}
-.doc-desc {
-    font-size: 0.85rem;
-    color: rgba(255,255,255,0.5);
-}
+.document-item:hover { border-color: rgba(124,58,237,0.25); box-shadow: 0 3px 12px rgba(15,23,42,0.05); }
+.doc-name  { font-weight: 700; color: var(--adm-text); margin-bottom: 5px; font-size: 1rem; }
+.doc-desc  { font-size: 0.84rem; color: var(--adm-muted); }
 
+/* View file button */
 .btn-outline {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
+    gap: 7px;
+    padding: 9px 15px;
     border-radius: 10px;
     text-decoration: none;
-    font-size: 0.85rem;
+    font-size: 0.84rem;
     font-weight: 700;
-    color: #3b82f6;
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #2563eb;
+    background: rgba(37,99,235,0.08);
+    border: 1.5px solid rgba(37,99,235,0.25);
     transition: all 0.2s;
 }
-.btn-outline:hover {
-    background: rgba(59, 130, 246, 0.2);
-    transform: translateY(-2px);
-}
+.btn-outline:hover { background: rgba(37,99,235,0.15); transform: translateY(-1px); }
 
+/* Action bar */
 .action-bar {
     display: flex;
-    gap: 16px;
+    gap: 14px;
     justify-content: flex-end;
-    margin-top: 40px;
-    padding-top: 30px;
-    border-top: 1px solid var(--glass-border);
+    margin-top: 36px;
+    padding-top: 28px;
+    border-top: 1px solid var(--adm-border);
 }
 
 .btn-solid {
-    padding: 12px 28px;
+    padding: 12px 26px;
     border-radius: 12px;
     border: none;
     font-weight: 800;
-    font-size: 0.95rem;
+    font-size: 0.94rem;
     cursor: pointer;
-    color: white;
-    transition: all 0.3s;
+    color: #fff;
+    transition: all 0.25s;
     display: inline-flex;
     align-items: center;
     gap: 8px;
 }
-.btn-approve {
-    background: linear-gradient(135deg, #10b981, #059669);
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-}
-.btn-approve:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); }
-.btn-reject {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-}
-.btn-reject:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4); }
+.btn-approve { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 14px rgba(16,185,129,0.28); }
+.btn-approve:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(16,185,129,0.38); }
+.btn-reject  { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 14px rgba(239,68,68,0.28); }
+.btn-reject:hover  { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(239,68,68,0.38); }
 
+/* Notes box – Review history card */
 .notes-box {
-    background: rgba(0,0,0,0.3);
-    padding: 24px;
-    border-radius: 16px;
-    border-left: 4px solid var(--glass-border);
+    background: var(--adm-panel);
+    border: 1px solid var(--adm-border);
+    padding: 20px 22px;
+    border-radius: 14px;
+    border-left: 4px solid var(--adm-border);
+    box-shadow: var(--adm-shadow);
+    transition: background 0.25s, border-color 0.25s;
+}
+.notes-box-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--adm-text);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.notes-box-date {
+    font-size: 0.82rem;
+    color: var(--adm-muted);
+    font-weight: 600;
+}
+.notes-box-body {
+    white-space: pre-wrap;
+    margin: 12px 0 0;
+    color: var(--adm-text);
+    line-height: 1.7;
+    font-size: 0.94rem;
+    padding: 14px 16px;
+    background: var(--adm-hover);
+    border-radius: 10px;
+    border: 1px solid var(--adm-border-2);
 }
 
+/* Back link */
 .back-link {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: rgba(255,255,255,0.6);
+    color: var(--adm-muted);
     text-decoration: none;
     font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 24px;
+    font-size: 0.88rem;
+    margin-bottom: 22px;
     transition: color 0.2s;
 }
-.back-link:hover { color: #fff; }
+.back-link:hover { color: var(--adm-grad-a); }
 
-/* Modals */
+/* ── Modals ─────────────────────────────────────────────────── */
 .glass-modal-backdrop {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(8px);
+    background: rgba(15,23,42,0.5);
+    backdrop-filter: blur(6px);
     z-index: 2000;
     display: none;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.25s;
 }
 .glass-modal-backdrop.open { display: flex; opacity: 1; }
+
 .glass-modal {
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--adm-panel);
+    border: 1px solid var(--adm-border);
     border-radius: 20px;
     width: 100%;
     max-width: 500px;
     padding: 30px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    transform: scale(0.95) translateY(20px);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 20px 50px rgba(15,23,42,0.18);
+    transform: scale(0.96) translateY(14px);
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
 }
 .glass-modal-backdrop.open .glass-modal { transform: scale(1) translateY(0); }
 
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.modal-header h2 { font-size: 1.4rem; font-weight: 800; color: #fff; margin: 0; }
-.modal-close { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; transition: color 0.2s; }
-.modal-close:hover { color: #fff; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h2 { font-size: 1.35rem; font-weight: 800; color: var(--adm-text); margin: 0; }
+.modal-close { background: none; border: none; color: var(--adm-muted); cursor: pointer; transition: color 0.2s; padding: 4px; border-radius: 6px; }
+.modal-close:hover { color: var(--adm-text); background: var(--adm-hover); }
 
-.form-group { margin-bottom: 20px; }
-.form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: rgba(255,255,255,0.7); font-size: 0.9rem; }
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; margin-bottom: 7px; font-weight: 700; color: var(--adm-text); font-size: 0.88rem; }
 .form-control {
     width: 100%;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 14px 16px;
+    background: var(--adm-input-bg);
+    border: 1.5px solid var(--adm-border);
+    padding: 13px 15px;
     border-radius: 12px;
-    color: #fff;
-    font-size: 0.95rem;
-    transition: all 0.3s;
+    color: var(--adm-text);
+    font-size: 0.93rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
     font-family: inherit;
 }
-.form-control:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+.form-control::placeholder { color: var(--adm-muted); }
+.form-control:focus { outline: none; border-color: var(--adm-grad-a); box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
 textarea.form-control { resize: vertical; min-height: 100px; }
 
-.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 26px; }
 .btn-cancel {
-    background: rgba(255,255,255,0.05);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.1);
-    padding: 12px 24px;
+    background: var(--adm-hover);
+    color: var(--adm-text);
+    border: 1.5px solid var(--adm-border);
+    padding: 11px 22px;
     border-radius: 12px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
 }
-.btn-cancel:hover { background: rgba(255,255,255,0.1); }
-
+.btn-cancel:hover { background: var(--adm-thead-bg); border-color: rgba(15,23,42,0.2); }
 </style>
 @endpush
 
@@ -292,7 +277,7 @@ textarea.form-control { resize: vertical; min-height: 100px; }
     <div class="glass-panel">
         <div class="header-top">
             <div style="display: flex; flex-direction: column; gap: 8px;">
-                <span style="font-size: 0.8rem; font-weight: 800; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px;">Doctor Application Review</span>
+                <span style="font-size: 0.8rem; font-weight: 800; color: var(--adm-muted); text-transform: uppercase; letter-spacing: 1px;">Doctor Application Review</span>
                 <h1>Application #{{ $application->id }}</h1>
             </div>
             <span class="badge {{ $application->status }}">{{ $application->status }}</span>
@@ -370,7 +355,7 @@ textarea.form-control { resize: vertical; min-height: 100px; }
                                 @if($req->is_required)
                                     <span style="background: rgba(239,68,68,0.1); color:#ef4444; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; margin-left: 8px;">Required</span>
                                 @else
-                                    <span style="background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; margin-left: 8px;">Optional</span>
+                                    <span style="background: rgba(255,255,255,0.05); color: var(--adm-muted); padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; margin-left: 8px;">Optional</span>
                                 @endif
                             </div>
                             <div class="doc-desc">{{ $req->description ?? 'No description provided.' }}</div>
@@ -391,7 +376,7 @@ textarea.form-control { resize: vertical; min-height: 100px; }
                                             {{ $isVideo ? '🎥' : '📄' }} {{ $ext }}
                                         </span>
                                     @endif
-                                    <span style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">{{ basename($doc->file_path ?? '—') }}</span>
+                                    <span style="font-size: 0.85rem; color: var(--adm-muted);">{{ basename($doc->file_path ?? '—') }}</span>
                                 </div>
                             @endif
                         </div>
@@ -407,14 +392,14 @@ textarea.form-control { resize: vertical; min-height: 100px; }
                                     </a>
                                 @endif
                             @else
-                                <span style="font-size: 0.85rem; color: rgba(255,255,255,0.4); font-style: italic;">No file attached</span>
+                                <span style="font-size: 0.85rem; color: var(--adm-muted); font-style: italic;">No file attached</span>
                             @endif
                         </div>
                     </div>
                 @endforeach
             </div>
         @else
-            <p style="color: rgba(255,255,255,0.5); padding: 30px; text-align: center; background: rgba(0,0,0,0.2); border-radius: 12px; font-weight: 600;">No requirement definitions found.</p>
+            <p style="color: var(--adm-muted); padding: 30px; text-align: center; background: rgba(0,0,0,0.2); border-radius: 12px; font-weight: 600;">No requirement definitions found.</p>
         @endif
 
         {{-- === REVIEW ACTIONS === --}}
@@ -430,11 +415,18 @@ textarea.form-control { resize: vertical; min-height: 100px; }
         @else
             <span class="section-title">Review History</span>
             <div class="notes-box" style="border-left-color: {{ $application->status === 'approved' ? '#10b981' : '#ef4444' }};">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                    <strong style="font-size: 1.1rem; color: #fff;">Administrator Feedback</strong>
-                    <span style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">Reviewed on {{ $application->reviewed_at ? $application->reviewed_at->format('M d, Y h:i A') : '—' }}</span>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+                    <div class="notes-box-title">
+                        @if($application->status === 'approved')
+                            <i data-lucide="check-circle" style="width:16px;color:#10b981;"></i>
+                        @else
+                            <i data-lucide="x-circle" style="width:16px;color:#ef4444;"></i>
+                        @endif
+                        Administrator Feedback
+                    </div>
+                    <span class="notes-box-date">Reviewed on {{ $application->reviewed_at ? $application->reviewed_at->format('M d, Y h:i A') : '—' }}</span>
                 </div>
-                <p style="white-space: pre-wrap; margin: 0; color: rgba(255,255,255,0.8); line-height: 1.6; font-size: 0.95rem;">{{ $application->admin_notes ?? 'No additional notes provided by the administrator.' }}</p>
+                <div class="notes-box-body">{{ $application->admin_notes ?? 'No additional notes provided by the administrator.' }}</div>
             </div>
         @endif
 
@@ -449,7 +441,7 @@ textarea.form-control { resize: vertical; min-height: 100px; }
             <h2>Approve Application</h2>
             <button class="modal-close" onclick="closeApproveModal()"><i data-lucide="x"></i></button>
         </div>
-        <p style="color: rgba(255,255,255,0.7); font-size: 0.95rem; margin-bottom: 24px;">You are about to approve <strong>{{ $application->user->fname }} {{ $application->user->lname }}</strong> as a Verified Doctor. They will gain access to the Doctor Portal.</p>
+        <p style="color: var(--adm-text); font-size: 0.95rem; margin-bottom: 24px;">You are about to approve <strong>{{ $application->user->fname }} {{ $application->user->lname }}</strong> as a Verified Doctor. They will gain access to the Doctor Portal.</p>
         <form action="{{ route('admin.applications.approve', $application->id) }}" method="POST">
             @csrf
             <div class="form-group">
@@ -471,7 +463,7 @@ textarea.form-control { resize: vertical; min-height: 100px; }
             <h2>Reject Application</h2>
             <button class="modal-close" onclick="closeRejectModal()"><i data-lucide="x"></i></button>
         </div>
-        <p style="color: rgba(255,255,255,0.7); font-size: 0.95rem; margin-bottom: 24px;">You are rejecting the application for <strong>{{ $application->user->fname }} {{ $application->user->lname }}</strong>. Please provide a reason so they can correct it and reapply.</p>
+        <p style="color: var(--adm-text); font-size: 0.95rem; margin-bottom: 24px;">You are rejecting the application for <strong>{{ $application->user->fname }} {{ $application->user->lname }}</strong>. Please provide a reason so they can correct it and reapply.</p>
         <form action="{{ route('admin.applications.reject', $application->id) }}" method="POST">
             @csrf
             <div class="form-group">

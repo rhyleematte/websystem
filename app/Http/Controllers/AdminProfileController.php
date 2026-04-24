@@ -14,7 +14,10 @@ class AdminProfileController extends Controller
     public function show()
     {
         $admin = Auth::guard('admin')->user();
-        return view('admin.profile', compact('admin'));
+        $avatarUrl = $admin->avatar_url
+            ? asset('storage/' . $admin->avatar_url)
+            : asset('assets/img/default.png');
+        return view('admin.profile', compact('admin', 'avatarUrl'));
     }
 
     /**

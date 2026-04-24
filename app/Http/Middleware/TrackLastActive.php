@@ -6,17 +6,24 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class TrackLastActive
 {
     /**
      * Update last_active_at for the authenticated user at most once per minute
      * to avoid hammering the DB on every request.
+     * NOTE: Skips Admin users — the admins table has no last_active_at column.
      */
     public function handle(Request $request, Closure $next)
     {
         if (Auth::check()) {
             $user = Auth::user();
+
+            // Only track regular Users, not Admins
+            if (!($user instanceof User)) {
+                return $next($request);
+            }
 
             // Only write if last_active_at is null or older than 60 seconds
             $threshold = now()->subMinutes(1);

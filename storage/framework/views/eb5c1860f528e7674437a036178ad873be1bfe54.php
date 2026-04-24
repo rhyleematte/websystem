@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $__env->startSection('title', 'Edit Resource – AskDocPH'); ?>
 
@@ -1539,6 +1539,27 @@ function insertEmoji(emoji) {
 }
 
 // ── Insert Inline Photo ──────────────────────────────────────
+
+// -- Cover Photo (Thumbnail) Preview
+document.getElementById('thumbnailInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const preview = document.getElementById('thumbPreview');
+    const label   = document.getElementById('thumbFileName');
+    if (preview) {
+      preview.src = ev.target.result;
+      preview.style.display = 'block';
+    }
+    if (label) {
+      label.textContent = 'New: ' + file.name;
+      label.style.color = 'var(--res-primary)';
+    }
+    toast('Cover photo ready - save to apply.');
+  };
+  reader.readAsDataURL(file);
+});
 document.getElementById('photoInput').addEventListener('change', function(e) {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();

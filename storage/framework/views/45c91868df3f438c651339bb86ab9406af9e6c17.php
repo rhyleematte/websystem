@@ -54,6 +54,10 @@
       </button>
 
       <div class="dropdown-menu" id="profileDropdown" aria-labelledby="profileToggle">
+        <a href="<?php echo e(route('admin.profile')); ?>" class="dropdown-item" style="text-decoration: none; color: inherit;">
+          <i data-lucide="user-circle"></i><span>My Profile</span>
+        </a>
+        <hr class="dropdown-divider">
         <a href="<?php echo e(route('admin.analytics')); ?>" class="dropdown-item" style="text-decoration: none; color: inherit;">
           <i data-lucide="bar-chart-2"></i><span>Analytics</span>
         </a>
